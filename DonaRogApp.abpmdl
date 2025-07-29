@@ -1,0 +1,101 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "4.2.2",
+      "isInstalled": true
+    },
+    "Volo.Abp.Account": {
+      "version": "9.2.2",
+      "isInstalled": true
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "9.2.2",
+      "isInstalled": true
+    },
+    "Volo.Abp.Identity": {
+      "version": "9.2.2",
+      "isInstalled": true
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "9.2.2",
+      "isInstalled": true
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "9.2.2",
+      "isInstalled": true
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "9.2.2",
+      "isInstalled": true
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "9.2.2",
+      "isInstalled": true
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "DonaRogApp.Application": {
+      "path": "src/DonaRogApp.Application/DonaRogApp.Application.abppkg",
+      "folder": "src"
+    },
+    "DonaRogApp.Application.Tests": {
+      "path": "test/DonaRogApp.Application.Tests/DonaRogApp.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "DonaRogApp.Domain.Shared": {
+      "path": "src/DonaRogApp.Domain.Shared/DonaRogApp.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "DonaRogApp.Application.Contracts": {
+      "path": "src/DonaRogApp.Application.Contracts/DonaRogApp.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "DonaRogApp.HttpApi": {
+      "path": "src/DonaRogApp.HttpApi/DonaRogApp.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "DonaRogApp.HttpApi.Client": {
+      "path": "src/DonaRogApp.HttpApi.Client/DonaRogApp.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "DonaRogApp.EntityFrameworkCore.Tests": {
+      "path": "test/DonaRogApp.EntityFrameworkCore.Tests/DonaRogApp.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "DonaRogApp.EntityFrameworkCore": {
+      "path": "src/DonaRogApp.EntityFrameworkCore/DonaRogApp.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "DonaRogApp.TestBase": {
+      "path": "test/DonaRogApp.TestBase/DonaRogApp.TestBase.abppkg",
+      "folder": "test"
+    },
+    "DonaRogApp.Domain.Tests": {
+      "path": "test/DonaRogApp.Domain.Tests/DonaRogApp.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "DonaRogApp.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/DonaRogApp.HttpApi.Client.ConsoleTestApp/DonaRogApp.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "DonaRogApp.DbMigrator": {
+      "path": "src/DonaRogApp.DbMigrator/DonaRogApp.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "DonaRogApp.HttpApi.Host": {
+      "path": "src/DonaRogApp.HttpApi.Host/DonaRogApp.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "DonaRogApp.Domain": {
+      "path": "src/DonaRogApp.Domain/DonaRogApp.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}

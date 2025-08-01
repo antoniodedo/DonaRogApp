@@ -4,6 +4,7 @@ using DonaRogApp.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace DonaRogApp.Migrations
 {
     [DbContext(typeof(DonaRogAppDbContext))]
-    partial class DonaRogAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250801171433_Donor_simplified_model_FullAuditedAggregateRoot_fixConvetionName")]
+    partial class Donor_simplified_model_FullAuditedAggregateRoot_fixConvetionName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,7 +166,7 @@ namespace DonaRogApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("App_Donors", (string)null);
+                    b.ToTable("AppDonors", (string)null);
                 });
 
             modelBuilder.Entity("DonaRogApp.Donors.Entities.DonorRelationship", b =>

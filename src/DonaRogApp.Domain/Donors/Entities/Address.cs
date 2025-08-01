@@ -21,7 +21,10 @@ namespace DonaRogApp.Donors.Entities
         public string? Region { get; set; }
         public string? Country { get; set; }
 
-  
+        public bool IsPrimary { get; set; } = false;
+
+
+
         // Coordinates (optional, for OpenStreetMap integration)
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }

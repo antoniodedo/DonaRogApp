@@ -1,3 +1,4 @@
+using DonaRogApp.Donors.Entities;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -9,9 +10,9 @@ using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
-using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
@@ -26,6 +27,13 @@ public class DonaRogAppDbContext :
     IIdentityDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
+    public DbSet<Donor> Donors { get; set; }
+    public DbSet<Address> Addresses { get; set; }
+    public DbSet<DonorRelationship> DonorRelationships { get; set; }
+    public DbSet<Note> Notes { get; set; }
+    public DbSet<DonorTag> DonorTags { get; set; }
+    public DbSet<Email> Emails { get; set; }    
+    public DbSet<PhoneNumber> PhoneNumbers { get; set; }
 
 
     #region Entities from the modules
@@ -78,8 +86,16 @@ public class DonaRogAppDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-        
+
         /* Configure your own tables/entities inside here */
+
+        builder.Entity<Donor>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "Donors",
+                DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.Property(x => x.LastName).IsRequired().HasMaxLength(128);
+        });
 
         //builder.Entity<YourEntity>(b =>
         //{

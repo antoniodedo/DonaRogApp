@@ -4,6 +4,7 @@ using DonaRogApp.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace DonaRogApp.Migrations
 {
     [DbContext(typeof(DonaRogAppDbContext))]
-    partial class DonaRogAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250731171202_Created_Donor_Entities")]
+    partial class Created_Donor_Entities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,6 +93,8 @@ namespace DonaRogApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DonorId");
+
                     b.ToTable("Addresses");
                 });
 
@@ -104,6 +109,9 @@ namespace DonaRogApp.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)")
                         .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<int>("ContactPreference")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("datetime2")
@@ -121,12 +129,19 @@ namespace DonaRogApp.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("DeletionTime");
 
+                    b.Property<bool>("EmailDeliveryEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<string>("ExtraProperties")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
@@ -134,6 +149,9 @@ namespace DonaRogApp.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false)
                         .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsOrganization")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("datetime2")
@@ -145,25 +163,39 @@ namespace DonaRogApp.Migrations
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("RawAddress")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RawCap")
+                    b.Property<string>("MiddleName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RawComune")
+                    b.Property<string>("OrganizationName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PaperDeliveryEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SecondLastName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("TenantId");
 
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("WantsThanks")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
-                    b.ToTable("App_Donors", (string)null);
+                    b.ToTable("Donors");
                 });
 
             modelBuilder.Entity("DonaRogApp.Donors.Entities.DonorRelationship", b =>
@@ -203,6 +235,8 @@ namespace DonaRogApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DonorId");
+
                     b.ToTable("DonorRelationships");
                 });
 
@@ -239,6 +273,8 @@ namespace DonaRogApp.Migrations
                         .HasColumnName("TenantId");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DonorId");
 
                     b.ToTable("DonorTags");
                 });
@@ -280,6 +316,8 @@ namespace DonaRogApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DonorId");
+
                     b.ToTable("Emails");
                 });
 
@@ -320,6 +358,8 @@ namespace DonaRogApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DonorId");
+
                     b.ToTable("Notes");
                 });
 
@@ -359,6 +399,8 @@ namespace DonaRogApp.Migrations
                         .HasColumnName("TenantId");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DonorId");
 
                     b.ToTable("PhoneNumbers");
                 });
@@ -2192,6 +2234,60 @@ namespace DonaRogApp.Migrations
                     b.ToTable("AbpTenantConnectionStrings", (string)null);
                 });
 
+            modelBuilder.Entity("DonaRogApp.Donors.Entities.Address", b =>
+                {
+                    b.HasOne("DonaRogApp.Donors.Entities.Donor", null)
+                        .WithMany("Addresses")
+                        .HasForeignKey("DonorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DonaRogApp.Donors.Entities.DonorRelationship", b =>
+                {
+                    b.HasOne("DonaRogApp.Donors.Entities.Donor", null)
+                        .WithMany("Relationships")
+                        .HasForeignKey("DonorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DonaRogApp.Donors.Entities.DonorTag", b =>
+                {
+                    b.HasOne("DonaRogApp.Donors.Entities.Donor", null)
+                        .WithMany("Tags")
+                        .HasForeignKey("DonorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DonaRogApp.Donors.Entities.Email", b =>
+                {
+                    b.HasOne("DonaRogApp.Donors.Entities.Donor", null)
+                        .WithMany("Emails")
+                        .HasForeignKey("DonorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DonaRogApp.Donors.Entities.Note", b =>
+                {
+                    b.HasOne("DonaRogApp.Donors.Entities.Donor", null)
+                        .WithMany("Notes")
+                        .HasForeignKey("DonorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DonaRogApp.Donors.Entities.PhoneNumber", b =>
+                {
+                    b.HasOne("DonaRogApp.Donors.Entities.Donor", null)
+                        .WithMany("PhoneNumbers")
+                        .HasForeignKey("DonorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLogAction", b =>
                 {
                     b.HasOne("Volo.Abp.AuditLogging.AuditLog", null)
@@ -2341,6 +2437,21 @@ namespace DonaRogApp.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("DonaRogApp.Donors.Entities.Donor", b =>
+                {
+                    b.Navigation("Addresses");
+
+                    b.Navigation("Emails");
+
+                    b.Navigation("Notes");
+
+                    b.Navigation("PhoneNumbers");
+
+                    b.Navigation("Relationships");
+
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLog", b =>

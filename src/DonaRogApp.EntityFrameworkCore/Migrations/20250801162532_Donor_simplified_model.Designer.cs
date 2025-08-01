@@ -4,6 +4,7 @@ using DonaRogApp.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace DonaRogApp.Migrations
 {
     [DbContext(typeof(DonaRogAppDbContext))]
-    partial class DonaRogAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250801162532_Donor_simplified_model")]
+    partial class Donor_simplified_model
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -127,6 +130,7 @@ namespace DonaRogApp.Migrations
                         .HasColumnName("ExtraProperties");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
@@ -145,16 +149,6 @@ namespace DonaRogApp.Migrations
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("RawAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RawCap")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RawComune")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("TenantId")
@@ -163,7 +157,7 @@ namespace DonaRogApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("App_Donors", (string)null);
+                    b.ToTable("Donors");
                 });
 
             modelBuilder.Entity("DonaRogApp.Donors.Entities.DonorRelationship", b =>

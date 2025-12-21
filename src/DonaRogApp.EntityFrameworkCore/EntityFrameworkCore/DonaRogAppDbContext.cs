@@ -1,4 +1,6 @@
 using DonaRogApp.Donors.Entities;
+using DonaRogApp.LetterTemplates;
+using DonaRogApp.Notes.Entities;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -30,10 +32,12 @@ public class DonaRogAppDbContext :
     public DbSet<Donor> Donors { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<DonorRelationship> DonorRelationships { get; set; }
-    public DbSet<Note> Notes { get; set; }
     public DbSet<DonorTag> DonorTags { get; set; }
     public DbSet<Email> Emails { get; set; }    
     public DbSet<PhoneNumber> PhoneNumbers { get; set; }
+    public DbSet<DonorTitle> DonorTitles { get; set; }
+    public DbSet<LetterTemplate> LetterTemplates { get; set; }
+    public DbSet<Note> Notes { get; set; }
 
 
     #region Entities from the modules
@@ -95,6 +99,30 @@ public class DonaRogAppDbContext :
                 DonaRogAppConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
             b.Property(x => x.LastName).IsRequired().HasMaxLength(128);
+        });
+
+
+        builder.Entity<DonorTitle>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "DonorTitles",
+                DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
+        });
+
+        builder.Entity<LetterTemplate>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "LetterTemplates",
+                DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+        });
+
+        builder.Entity<LetterTemplate>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "Notes",
+                DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
         });
 
         //builder.Entity<YourEntity>(b =>

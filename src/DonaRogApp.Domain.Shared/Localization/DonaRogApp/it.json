@@ -37,6 +37,24 @@
     "Unspecified": "Sistema",
     "SeeAllUsers": "Visualizza tutti gli utenti",
     "TakePhoto": "Fare foto",
-    "ChoosePhoto": "Scegli la foto"
+    "ChoosePhoto": "Scegli la foto",
+    "Save": "Salva",
+    "Close": "Chiudi",
+
+    //ENUMS
+    "Enum:GenderType.0": "Non definito",
+    "Enum:GenderType.1": "Maschio",
+    "Enum:GenderType.2": "Femmina",
+    //END ENUMS
+
+    //DONORS
+    "Menu:Donors": "Donatori",
+    "Donor:New": "Nuovo Donatore",
+    //END DONORS
+
+    //DONOR TITLES
+    "Menu:DonorTitle": "Titoli Donatori",
+    "DonorTitle:New": "Nuovo Titolo Donatore"
+    //END DONOR TITLES
   }
 }

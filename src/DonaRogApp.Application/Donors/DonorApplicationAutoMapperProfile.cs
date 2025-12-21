@@ -4,7 +4,7 @@ using DonaRogApp.Donors.Entities;
 using System.Linq;
 
 
-namespace YourProject.Donors
+namespace DonaRogApp.Donors
 {
     public class DonorApplicationAutoMapperProfile : Profile
     {
@@ -32,6 +32,10 @@ namespace YourProject.Donors
             CreateMap<Donor, DonorListDto>();
             CreateMap<Donor, DonorDto>();
             CreateMap<CreateUpdateDonorDto, Donor>();
+            CreateMap<DonorTitle, DonorTitleDto>();
+            CreateMap<CreateUpdateDonorTitleDto, DonorTitle>();
+            CreateMap<Email, EmailDto>();
+            CreateMap<CreateUpdateEmailDto, Email>();
         }
     }
 }

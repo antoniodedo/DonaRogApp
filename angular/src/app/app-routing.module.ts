@@ -26,6 +26,8 @@ const routes: Routes = [
     loadChildren: () =>
       import('@abp/ng.setting-management').then(m => m.SettingManagementModule.forLazy()),
   },
+  { path: 'donors', loadChildren: () => import('./donor/donor.module').then(m => m.DonorModule) },
+  { path: 'letter-templates', loadChildren: () => import('./letter-template/letter-template.module').then(m => m.LetterTemplateModule) },
 ];
 
 @NgModule({

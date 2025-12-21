@@ -1,0 +1,82 @@
+<div class="card">
+  <div class="card-header">
+    <div class="row">
+      <div class="col col-md-6">
+        <h5 class="card-title">
+          {{ '::Menu:DonorTitle' | abpLocalization }}
+        </h5>
+      </div>
+      <div class="text-end col col-md-6">
+        <div class="text-lg-end pt-2">
+          <button id="create" class="btn btn-primary" type="button" (click)="createDonor()">
+            <i class="fa fa-plus me-1"></i>
+            <span>{{ "::DonorTitle:New" | abpLocalization }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <ngx-datatable [rows]="titles.items" [count]="titles.totalCount" [list]="list" default>
+      <ngx-datatable-column [name]="'Title'" prop="title"></ngx-datatable-column>
+      <ngx-datatable-column [name]="'Gender'" prop="gender">
+        <ng-template let-row="row" ngx-datatable-cell-template>
+          {{ '::Enum:GenderType.' + row.gender | abpLocalization }}
+        </ng-template>
+      </ngx-datatable-column>
+      <ngx-datatable-column [name]="'Group'" prop="isGroup"></ngx-datatable-column>
+      <ngx-datatable-column [name]="'Is Active'" prop="isActive"></ngx-datatable-column>
+      <ngx-datatable-column
+  [sortable]="false"
+>
+  <ng-template let-row="row" ngx-datatable-cell-template>
+     <button ngbDropdownItem (click)="editTitle(row.id)">
+            <i class="fa fa-edit me-1"></i>
+        </button>
+  </ng-template>
+</ngx-datatable-column>
+    </ngx-datatable>
+  </div>
+</div>
+
+<abp-modal [(visible)]="isModalOpen">
+  <ng-template #abpHeader>
+        <h3>{{ (selectedTitle.id ? '::Edit' : '::Title:New' ) | abpLocalization }}</h3>
+  </ng-template>
+
+  <ng-template #abpBody>
+  <form [formGroup]="form" (ngSubmit)="save()">
+     <div class="mt-2">
+      <label for="title-name">Name</label><span> * </span>
+      <input type="text" id="title-name" class="form-control" formControlName="title" autofocus />
+    </div>
+
+    <div class="mt-2">
+      <label for="title-gender">Gender</label><span> * </span>
+      <select class="form-control" id="title-gender" formControlName="gender">
+        <option [ngValue]="gender.value" *ngFor="let gender of genders"> {{ '::Enum:GenderType.' + gender.value | abpLocalization }}</option>
+      </select>
+    </div>
+
+    <div class="form-check mt-2">
+    <input type="checkbox" id="title-is-group" class="form-check-input" formControlName="isGroup" />
+    <label for="title-is-group" class="form-check-label">Is Group</label>
+  </div>
+
+  <div class="form-check mt-2">
+    <input type="checkbox" id="title-is-active" class="form-check-input" formControlName="isActive" />
+    <label for="title-is-active" class="form-check-label">Is Active</label>
+  </div>
+  </form>
+</ng-template>
+
+  <ng-template #abpFooter>
+    <button type="button" class="btn btn-secondary" abpClose>
+      {{ '::Close' | abpLocalization }}
+    </button>
+    <button class="btn btn-primary" (click)="save()" [disabled]="form.invalid">
+        <i class="fa fa-check mr-1"></i>
+        {{ '::Save' | abpLocalization }}
+  </button>
+  </ng-template>
+</abp-modal>

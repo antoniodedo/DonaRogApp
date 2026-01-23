@@ -34,4 +34,8 @@
     <Content Remove="Localization\DonaRogApp\*.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Enums\Campaigns\" />
+  </ItemGroup>
+
 </Project>

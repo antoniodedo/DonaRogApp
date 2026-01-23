@@ -12,7 +12,7 @@ namespace DonaRogApp.Donors.Dto
     {
         public string Title { get; set; }
 
-        public Gender Gender { get; set; }
+        //public Gender Gender { get; set; }
 
         public bool IsGroup { get; set; }
 

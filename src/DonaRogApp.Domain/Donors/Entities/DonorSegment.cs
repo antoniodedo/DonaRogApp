@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------
-// Domain/Donors/Entities/DonorTag.cs
+// Domain/Donors/Entities/DonorSegment.cs
 // --------------------------------------------------------------
 
 using DonaRogApp.Domain.Shared.Entities;
@@ -12,14 +12,14 @@ using Volo.Abp.Timing;
 namespace DonaRogApp.Domain.Donors.Entities
 {
     // ======================================================================
-    // DONORTAG.CS - Many-to-Many: Donor ↔ Tag
+    // DONOTSEGMENT.CS - Many-to-Many: Donor ↔ Segment
     // ======================================================================
     /// <summary>
-    /// Many-to-Many Mapping: Donor ←→ Tag
-    /// Represents donor tags (labels) for categorization
-    /// Un donatore può avere più tag; un tag può applicarsi a più donatori
+    /// Many-to-Many Mapping: Donor ←→ Segment
+    /// Represents donor membership in a marketing segment.
+    /// Un donatore può appartenere a più segmenti contemporaneamente.
     /// </summary>
-    public class DonorTag : Entity, IMultiTenant
+    public class DonorSegment : Entity, IMultiTenant
     {
         // --------------------------------------------------------------
         // MULTI-TENANCY
@@ -43,48 +43,48 @@ namespace DonaRogApp.Domain.Donors.Entities
         public virtual Donor? Donor { get; private set; }
 
         /// <summary>
-        /// Tag ID (Foreign Key)
+        /// Segment ID (Foreign Key)
         /// </summary>
-        public Guid TagId { get; private set; }
+        public Guid SegmentId { get; private set; }
 
         /// <summary>
-        /// Tag (navigation property)
-        /// Tag entity is in Domain/Shared/Entities/
+        /// Segment (navigation property)
+        /// Segment entity is in Domain/Shared/Entities/
         /// </summary>
-        public virtual Tag? Tag { get; private set; }
+        public virtual Segment? Segment { get; private set; }
 
         // --------------------------------------------------------------
         // TRACKING
         // --------------------------------------------------------------
         /// <summary>
-        /// Data di assegnazione del tag
+        /// Data di assegnazione al segmento
         /// </summary>
-        public DateTime TaggedAt { get; private set; }
+        public DateTime AssignedAt { get; private set; }
 
         /// <summary>
-        /// Data di rimozione del tag (NULL = ancora taggato)
+        /// Data di rimozione dal segmento (NULL = ancora nel segmento)
         /// </summary>
         public DateTime? RemovedAt { get; private set; }
 
         /// <summary>
-        /// Motivo dell'assegnazione (es: "Assegnato dall'utente", "Rilevato da evento")
+        /// Note sulla assegnazione (es: "Assegnato automaticamente da RFM")
         /// </summary>
-        public string? TaggingReason { get; private set; }
+        public string? AssignmentNotes { get; private set; }
 
         /// <summary>
-        /// Priorità del tag per il donatore (1=bassa, 5=alta)
-        /// </summary>
-        public int Priority { get; private set; }
-
-        /// <summary>
-        /// Indica se il tag è automatico (da regole/eventi) o manuale
+        /// Indicatore se l'assegnazione è automatica (da regole) o manuale (da utente)
         /// </summary>
         public bool IsAutomatic { get; private set; }
 
         /// <summary>
-        /// ID di chi ha assegnato il tag (per tracking)
+        /// Motivo dell'assegnazione automatica (es: "RfmScore", "TotalDonated")
         /// </summary>
-        public Guid? AssignedByUserId { get; private set; }
+        public string? AutomaticReason { get; private set; }
+
+        /// <summary>
+        /// User who added donor to segment
+        /// </summary>
+        public Guid? AddedByUserId { get; private set; }
 
         // --------------------------------------------------------------
         // CONSTRUCTOR
@@ -93,7 +93,7 @@ namespace DonaRogApp.Domain.Donors.Entities
         /// Protected constructor for EF Core
         /// Use factory method Create() to instantiate
         /// </summary>
-        protected DonorTag()
+        protected DonorSegment()
         {
         }
 
@@ -101,60 +101,57 @@ namespace DonaRogApp.Domain.Donors.Entities
         // FACTORY METHODS
         // --------------------------------------------------------------
         /// <summary>
-        /// Creates new DonorTag mapping (manuale)
+        /// Creates new DonorSegment mapping (manuale)
         /// </summary>
-        internal static DonorTag CreateManual(
+        internal static DonorSegment CreateManual(
             Guid donorId,
-            Guid tagId,
+            Guid segmentId,
             Guid? tenantId,
-            int priority = 3,
-            string? reason = null,
-            Guid? assignedByUserId = null)
+            Guid? addedByUserId = null,
+            string? notes = null)
         {
             if (donorId == Guid.Empty) throw new ArgumentException("Value cannot be empty", nameof(donorId));
-            if (tagId == Guid.Empty) throw new ArgumentException("Value cannot be empty", nameof(tagId));
-            Check.Range(priority, nameof(priority), 1, 5);
+            if (segmentId == Guid.Empty) throw new ArgumentException("Value cannot be empty", nameof(segmentId));
 
-            return new DonorTag
+            return new DonorSegment
             {
                 DonorId = donorId,
-                TagId = tagId,
+                SegmentId = segmentId,
                 TenantId = tenantId,
-                TaggedAt = DateTime.UtcNow,
+                AssignedAt = DateTime.UtcNow,
                 RemovedAt = null,
-                TaggingReason = reason,
-                Priority = priority,
+                AssignmentNotes = notes,
                 IsAutomatic = false,
-                AssignedByUserId = assignedByUserId
+                AutomaticReason = null,
+                AddedByUserId = addedByUserId
             };
         }
 
         /// <summary>
-        /// Creates new DonorTag mapping (automatico)
+        /// Creates new DonorSegment mapping (automatico)
         /// </summary>
-        internal static DonorTag CreateAutomatic(
+        internal static DonorSegment CreateAutomatic(
             Guid donorId,
-            Guid tagId,
+            Guid segmentId,
             Guid? tenantId,
-            string reason,
-            int priority = 3)
+            string automaticReason,
+            string? notes = null)
         {
             if (donorId == Guid.Empty) throw new ArgumentException("Value cannot be empty", nameof(donorId));
-            if (tagId == Guid.Empty) throw new ArgumentException("Value cannot be empty", nameof(tagId));
-            Check.NotNullOrWhiteSpace(reason, nameof(reason));
-            Check.Range(priority, nameof(priority), 1, 5);
+            if (segmentId == Guid.Empty) throw new ArgumentException("Value cannot be empty", nameof(segmentId));
+            Check.NotNullOrWhiteSpace(automaticReason, nameof(automaticReason));
 
-            return new DonorTag
+            return new DonorSegment
             {
                 DonorId = donorId,
-                TagId = tagId,
+                SegmentId = segmentId,
                 TenantId = tenantId,
-                TaggedAt = DateTime.UtcNow,
+                AssignedAt = DateTime.UtcNow,
                 RemovedAt = null,
-                TaggingReason = reason,
-                Priority = priority,
+                AssignmentNotes = notes,
                 IsAutomatic = true,
-                AssignedByUserId = null
+                AutomaticReason = automaticReason,
+                AddedByUserId = null
             };
         }
 
@@ -162,7 +159,7 @@ namespace DonaRogApp.Domain.Donors.Entities
         // METHODS
         // --------------------------------------------------------------
         /// <summary>
-        /// Rimuove il tag dal donatore
+        /// Rimuove il donatore dal segmento (soft delete)
         /// </summary>
         public void Remove()
         {
@@ -173,34 +170,17 @@ namespace DonaRogApp.Domain.Donors.Entities
         }
 
         /// <summary>
-        /// Controlla se il tag è attualmente assegnato
+        /// Controlla se il donatore è attualmente nel segmento
         /// </summary>
         public bool IsActive => !RemovedAt.HasValue;
 
         /// <summary>
-        /// Aggiorna la priorità del tag
+        /// Calcola i giorni di permanenza nel segmento
         /// </summary>
-        public void UpdatePriority(int priority)
-        {
-            Check.Range(priority, nameof(priority), 1, 5);
-            Priority = priority;
-        }
-
-        /// <summary>
-        /// Aggiorna il motivo dell'assegnazione
-        /// </summary>
-        public void UpdateReason(string? reason)
-        {
-            TaggingReason = reason;
-        }
-
-        /// <summary>
-        /// Calcola i giorni da quando il tag è assegnato
-        /// </summary>
-        public int GetDaysTagged()
+        public int GetDaysInSegment()
         {
             var endDate = RemovedAt ?? DateTime.UtcNow;
-            return (int)(endDate - TaggedAt).TotalDays;
+            return (int)(endDate - AssignedAt).TotalDays;
         }
 
         // --------------------------------------------------------------
@@ -208,7 +188,7 @@ namespace DonaRogApp.Domain.Donors.Entities
         // --------------------------------------------------------------
         public override object[] GetKeys()
         {
-            return new object[] { DonorId, TagId };
+            return new object[] { DonorId, SegmentId };
         }
     }
 }

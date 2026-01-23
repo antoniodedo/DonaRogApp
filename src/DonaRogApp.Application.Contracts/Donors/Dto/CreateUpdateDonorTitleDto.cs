@@ -17,8 +17,8 @@ namespace DonaRogApp.Donors.Dto
         [MaxLength(128)]
         public string Title { get; set; } = string.Empty;
 
-        [Required]
-        public Gender Gender { get; set; } = Gender.Unspecified;
+        //[Required]
+        //public Gender Gender { get; set; } = Gender.Unspecified;
 
         [Required]
         public bool IsGroup { get; set; }

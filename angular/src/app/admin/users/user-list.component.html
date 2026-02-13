@@ -216,7 +216,7 @@
       <nz-form-item>
         <nz-form-label>Ruoli</nz-form-label>
         <nz-form-control>
-          <nz-select [(ngModel)]="selectedRoles" [ngModelOptions]="{standalone: true}" nzMode="multiple" nzPlaceHolder="Seleziona ruoli...">
+          <nz-select [(ngModel)]="selectedRoles" [ngModelOptions]="{standalone: true}" nzMode="multiple" nzPlaceHolder="Seleziona ruoli..." [nzOptionOverflowSize]="20">
             <nz-option *ngFor="let role of roles" [nzValue]="role.name" [nzLabel]="role.name"></nz-option>
           </nz-select>
         </nz-form-control>

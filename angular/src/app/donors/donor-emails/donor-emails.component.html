@@ -113,7 +113,7 @@
       <nz-form-item>
         <nz-form-label>Tipo di Email</nz-form-label>
         <nz-form-control>
-          <nz-select formControlName="type" nzPlaceHolder="Seleziona tipologia">
+          <nz-select formControlName="type" nzPlaceHolder="Seleziona tipologia" [nzOptionOverflowSize]="20">
             <nz-option [nzValue]="EmailType.Personal" nzLabel="Personale"></nz-option>
             <nz-option [nzValue]="EmailType.Work" nzLabel="Lavoro"></nz-option>
             <nz-option [nzValue]="EmailType.Other" nzLabel="Altro"></nz-option>

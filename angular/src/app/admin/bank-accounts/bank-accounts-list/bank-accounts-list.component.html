@@ -1,74 +1,203 @@
 <div class="bank-accounts-container">
-  <nz-card nzTitle="Conti Correnti Organizzazione">
-    <button nz-button nzType="primary" (click)="showCreateModal()">
-      <span nz-icon nzType="plus"></span>
-      Nuovo Conto
-    </button>
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="bank" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>Conti Correnti</h1>
+        <p>Gestisci i conti bancari dell'organizzazione</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="showCreateModal()" nz-tooltip="Nuovo Conto">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
 
-    <nz-table [nzData]="accounts" [nzLoading]="loading" style="margin-top: 16px;">
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="wallet"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ accounts.length }}</span>
+        <span class="stat-label">Conti Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Conti Attivi</span>
+      </div>
+    </div>
+    <div class="stat-card stat-default">
+      <div class="stat-icon">
+        <span nz-icon nzType="star" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getDefaultAccount()?.accountName || '-' }}</span>
+        <span class="stat-label">Conto Predefinito</span>
+      </div>
+    </div>
+    <div class="stat-card stat-inactive">
+      <div class="stat-icon">
+        <span nz-icon nzType="pause-circle"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getInactiveCount() }}</span>
+        <span class="stat-label">Disattivati</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <div class="toolbar">
+      <div class="toolbar-title">
+        <h3>Elenco Conti</h3>
+      </div>
+      <div class="toolbar-actions">
+        <button nz-button nzType="default" (click)="loadAccounts()" nz-tooltip="Aggiorna lista">
+          <span nz-icon nzType="reload"></span>
+        </button>
+      </div>
+    </div>
+
+    <nz-table
+      #accountsTable
+      [nzData]="accounts"
+      [nzLoading]="loading"
+      [nzFrontPagination]="true"
+      [nzPageSize]="10"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 20, 50]"
+      [nzNoResult]="emptyTemplate">
       <thead>
         <tr>
-          <th>Nome Conto</th>
+          <th nzWidth="250px">Nome Conto</th>
           <th>IBAN</th>
-          <th>Banca</th>
-          <th>Stato</th>
-          <th>Predefinito</th>
-          <th>Azioni</th>
+          <th nzWidth="200px">Banca</th>
+          <th nzWidth="120px">Stato</th>
+          <th nzWidth="120px">Predefinito</th>
+          <th nzWidth="220px" nzAlign="center">Azioni</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let account of accounts">
-          <td>{{ account.accountName }}</td>
-          <td><code>{{ account.maskedIban }}</code></td>
-          <td>{{ account.bankName || '-' }}</td>
+        <tr *ngFor="let account of accountsTable.data; let i = index" 
+            class="account-row" 
+            [style.animation-delay]="i * 50 + 'ms'">
           <td>
-            <nz-tag [nzColor]="account.isActive ? 'green' : 'red'">
+            <div class="account-name-cell">
+              <strong class="account-name">{{ account.accountName }}</strong>
+            </div>
+          </td>
+          <td>
+            <code class="iban-code">{{ account.maskedIban }}</code>
+          </td>
+          <td>
+            <span class="bank-name">{{ account.bankName || '-' }}</span>
+          </td>
+          <td>
+            <nz-tag class="status-tag" [nzColor]="account.isActive ? 'success' : 'default'">
+              <span class="status-dot"></span>
               {{ account.isActive ? 'Attivo' : 'Inattivo' }}
             </nz-tag>
           </td>
           <td>
-            <nz-tag *ngIf="account.isDefault" nzColor="blue">Predefinito</nz-tag>
+            <nz-tag *ngIf="account.isDefault" class="default-tag" nzColor="gold">
+              <span nz-icon nzType="star" nzTheme="fill"></span>
+              Default
+            </nz-tag>
+            <span *ngIf="!account.isDefault" class="no-data">-</span>
           </td>
-          <td>
-            <button
-              *ngIf="!account.isActive"
-              nz-button
-              nzType="link"
-              nzSize="small"
-              (click)="activate(account.id)">
-              Attiva
-            </button>
-            <button
-              *ngIf="account.isActive && !account.isDefault"
-              nz-button
-              nzType="link"
-              nzSize="small"
-              (click)="deactivate(account.id)">
-              Disattiva
-            </button>
-            <button
-              *ngIf="!account.isDefault"
-              nz-button
-              nzType="link"
-              nzSize="small"
-              (click)="setAsDefault(account.id)">
-              Imposta Predefinito
-            </button>
-            <button
-              *ngIf="!account.isDefault"
-              nz-button
-              nzType="link"
-              nzSize="small"
-              nzDanger
-              nz-popconfirm
-              nzPopconfirmTitle="Sei sicuro?"
-              (nzOnConfirm)="delete(account.id)">
-              Elimina
-            </button>
+          <td nzAlign="center">
+            <div class="actions-cell">
+              <button 
+                *ngIf="!account.isActive"
+                nz-button
+                nzType="link"
+                nzSize="small"
+                class="action-btn activate"
+                (click)="activate(account.id)"
+                nz-tooltip="Attiva conto">
+                <span nz-icon nzType="play-circle"></span>
+              </button>
+              
+              <button 
+                *ngIf="account.isActive && !account.isDefault"
+                nz-button
+                nzType="link"
+                nzSize="small"
+                class="action-btn deactivate"
+                (click)="deactivate(account.id)"
+                nz-tooltip="Disattiva conto">
+                <span nz-icon nzType="pause-circle"></span>
+              </button>
+              
+              <button 
+                *ngIf="!account.isDefault"
+                nz-button
+                nzType="link"
+                nzSize="small"
+                class="action-btn set-default"
+                (click)="setAsDefault(account.id)"
+                nz-tooltip="Imposta come predefinito">
+                <span nz-icon nzType="star"></span>
+              </button>
+              
+              <button 
+                *ngIf="!account.isDefault"
+                nz-button
+                nzType="link"
+                nzSize="small"
+                class="action-btn delete"
+                nz-popconfirm
+                nzPopconfirmTitle="Sei sicuro di eliminare questo conto?"
+                nzOkText="Elimina"
+                nzCancelText="Annulla"
+                (nzOnConfirm)="delete(account.id)"
+                nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
     </nz-table>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-illustration">
+          <div class="empty-icon">
+            <span nz-icon nzType="inbox"></span>
+          </div>
+          <div class="empty-rings">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+          </div>
+        </div>
+        <h3>Nessun conto configurato</h3>
+        <p>Inizia aggiungendo il primo conto bancario dell'organizzazione</p>
+        <button nz-button nzType="primary" (click)="showCreateModal()">
+          <span nz-icon nzType="plus"></span>
+          Nuovo Conto
+        </button>
+      </div>
+    </ng-template>
   </nz-card>
 </div>
 
@@ -76,42 +205,61 @@
 <nz-modal
   [(nzVisible)]="isModalVisible"
   [nzTitle]="editingId ? 'Modifica Conto' : 'Nuovo Conto'"
+  [nzWidth]="600"
   (nzOnCancel)="handleCancel()"
-  (nzOnOk)="handleOk()">
+  (nzOnOk)="handleOk()"
+  [nzOkLoading]="loading"
+  nzOkText="Salva"
+  nzCancelText="Annulla">
   <ng-container *nzModalContent>
-    <form nz-form [formGroup]="form">
+    <form nz-form [formGroup]="form" nzLayout="vertical">
       <nz-form-item>
-        <nz-form-label nzRequired>Nome Conto</nz-form-label>
+        <nz-form-label nzRequired>
+          <span nz-icon nzType="bank"></span>
+          Nome Conto
+        </nz-form-label>
         <nz-form-control nzErrorTip="Campo obbligatorio">
           <input nz-input formControlName="accountName" placeholder="es: Conto Principale UniCredit" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label nzRequired>IBAN</nz-form-label>
+        <nz-form-label nzRequired>
+          <span nz-icon nzType="credit-card"></span>
+          IBAN
+        </nz-form-label>
         <nz-form-control nzErrorTip="IBAN non valido">
           <input nz-input formControlName="iban" placeholder="IT60X0542811101000000123456" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label>Nome Banca</nz-form-label>
+        <nz-form-label>
+          <span nz-icon nzType="home"></span>
+          Nome Banca
+        </nz-form-label>
         <nz-form-control>
           <input nz-input formControlName="bankName" placeholder="es: UniCredit" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label>SWIFT/BIC</nz-form-label>
+        <nz-form-label>
+          <span nz-icon nzType="global"></span>
+          SWIFT/BIC
+        </nz-form-label>
         <nz-form-control>
           <input nz-input formControlName="swift" placeholder="es: UNCRITMM" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label>Note</nz-form-label>
+        <nz-form-label>
+          <span nz-icon nzType="file-text"></span>
+          Note
+        </nz-form-label>
         <nz-form-control>
-          <textarea nz-input formControlName="notes" [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
+          <textarea nz-input formControlName="notes" [nzAutosize]="{ minRows: 2, maxRows: 4 }" placeholder="Note aggiuntive..."></textarea>
         </nz-form-control>
       </nz-form-item>
     </form>

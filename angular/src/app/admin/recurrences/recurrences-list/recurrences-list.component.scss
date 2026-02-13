@@ -17,10 +17,10 @@
   align-items: center;
   padding: 24px 32px;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #ec4899, #db2777);
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.25);
+  box-shadow: 0 8px 32px rgba(244, 63, 94, 0.25);
 
   .hero-content {
     display: flex;
@@ -225,25 +225,25 @@
     }
   }
 
-  /* Color Variants */
+  /* Color Variants - Rosa intenso theme */
   &.stat-total {
-    &::before { background: linear-gradient(180deg, #f472b6, #ec4899); }
-    .stat-icon { background: linear-gradient(135deg, #f472b6, #ec4899); box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35); }
+    &::before { background: linear-gradient(180deg, #f43f5e, #e11d48); }
+    .stat-icon { background: linear-gradient(135deg, #f43f5e, #e11d48); box-shadow: 0 6px 20px rgba(244, 63, 94, 0.35); }
   }
 
   &.stat-active {
-    &::before { background: linear-gradient(180deg, #10b981, #059669); }
-    .stat-icon { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
+    &::before { background: linear-gradient(180deg, #fb7185, #f43f5e); }
+    .stat-icon { background: linear-gradient(135deg, #fb7185, #f43f5e); box-shadow: 0 6px 20px rgba(251, 113, 133, 0.35); }
   }
 
   &.stat-inactive {
-    &::before { background: linear-gradient(180deg, #94a3b8, #64748b); }
-    .stat-icon { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: 0 6px 20px rgba(100, 116, 139, 0.35); }
+    &::before { background: linear-gradient(180deg, #fda4af, #fb7185); }
+    .stat-icon { background: linear-gradient(135deg, #fda4af, #fb7185); box-shadow: 0 6px 20px rgba(253, 164, 175, 0.35); }
   }
 
   &.stat-with-date {
-    &::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
-    .stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
+    &::before { background: linear-gradient(180deg, #fecdd3, #fda4af); }
+    .stat-icon { background: linear-gradient(135deg, #fecdd3, #fda4af); box-shadow: 0 6px 20px rgba(254, 205, 211, 0.35); }
   }
 }
 

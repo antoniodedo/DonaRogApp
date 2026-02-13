@@ -9,6 +9,9 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { BankAccountService } from '../../../proxy/bank-accounts/bank-account.service';
 import { BankAccountListDto, CreateUpdateBankAccountDto } from '../../../proxy/bank-accounts/models';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -18,7 +21,21 @@ import { NzMessageService } from 'ng-zorro-antd/message';
   templateUrl: './bank-accounts-list.component.html',
   styleUrls: ['./bank-accounts-list.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NzTableModule, NzButtonModule, NzFormModule, NzInputModule, NzCardModule, NzModalModule, NzTagModule, NzPopconfirmModule],
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule, 
+    NzTableModule, 
+    NzButtonModule, 
+    NzFormModule, 
+    NzInputModule, 
+    NzCardModule, 
+    NzModalModule, 
+    NzTagModule, 
+    NzPopconfirmModule,
+    NzIconModule,
+    NzToolTipModule,
+    NzEmptyModule,
+  ],
 })
 export class BankAccountsListComponent implements OnInit {
   accounts: BankAccountListDto[] = [];
@@ -134,5 +151,18 @@ export class BankAccountsListComponent implements OnInit {
         this.message.error(error.error?.error?.message || 'Impossibile eliminare');
       },
     });
+  }
+
+  // Statistics methods
+  getActiveCount(): number {
+    return this.accounts.filter(a => a.isActive).length;
+  }
+
+  getInactiveCount(): number {
+    return this.accounts.filter(a => !a.isActive).length;
+  }
+
+  getDefaultAccount(): BankAccountListDto | undefined {
+    return this.accounts.find(a => a.isDefault);
   }
 }

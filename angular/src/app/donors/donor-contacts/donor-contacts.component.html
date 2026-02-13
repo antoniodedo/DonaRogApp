@@ -104,7 +104,7 @@
       <nz-form-item>
         <nz-form-label>Tipo di Contatto</nz-form-label>
         <nz-form-control>
-          <nz-select formControlName="type" nzPlaceHolder="Seleziona tipologia">
+          <nz-select formControlName="type" nzPlaceHolder="Seleziona tipologia" [nzOptionOverflowSize]="20">
             <nz-option [nzValue]="ContactType.Mobile" nzLabel="Cellulare"></nz-option>
             <nz-option [nzValue]="ContactType.HomeLandline" nzLabel="Fisso Casa"></nz-option>
             <nz-option [nzValue]="ContactType.WorkLandline" nzLabel="Fisso Lavoro"></nz-option>

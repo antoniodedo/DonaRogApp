@@ -226,7 +226,7 @@
             <span nz-icon nzType="check-circle"></span>
             Stato Attivazione
           </label>
-          <nz-select formControlName="isActive" nzAllowClear nzPlaceHolder="Tutti">
+          <nz-select formControlName="isActive" nzAllowClear nzPlaceHolder="Tutti" [nzOptionOverflowSize]="20">
             <nz-option [nzValue]="true" nzLabel="Solo Attive"></nz-option>
             <nz-option [nzValue]="false" nzLabel="Solo Disattivate"></nz-option>
           </nz-select>

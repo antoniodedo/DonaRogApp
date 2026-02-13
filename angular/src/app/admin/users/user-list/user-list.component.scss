@@ -17,10 +17,10 @@
   align-items: center;
   padding: 24px 32px;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.25);
 
   .hero-content {
     display: flex;
@@ -208,19 +208,20 @@
     }
   }
 
+  /* Color Variants - Sky Blue theme */
   &.stat-total {
-    &::before { background: linear-gradient(180deg, #60a5fa, #3b82f6); }
-    .stat-icon { background: linear-gradient(135deg, #60a5fa, #3b82f6); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35); }
+    &::before { background: linear-gradient(180deg, #0ea5e9, #0284c7); }
+    .stat-icon { background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35); }
   }
 
   &.stat-active {
-    &::before { background: linear-gradient(180deg, #10b981, #059669); }
-    .stat-icon { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
+    &::before { background: linear-gradient(180deg, #38bdf8, #0ea5e9); }
+    .stat-icon { background: linear-gradient(135deg, #38bdf8, #0ea5e9); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35); }
   }
 
   &.stat-inactive {
-    &::before { background: linear-gradient(180deg, #f87171, #ef4444); }
-    .stat-icon { background: linear-gradient(135deg, #f87171, #ef4444); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35); }
+    &::before { background: linear-gradient(180deg, #7dd3fc, #38bdf8); }
+    .stat-icon { background: linear-gradient(135deg, #7dd3fc, #38bdf8); box-shadow: 0 6px 20px rgba(125, 211, 252, 0.35); }
   }
 }
 

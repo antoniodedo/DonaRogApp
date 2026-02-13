@@ -228,6 +228,79 @@ body {
 
 .ant-input {
   padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Fix input-number */
+.ant-input-number {
+  width: 100%;
+  border-radius: var(--radius-md) !important;
+  border: 1.5px solid var(--border-default) !important;
+  
+  &:hover {
+    border-color: var(--border-strong) !important;
+  }
+  
+  &:focus,
+  &.ant-input-number-focused {
+    border-color: var(--brand-400) !important;
+    box-shadow: 0 0 0 3px var(--brand-100) !important;
+  }
+  
+  .ant-input-number-input {
+    height: 38px !important;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .ant-input-number-handler-wrap {
+    opacity: 1 !important;
+  }
+}
+
+/* Fix textarea */
+.ant-input-textarea {
+  textarea.ant-input {
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 80px;
+  }
+}
+
+/* Fix date picker */
+.ant-picker {
+  min-height: 36px !important;
+  padding: 6px 12px !important;
+  
+  .ant-picker-input {
+    display: flex !important;
+    align-items: center !important;
+    
+    input {
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+    }
+  }
+  
+  .ant-picker-suffix,
+  .ant-picker-clear {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+.ant-picker-large {
+  min-height: 44px !important;
+  padding: 10px 14px !important;
+}
+
+.ant-picker-small {
+  min-height: 32px !important;
+  padding: 4px 10px !important;
 }
 
 /* Fix select height and text alignment */
@@ -241,20 +314,55 @@ body {
   .ant-select-selection-search {
     display: flex;
     align-items: center;
+    height: 100%;
   }
 
   .ant-select-selection-search-input {
     height: 100% !important;
+    line-height: 20px !important;
   }
 
   .ant-select-selection-item,
   .ant-select-selection-placeholder {
     display: flex !important;
     align-items: center !important;
-    line-height: 1.5 !important;
+    line-height: 20px !important;
     padding: 0 !important;
-    height: auto !important;
+    height: 20px !important;
+    font-size: 14px !important;
   }
+  
+  .ant-select-selection-overflow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* Fix select arrow */
+.ant-select-arrow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin-top: 0 !important;
+  
+  .anticon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.ant-select-clear {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin-top: 0 !important;
 }
 
 /* Fix small select size */
@@ -266,15 +374,24 @@ body {
 
   .ant-select-selection-item,
   .ant-select-selection-placeholder {
-    line-height: 1.4 !important;
+    line-height: 20px !important;
+    height: 20px !important;
+    font-size: 13px !important;
   }
 }
 
 /* Fix large select size */
 .ant-select-lg {
   .ant-select-selector {
-    min-height: 42px !important;
-    padding: 8px 14px !important;
+    min-height: 44px !important;
+    padding: 10px 14px !important;
+  }
+  
+  .ant-select-selection-item,
+  .ant-select-selection-placeholder {
+    line-height: 24px !important;
+    height: 24px !important;
+    font-size: 15px !important;
   }
 }
 
@@ -324,40 +441,332 @@ body {
 }
 
 /* ============================================
-   Select Dropdown
+   Select Dropdown - Premium Design
    ============================================ */
 .ant-select-dropdown {
   border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-xl) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 
+              0 2px 8px rgba(0, 0, 0, 0.04) !important;
   padding: 8px !important;
   border: 1px solid var(--border-subtle) !important;
-  overflow: hidden;
+  background: white !important;
+  
+  // Allow scrolling in dropdown
+  .rc-virtual-list {
+    max-height: 256px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    
+    &::-webkit-scrollbar {
+      width: 6px !important;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent !important;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: var(--neutral-300) !important;
+      border-radius: 3px !important;
+      
+      &:hover {
+        background: var(--neutral-400) !important;
+      }
+    }
+  }
+  
+  .rc-virtual-list-holder {
+    // Force proper height calculation
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  
+  .rc-virtual-list-holder-inner {
+    // Ensure content is fully visible with proper spacing
+    position: relative !important;
+    padding-bottom: 8px !important;
+  }
+}
+
+// Custom scrollbar for Firefox
+.ant-select-dropdown {
+  .rc-virtual-list,
+  .cdk-virtual-scroll-viewport {
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--neutral-300) transparent !important;
+  }
+}
+
+// Fix for small lists (when nzOptionOverflowSize disables virtual scroll)
+.ant-select-dropdown:not(.ant-select-dropdown-empty) {
+  .ant-select-item-option {
+    // Ensure proper spacing and visibility
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
 }
 
 .ant-select-item {
   border-radius: var(--radius-md) !important;
   padding: 10px 14px !important;
-  margin: 2px 0 !important;
-  transition: all var(--duration-fast) !important;
+  margin: 3px 0 !important;
+  min-height: 40px !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   font-family: inherit;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  cursor: pointer !important;
+  position: relative !important;
+  
+  // Ensure first and last items have proper spacing
+  &:first-child {
+    margin-top: 0 !important;
+  }
+  
+  &:last-child {
+    margin-bottom: 0 !important;
+  }
+  
+  // Subtle border for definition
+  &::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: var(--brand-500);
+    border-radius: 2px;
+    transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
   &:hover {
-    background: var(--neutral-100) !important;
+    background: linear-gradient(to right, var(--neutral-50), transparent) !important;
+    transform: translateX(2px);
+    
+    &::before {
+      height: 60%;
+    }
   }
 }
 
 .ant-select-item-option-selected {
-  background: var(--brand-50) !important;
+  background: linear-gradient(to right, var(--brand-50), rgba(var(--brand-50-rgb, 240, 249, 255), 0.3)) !important;
   color: var(--brand-700) !important;
   font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--brand-200) !important;
 
+  &::before {
+    height: 70% !important;
+    background: var(--brand-600) !important;
+  }
+  
   &::after {
     color: var(--brand-500);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  
+  &:hover {
+    background: linear-gradient(to right, var(--brand-100), rgba(var(--brand-100-rgb, 224, 242, 254), 0.5)) !important;
+    box-shadow: inset 0 0 0 1px var(--brand-300) !important;
   }
 }
 
 .ant-select-item-option-active:not(.ant-select-item-option-selected) {
-  background: var(--neutral-50) !important;
+  background: linear-gradient(to right, var(--neutral-50), transparent) !important;
+  
+  &::before {
+    height: 50%;
+  }
+}
+
+/* Fix option content alignment */
+.ant-select-item-option-content {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.5 !important;
+  padding-left: 8px !important;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Empty state styling */
+.ant-select-item-empty {
+  color: var(--text-tertiary) !important;
+  font-style: italic;
+  padding: 16px 14px !important;
+  text-align: center;
+  
+  &:hover {
+    background: transparent !important;
+    transform: none !important;
+  }
+  
+  &::before {
+    display: none !important;
+  }
+}
+
+/* Fix select disabled state */
+.ant-select-disabled {
+  .ant-select-selector {
+    background: var(--neutral-100) !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+  }
+}
+
+/* Group labels */
+.ant-select-item-group {
+  color: var(--text-tertiary) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 8px 14px 4px !important;
+  margin-top: 4px !important;
+  
+  &:first-child {
+    margin-top: 0 !important;
+  }
+}
+
+/* Override option container - Fix for truncated last item */
+.ant-select-dropdown {
+  nz-option-container {
+    display: block !important;
+    
+    .cdk-virtual-scroll-viewport {
+      max-height: 256px !important;
+      height: auto !important;
+      overflow-y: auto !important;
+      contain: none !important;
+      
+      &::-webkit-scrollbar {
+        width: 6px !important;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: transparent !important;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: var(--neutral-300) !important;
+        border-radius: 3px !important;
+        
+        &:hover {
+          background: var(--neutral-400) !important;
+        }
+      }
+    }
+    
+    .cdk-virtual-scroll-content-wrapper {
+      position: relative !important;
+      will-change: auto !important;
+      contain: none !important;
+      padding-bottom: 8px !important;
+    }
+    
+    .cdk-virtual-scroll-spacer {
+      display: none !important;
+    }
+  }
+}
+
+/* ============================================
+   Native Select - Identical to nz-select
+   Use for small lists (2-10 items) to avoid virtual scroll issues
+   ============================================ */
+select.native-select {
+  /* Match ant-select-selector exactly */
+  width: 100% !important;
+  min-height: 36px !important;
+  height: auto !important;
+  padding: 6px 32px 6px 12px !important;
+  
+  /* Typography - match nz-select */
+  font-family: inherit !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  color: rgba(0, 0, 0, 0.85) !important;
+  
+  /* Background with arrow icon matching Ant Design */
+  background-color: #ffffff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='64 64 896 896' width='1em' height='1em' fill='rgba(0,0,0,0.25)'%3E%3Cpath d='M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px !important;
+  
+  /* Border - match Ant Design */
+  border: 1px solid #d9d9d9 !important;
+  border-radius: var(--radius-md) !important;
+  
+  /* Interaction */
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+  
+  /* Remove native appearance */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+/* Hover State - match nz-select hover */
+select.native-select:hover {
+  border-color: #40a9ff !important;
+}
+
+/* Focus State - match nz-select focus */
+select.native-select:focus {
+  outline: none !important;
+  border-color: #40a9ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* Disabled State - match nz-select disabled */
+select.native-select:disabled {
+  background-color: #f5f5f5 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='64 64 896 896' width='1em' height='1em' fill='rgba(0,0,0,0.15)'%3E%3Cpath d='M884 256h-75c-5.1 0-9.9 2.5-12.9 6.6L512 654.2 227.9 262.6c-3-4.1-7.8-6.6-12.9-6.6h-75c-6.5 0-10.3 7.4-6.5 12.7l352.6 486.1c12.8 17.6 39 17.6 51.7 0l352.6-486.1c3.9-5.3.1-12.7-6.4-12.7z'/%3E%3C/svg%3E") !important;
+  border-color: #d9d9d9 !important;
+  color: rgba(0, 0, 0, 0.25) !important;
+  cursor: not-allowed !important;
+}
+
+select.native-select:disabled:hover {
+  border-color: #d9d9d9 !important;
+}
+
+/* Option styling */
+select.native-select option {
+  padding: 5px 12px;
+  font-size: 14px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Large size - match ant-select-lg */
+select.native-select-lg {
+  min-height: 44px !important;
+  padding: 10px 40px 10px 14px !important;
+  background-position: right 14px center !important;
+}
+
+/* Small size - match ant-select-sm */
+select.native-select-sm {
+  min-height: 32px !important;
+  padding: 4px 28px 4px 10px !important;
+  background-position: right 10px center !important;
 }
 
 /* ============================================
@@ -756,38 +1165,6 @@ body {
   --lpx-logo-icon: url('/assets/images/logo/icon.svg');
 }
 
-/* ============================================
-   Dropdown Fix - Increase max height
-   ============================================ */
-.custom-dropdown-large,
-.ant-select-dropdown {
-  max-height: none !important;
-  
-  .rc-virtual-list,
-  .ant-select-item-option-content,
-  .rc-virtual-list-scrollbar {
-    max-height: 800px !important;
-    height: auto !important;
-  }
-  
-  .rc-virtual-list-holder,
-  .rc-virtual-list-holder-inner {
-    max-height: 800px !important;
-    height: auto !important;
-  }
-  
-  .ant-select-item {
-    height: auto !important;
-    min-height: 40px !important;
-    line-height: 40px !important;
-    padding: 8px 12px !important;
-  }
-}
-
-// Override virtual scroll completely for small lists
-nz-option-container {
-  max-height: none !important;
-}
 
 /* ============================================
    MODERN FORM - GLOBAL SHARED STYLES

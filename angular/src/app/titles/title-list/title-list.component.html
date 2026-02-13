@@ -262,7 +262,8 @@
             *ngIf="!useDefaultReplacement"
             [(ngModel)]="selectedReplacementTitleId"
             nzPlaceHolder="Seleziona titolo sostitutivo..."
-            class="replacement-select">
+            class="replacement-select"
+            [nzOptionOverflowSize]="20">
             <nz-option 
               *ngFor="let alt of deletePreview.alternativeTitles" 
               [nzValue]="alt.id" 

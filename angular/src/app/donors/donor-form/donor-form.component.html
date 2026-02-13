@@ -45,7 +45,7 @@
             <nz-form-item>
               <nz-form-label>Titolo</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="titleId" nzPlaceHolder="Seleziona..." nzAllowClear>
+                <nz-select formControlName="titleId" nzPlaceHolder="Seleziona..." nzAllowClear [nzOptionOverflowSize]="20">
                   <nz-option *ngFor="let title of titles" [nzValue]="title.id" [nzLabel]="title.abbreviation + ' - ' + title.name"></nz-option>
                 </nz-select>
               </nz-form-control>
@@ -74,7 +74,7 @@
             <nz-form-item>
               <nz-form-label>Genere</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="gender" nzPlaceHolder="Seleziona...">
+                <nz-select formControlName="gender" nzPlaceHolder="Seleziona..." [nzOptionOverflowSize]="20">
                   <nz-option [nzValue]="Gender.Unspecified" nzLabel="Non specificato"></nz-option>
                   <nz-option [nzValue]="Gender.Male" nzLabel="Maschio"></nz-option>
                   <nz-option [nzValue]="Gender.Female" nzLabel="Femmina"></nz-option>
@@ -116,7 +116,7 @@
             <nz-form-item>
               <nz-form-label>Tipo Organizzazione</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="organizationType" nzPlaceHolder="Seleziona...">
+                <nz-select formControlName="organizationType" nzPlaceHolder="Seleziona..." [nzOptionOverflowSize]="20">
                   <nz-option [nzValue]="OrganizationType.Association" nzLabel="Associazione"></nz-option>
                   <nz-option [nzValue]="OrganizationType.Foundation" nzLabel="Fondazione"></nz-option>
                   <nz-option [nzValue]="OrganizationType.NGO" nzLabel="ONG"></nz-option>
@@ -137,7 +137,7 @@
             <nz-form-item>
               <nz-form-label>Forma Giuridica</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="legalForm" nzPlaceHolder="Seleziona...">
+                <nz-select formControlName="legalForm" nzPlaceHolder="Seleziona..." [nzOptionOverflowSize]="20">
                   <nz-option [nzValue]="LegalForm.SoleProprietorship" nzLabel="Ditta Individuale"></nz-option>
                   <nz-option [nzValue]="LegalForm.LLC" nzLabel="S.R.L."></nz-option>
                   <nz-option [nzValue]="LegalForm.SimplifiedLLC" nzLabel="S.R.L.S."></nz-option>
@@ -217,7 +217,7 @@
             <nz-form-item>
               <nz-form-label>Come ci ha conosciuto?</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="origin" nzPlaceHolder="Seleziona origine...">
+                <nz-select formControlName="origin" nzPlaceHolder="Seleziona origine..." [nzOptionOverflowSize]="20">
                   <nz-option [nzValue]="DonorOrigin.Unknown" nzLabel="Non specificato"></nz-option>
                   <nz-option [nzValue]="DonorOrigin.Website" nzLabel="Sito Web"></nz-option>
                   <nz-option [nzValue]="DonorOrigin.SocialMedia" nzLabel="Social Media"></nz-option>
@@ -236,7 +236,7 @@
             <nz-form-item>
               <nz-form-label>Lingua Preferita</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="preferredLanguage">
+                <nz-select formControlName="preferredLanguage" [nzOptionOverflowSize]="20">
                   <nz-option nzValue="IT" nzLabel="Italiano"></nz-option>
                   <nz-option nzValue="EN" nzLabel="Inglese"></nz-option>
                   <nz-option nzValue="DE" nzLabel="Tedesco"></nz-option>

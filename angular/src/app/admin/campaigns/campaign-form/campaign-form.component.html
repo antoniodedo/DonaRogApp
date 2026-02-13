@@ -91,7 +91,8 @@
               formControlName="channel" 
               [nzDisabled]="isEditMode"
               nzPlaceHolder="Seleziona il canale"
-              style="width: 100%;">
+              style="width: 100%;"
+              [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let opt of campaignChannelOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -125,7 +126,8 @@
               nzPlaceHolder="Seleziona una ricorrenza (opzionale)" 
               nzShowSearch
               style="width: 100%;" 
-              [nzDropdownStyle]="{ 'max-height': '400px' }">
+              [nzDropdownStyle]="{ 'max-height': '400px' }"
+              [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let recurrence of recurrences" [nzValue]="recurrence.id" [nzLabel]="recurrence.name"></nz-option>
             </nz-select>
           </nz-form-control>

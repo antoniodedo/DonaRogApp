@@ -79,7 +79,7 @@
             <nz-form-item>
               <nz-form-label>Tipo File</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="fileType" nzPlaceHolder="Seleziona tipo">
+                <nz-select formControlName="fileType" nzPlaceHolder="Seleziona tipo" [nzOptionOverflowSize]="20">
                   <nz-option nzValue="application/pdf" nzLabel="PDF"></nz-option>
                   <nz-option nzValue="application/msword" nzLabel="Word (DOC)"></nz-option>
                   <nz-option nzValue="application/vnd.openxmlformats-officedocument.wordprocessingml.document" nzLabel="Word (DOCX)"></nz-option>

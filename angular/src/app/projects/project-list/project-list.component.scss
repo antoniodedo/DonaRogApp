@@ -17,10 +17,10 @@
   align-items: center;
   padding: 24px 32px;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.25);
 
   .hero-content {
     display: flex;
@@ -220,25 +220,25 @@
     }
   }
 
-  /* Color Variants */
+  /* Color Variants - Indaco theme */
   &.stat-total {
-    &::before { background: linear-gradient(180deg, #667eea, #764ba2); }
-    .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35); }
+    &::before { background: linear-gradient(180deg, #6366f1, #4f46e5); }
+    .stat-icon { background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35); }
   }
 
   &.stat-active {
-    &::before { background: linear-gradient(180deg, #10b981, #059669); }
-    .stat-icon { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
+    &::before { background: linear-gradient(180deg, #818cf8, #6366f1); }
+    .stat-icon { background: linear-gradient(135deg, #818cf8, #6366f1); box-shadow: 0 6px 20px rgba(129, 140, 248, 0.35); }
   }
 
   &.stat-raised {
-    &::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
-    .stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
+    &::before { background: linear-gradient(180deg, #a5b4fc, #818cf8); }
+    .stat-icon { background: linear-gradient(135deg, #a5b4fc, #818cf8); box-shadow: 0 6px 20px rgba(165, 180, 252, 0.35); }
   }
 
   &.stat-donations {
-    &::before { background: linear-gradient(180deg, #f472b6, #ec4899); }
-    .stat-icon { background: linear-gradient(135deg, #f472b6, #ec4899); box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35); }
+    &::before { background: linear-gradient(180deg, #c7d2fe, #a5b4fc); }
+    .stat-icon { background: linear-gradient(135deg, #c7d2fe, #a5b4fc); box-shadow: 0 6px 20px rgba(199, 210, 254, 0.35); }
   }
 }
 

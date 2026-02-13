@@ -17,10 +17,10 @@
   align-items: center;
   padding: 24px 32px;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.25);
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.25);
 
   .hero-content {
     display: flex;
@@ -208,19 +208,20 @@
     }
   }
 
+  /* Color Variants - Viola scuro theme */
   &.stat-total {
-    &::before { background: linear-gradient(180deg, #a78bfa, #8b5cf6); }
-    .stat-icon { background: linear-gradient(135deg, #a78bfa, #8b5cf6); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35); }
+    &::before { background: linear-gradient(180deg, #7c3aed, #5b21b6); }
+    .stat-icon { background: linear-gradient(135deg, #7c3aed, #5b21b6); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35); }
   }
 
   &.stat-default {
-    &::before { background: linear-gradient(180deg, #60a5fa, #3b82f6); }
-    .stat-icon { background: linear-gradient(135deg, #60a5fa, #3b82f6); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35); }
+    &::before { background: linear-gradient(180deg, #a78bfa, #7c3aed); }
+    .stat-icon { background: linear-gradient(135deg, #a78bfa, #7c3aed); box-shadow: 0 6px 20px rgba(167, 139, 250, 0.35); }
   }
 
   &.stat-system {
-    &::before { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
-    .stat-icon { background: linear-gradient(135deg, #fbbf24, #f59e0b); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
+    &::before { background: linear-gradient(180deg, #c4b5fd, #a78bfa); }
+    .stat-icon { background: linear-gradient(135deg, #c4b5fd, #a78bfa); box-shadow: 0 6px 20px rgba(196, 181, 253, 0.35); }
   }
 }
 

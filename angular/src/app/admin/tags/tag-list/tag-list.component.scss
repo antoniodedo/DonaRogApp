@@ -220,25 +220,25 @@
     }
   }
 
-  /* Color Variants */
+  /* Color Variants - Verde theme */
   &.stat-total {
-    &::before { background: linear-gradient(180deg, #34d399, #10b981); }
-    .stat-icon { background: linear-gradient(135deg, #34d399, #10b981); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
+    &::before { background: linear-gradient(180deg, #10b981, #059669); }
+    .stat-icon { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
   }
 
   &.stat-active {
-    &::before { background: linear-gradient(180deg, #10b981, #059669); }
-    .stat-icon { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35); }
+    &::before { background: linear-gradient(180deg, #34d399, #10b981); }
+    .stat-icon { background: linear-gradient(135deg, #34d399, #10b981); box-shadow: 0 6px 20px rgba(52, 211, 153, 0.35); }
   }
 
   &.stat-categories {
-    &::before { background: linear-gradient(180deg, #60a5fa, #3b82f6); }
-    .stat-icon { background: linear-gradient(135deg, #60a5fa, #3b82f6); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35); }
+    &::before { background: linear-gradient(180deg, #6ee7b7, #34d399); }
+    .stat-icon { background: linear-gradient(135deg, #6ee7b7, #34d399); box-shadow: 0 6px 20px rgba(110, 231, 183, 0.35); }
   }
 
   &.stat-usage {
-    &::before { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
-    .stat-icon { background: linear-gradient(135deg, #fbbf24, #f59e0b); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
+    &::before { background: linear-gradient(180deg, #a7f3d0, #6ee7b7); }
+    .stat-icon { background: linear-gradient(135deg, #a7f3d0, #6ee7b7); box-shadow: 0 6px 20px rgba(167, 243, 208, 0.35); }
   }
 }
 

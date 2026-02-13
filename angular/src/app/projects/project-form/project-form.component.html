@@ -45,7 +45,7 @@
             <nz-form-item>
               <nz-form-label>Stato</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="status">
+                <nz-select formControlName="status" [nzOptionOverflowSize]="20">
                   <nz-option [nzValue]="ProjectStatus.Active" nzLabel="Attivo"></nz-option>
                   <nz-option [nzValue]="ProjectStatus.Inactive" nzLabel="Inattivo"></nz-option>
                   <nz-option [nzValue]="ProjectStatus.Archived" nzLabel="Archiviato"></nz-option>
@@ -79,7 +79,7 @@
             <nz-form-item>
               <nz-form-label>Valuta</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="currency">
+                <nz-select formControlName="currency" [nzOptionOverflowSize]="20">
                   <nz-option nzValue="EUR" nzLabel="EUR (€)"></nz-option>
                   <nz-option nzValue="USD" nzLabel="USD ($)"></nz-option>
                   <nz-option nzValue="GBP" nzLabel="GBP (£)"></nz-option>

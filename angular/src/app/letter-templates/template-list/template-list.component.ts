@@ -117,12 +117,53 @@ export class TemplateListComponent implements OnInit {
     this.applyFilters();
   }
 
+  clearSearch(): void {
+    this.searchText = '';
+    this.onSearch();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(
+      this.searchText ||
+      this.selectedCategory !== undefined ||
+      this.selectedLanguage !== undefined ||
+      this.selectedCommunicationType !== undefined ||
+      this.selectedIsActive !== undefined ||
+      this.selectedIsDefault !== undefined
+    );
+  }
+
+  getActiveFiltersCount(): number {
+    let count = 0;
+    if (this.searchText) count++;
+    if (this.selectedCategory !== undefined) count++;
+    if (this.selectedLanguage !== undefined) count++;
+    if (this.selectedCommunicationType !== undefined) count++;
+    if (this.selectedIsActive !== undefined) count++;
+    if (this.selectedIsDefault !== undefined) count++;
+    return count;
+  }
+
+  // Statistics methods
+  getActiveCount(): number {
+    return this.templates.filter(t => t.isActive).length;
+  }
+
+  getDefaultCount(): number {
+    return this.templates.filter(t => t.isDefault).length;
+  }
+
+  getUniqueCategoriesCount(): number {
+    const categories = new Set(this.templates.map(t => t.category));
+    return categories.size;
+  }
+
   openCreatePage(): void {
-    this.router.navigate(['/admin/letter-templates/create']);
+    this.router.navigate(['/letter-templates/create']);
   }
 
   openEditPage(template: LetterTemplateDto): void {
-    this.router.navigate(['/admin/letter-templates', template.id, 'edit']);
+    this.router.navigate(['/letter-templates', template.id, 'edit']);
   }
 
   duplicateTemplate(template: LetterTemplateDto): void {

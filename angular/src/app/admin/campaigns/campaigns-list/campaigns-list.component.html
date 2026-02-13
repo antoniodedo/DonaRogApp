@@ -109,7 +109,8 @@
           (ngModelChange)="applyQuickFilters()"
           nzAllowClear 
           nzPlaceHolder="Tutti"
-          class="filter-select">
+          class="filter-select"
+          [nzOptionOverflowSize]="20">
           <nz-option *ngFor="let year of availableYears" [nzValue]="year" [nzLabel]="year.toString()"></nz-option>
         </nz-select>
       </div>
@@ -119,12 +120,13 @@
           <span nz-icon nzType="tag"></span>
           Tipo
         </label>
-        <nz-select 
-          [(ngModel)]="quickFilters.campaignType" 
+        <nz-select
+          [(ngModel)]="quickFilters.campaignType"
           (ngModelChange)="applyQuickFilters()"
-          nzAllowClear 
+          nzAllowClear
           nzPlaceHolder="Tutti"
-          class="filter-select">
+          class="filter-select"
+          [nzOptionOverflowSize]="20">
           <nz-option *ngFor="let opt of campaignTypeOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
         </nz-select>
       </div>
@@ -139,7 +141,8 @@
           (ngModelChange)="applyQuickFilters()"
           nzAllowClear 
           nzPlaceHolder="Tutti"
-          class="filter-select">
+          class="filter-select"
+          [nzOptionOverflowSize]="20">
           <nz-option *ngFor="let opt of campaignStatusOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
         </nz-select>
       </div>
@@ -267,7 +270,7 @@
       <nz-form-item>
         <nz-form-label>Stato</nz-form-label>
         <nz-form-control>
-          <nz-select formControlName="status" nzAllowClear nzPlaceHolder="Tutti">
+          <nz-select formControlName="status" nzAllowClear nzPlaceHolder="Tutti" [nzOptionOverflowSize]="20">
             <nz-option *ngFor="let option of campaignStatusOptions" [nzValue]="option.value" [nzLabel]="option.key"></nz-option>
           </nz-select>
         </nz-form-control>
@@ -276,7 +279,7 @@
       <nz-form-item>
         <nz-form-label>Tipo</nz-form-label>
         <nz-form-control>
-          <nz-select formControlName="campaignType" nzAllowClear nzPlaceHolder="Tutti">
+          <nz-select formControlName="campaignType" nzAllowClear nzPlaceHolder="Tutti" [nzOptionOverflowSize]="20">
             <nz-option *ngFor="let option of campaignTypeOptions" [nzValue]="option.value" [nzLabel]="option.key"></nz-option>
           </nz-select>
         </nz-form-control>

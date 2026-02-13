@@ -214,7 +214,7 @@
         <nz-form-item>
           <nz-form-label>Stato</nz-form-label>
           <nz-form-control>
-            <nz-select [(ngModel)]="selectedStatus" nzAllowClear nzPlaceHolder="Seleziona stato">
+            <nz-select [(ngModel)]="selectedStatus" nzAllowClear nzPlaceHolder="Seleziona stato" [nzOptionOverflowSize]="20">
               <nz-option [nzValue]="ProjectStatus.Active" nzLabel="Attivo"></nz-option>
               <nz-option [nzValue]="ProjectStatus.Inactive" nzLabel="Inattivo"></nz-option>
               <nz-option [nzValue]="ProjectStatus.Archived" nzLabel="Archiviato"></nz-option>
@@ -225,7 +225,7 @@
         <nz-form-item>
           <nz-form-label>Categoria</nz-form-label>
           <nz-form-control>
-            <nz-select [(ngModel)]="selectedCategory" nzAllowClear nzPlaceHolder="Seleziona categoria">
+            <nz-select [(ngModel)]="selectedCategory" nzAllowClear nzPlaceHolder="Seleziona categoria" [nzOptionOverflowSize]="20">
               <nz-option [nzValue]="ProjectCategory.Education" nzLabel="Educazione"></nz-option>
               <nz-option [nzValue]="ProjectCategory.Health" nzLabel="Salute"></nz-option>
               <nz-option [nzValue]="ProjectCategory.Environment" nzLabel="Ambiente"></nz-option>

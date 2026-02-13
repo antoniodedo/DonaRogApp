@@ -75,7 +75,8 @@
         [(ngModel)]="selectedTagId" 
         nzPlaceHolder="Seleziona tag..."
         nzShowSearch
-        style="width: 100%">
+        style="width: 100%"
+        [nzOptionOverflowSize]="20">
         <nz-option *ngFor="let tag of getUnassignedTags()" 
                    [nzValue]="tag.id" 
                    [nzLabel]="tag.name"

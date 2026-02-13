@@ -24,7 +24,7 @@
           <nz-form-item>
             <nz-form-label nzRequired>Canale</nz-form-label>
             <nz-form-control>
-              <nz-select formControlName="channel">
+              <nz-select formControlName="channel" [nzOptionOverflowSize]="20">
                 <nz-option
                   *ngFor="let opt of channelOptions"
                   [nzValue]="opt.value"
@@ -123,7 +123,7 @@
           <td>{{ donation.totalAmount | currency: 'EUR' }}</td>
           <td>{{ donation.donationDate | date: 'dd/MM/yyyy' }}</td>
           <td>
-            <a [routerLink]="['/donations/verify', donation.id]">Verifica</a>
+            <a [routerLink]="['/donations', donation.id]">Verifica</a>
           </td>
         </tr>
       </tbody>

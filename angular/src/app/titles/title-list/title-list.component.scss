@@ -220,25 +220,25 @@
     }
   }
 
-  /* Color Variants */
+  /* Color Variants - Cyan theme */
   &.stat-total {
-    &::before { background: linear-gradient(180deg, #22d3ee, #06b6d4); }
-    .stat-icon { background: linear-gradient(135deg, #22d3ee, #06b6d4); box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35); }
+    &::before { background: linear-gradient(180deg, #06b6d4, #0891b2); }
+    .stat-icon { background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35); }
   }
 
   &.stat-active {
-    &::before { background: linear-gradient(180deg, #34d399, #10b981); }
-    .stat-icon { background: linear-gradient(135deg, #34d399, #10b981); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
+    &::before { background: linear-gradient(180deg, #22d3ee, #06b6d4); }
+    .stat-icon { background: linear-gradient(135deg, #22d3ee, #06b6d4); box-shadow: 0 6px 20px rgba(34, 211, 238, 0.35); }
   }
 
   &.stat-donors {
-    &::before { background: linear-gradient(180deg, #60a5fa, #3b82f6); }
-    .stat-icon { background: linear-gradient(135deg, #60a5fa, #3b82f6); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35); }
+    &::before { background: linear-gradient(180deg, #67e8f9, #22d3ee); }
+    .stat-icon { background: linear-gradient(135deg, #67e8f9, #22d3ee); box-shadow: 0 6px 20px rgba(103, 232, 249, 0.35); }
   }
 
   &.stat-warning {
-    &::before { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
-    .stat-icon { background: linear-gradient(135deg, #fbbf24, #f59e0b); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
+    &::before { background: linear-gradient(180deg, #a5f3fc, #67e8f9); }
+    .stat-icon { background: linear-gradient(135deg, #a5f3fc, #67e8f9); box-shadow: 0 6px 20px rgba(165, 243, 252, 0.35); }
   }
 }
 

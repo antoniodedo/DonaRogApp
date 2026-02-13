@@ -235,7 +235,8 @@
         [(ngModel)]="advancedFilters.subjectType" 
         nzAllowClear 
         nzPlaceHolder="Tutti"
-        style="width: 100%;">
+        style="width: 100%;"
+        [nzOptionOverflowSize]="20">
         <nz-option [nzValue]="SubjectType.Individual" nzLabel="Persona Fisica"></nz-option>
         <nz-option [nzValue]="SubjectType.Organization" nzLabel="Organizzazione"></nz-option>
       </nz-select>
@@ -247,7 +248,8 @@
         [(ngModel)]="advancedFilters.status" 
         nzAllowClear 
         nzPlaceHolder="Tutti"
-        style="width: 100%;">
+        style="width: 100%;"
+        [nzOptionOverflowSize]="20">
         <nz-option [nzValue]="DonorStatus.New" nzLabel="Nuovo"></nz-option>
         <nz-option [nzValue]="DonorStatus.Active" nzLabel="Attivo"></nz-option>
         <nz-option [nzValue]="DonorStatus.Inactive" nzLabel="Inattivo"></nz-option>
@@ -266,7 +268,8 @@
         [(ngModel)]="advancedFilters.category" 
         nzAllowClear 
         nzPlaceHolder="Tutte"
-        style="width: 100%;">
+        style="width: 100%;"
+        [nzOptionOverflowSize]="20">
         <nz-option [nzValue]="DonorCategory.Major" nzLabel="Major"></nz-option>
         <nz-option [nzValue]="DonorCategory.Regular" nzLabel="Regular"></nz-option>
         <nz-option [nzValue]="DonorCategory.Occasional" nzLabel="Occasionale"></nz-option>

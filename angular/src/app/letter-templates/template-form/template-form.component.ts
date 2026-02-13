@@ -250,7 +250,7 @@ export class TemplateFormComponent implements OnInit {
         this.message.success(
           this.template ? 'Template aggiornato con successo' : 'Template creato con successo'
         );
-        this.router.navigate(['/admin/letter-templates']);
+        this.router.navigate(['/letter-templates']);
         this.submitting = false;
       },
       error: err => {
@@ -262,6 +262,6 @@ export class TemplateFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/admin/letter-templates']);
+    this.router.navigate(['/letter-templates']);
   }
 }

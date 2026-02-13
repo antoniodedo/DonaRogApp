@@ -30,7 +30,7 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   { 
-    path: 'admin/letter-templates', 
+    path: 'letter-templates', 
     loadChildren: () => import('./letter-templates/letter-templates.module').then(m => m.LetterTemplatesModule),
     canActivate: [authGuard]
   },

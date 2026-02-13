@@ -4,7 +4,7 @@
     <!-- Hero Header -->
     <div class="hero-header">
   <div class="hero-content">
-    <div class="back-btn" [routerLink]="['/admin/letter-templates']">
+    <div class="back-btn" [routerLink]="['/letter-templates']">
       <span nz-icon nzType="arrow-left"></span>
     </div>
     
@@ -74,7 +74,7 @@
             <nz-form-item>
               <nz-form-label>Tipo Comunicazione</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="communicationType" nzAllowClear nzPlaceHolder="Email e Lettera">
+                <nz-select formControlName="communicationType" nzAllowClear nzPlaceHolder="Email e Lettera" [nzOptionOverflowSize]="20">
                   <nz-option [nzValue]="CommunicationType.Email" nzLabel="Solo Email"></nz-option>
                   <nz-option [nzValue]="CommunicationType.Letter" nzLabel="Solo Lettera"></nz-option>
                 </nz-select>
@@ -84,7 +84,7 @@
             <nz-form-item>
               <nz-form-label nzRequired>Categoria</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="category" nzPlaceHolder="Seleziona categoria">
+                <nz-select formControlName="category" nzPlaceHolder="Seleziona categoria" [nzOptionOverflowSize]="20">
                   <nz-option [nzValue]="TemplateCategory.ThankYou" nzLabel="Ringraziamento"></nz-option>
                   <nz-option [nzValue]="TemplateCategory.Newsletter" nzLabel="Newsletter"></nz-option>
                   <nz-option [nzValue]="TemplateCategory.HolidayGreeting" nzLabel="Auguri"></nz-option>
@@ -99,7 +99,7 @@
             <nz-form-item>
               <nz-form-label nzRequired>Lingua</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="language" nzPlaceHolder="Lingua">
+                <nz-select formControlName="language" nzPlaceHolder="Lingua" [nzOptionOverflowSize]="20">
                   <nz-option nzValue="it" nzLabel="Italiano"></nz-option>
                   <nz-option nzValue="en" nzLabel="English"></nz-option>
                 </nz-select>
@@ -124,7 +124,7 @@
             <nz-form-item>
               <nz-form-label>Progetto</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="projectId" nzAllowClear nzPlaceHolder="Tutti i progetti" nzShowSearch>
+                <nz-select formControlName="projectId" nzAllowClear nzPlaceHolder="Tutti i progetti" nzShowSearch [nzOptionOverflowSize]="20">
                   <nz-option *ngFor="let project of projects" [nzValue]="project.id" [nzLabel]="project.name"></nz-option>
                 </nz-select>
               </nz-form-control>
@@ -133,7 +133,7 @@
             <nz-form-item>
               <nz-form-label>Ricorrenza</nz-form-label>
               <nz-form-control>
-                <nz-select formControlName="recurrenceId" nzAllowClear nzPlaceHolder="Tutte le ricorrenze" nzShowSearch>
+                <nz-select formControlName="recurrenceId" nzAllowClear nzPlaceHolder="Tutte le ricorrenze" nzShowSearch [nzOptionOverflowSize]="20">
                   <nz-option *ngFor="let recurrence of recurrences" [nzValue]="recurrence.id" [nzLabel]="recurrence.name"></nz-option>
                 </nz-select>
               </nz-form-control>

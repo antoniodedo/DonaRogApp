@@ -21,7 +21,7 @@
         <nz-form-item>
           <nz-form-label>Stato Donatore</nz-form-label>
           <nz-form-control>
-            <nz-select formControlName="donorStatus" nzAllowClear nzPlaceHolder="Seleziona stato">
+            <nz-select formControlName="donorStatus" nzAllowClear nzPlaceHolder="Seleziona stato" [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let opt of donorStatusOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -30,7 +30,7 @@
         <nz-form-item>
           <nz-form-label>Categoria Donatore</nz-form-label>
           <nz-form-control>
-            <nz-select formControlName="donorCategory" nzAllowClear nzPlaceHolder="Seleziona categoria">
+            <nz-select formControlName="donorCategory" nzAllowClear nzPlaceHolder="Seleziona categoria" [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let opt of donorCategoryOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -66,7 +66,8 @@
             <nz-select 
               formControlName="includedTagIds" 
               nzMode="multiple" 
-              nzPlaceHolder="Seleziona tag">
+              nzPlaceHolder="Seleziona tag"
+              [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let tag of availableTags" [nzValue]="tag.id" [nzLabel]="tag.name"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -78,7 +79,8 @@
             <nz-select 
               formControlName="excludedTagIds" 
               nzMode="multiple" 
-              nzPlaceHolder="Seleziona tag">
+              nzPlaceHolder="Seleziona tag"
+              [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let tag of availableTags" [nzValue]="tag.id" [nzLabel]="tag.name"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -112,7 +114,8 @@
             <nz-select 
               formControlName="includedRegions" 
               nzMode="multiple" 
-              nzPlaceHolder="Seleziona regioni">
+              nzPlaceHolder="Seleziona regioni"
+              [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let region of availableRegions" [nzValue]="region" [nzLabel]="region"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -124,7 +127,8 @@
             <nz-select 
               formControlName="excludedRegions" 
               nzMode="multiple" 
-              nzPlaceHolder="Seleziona regioni">
+              nzPlaceHolder="Seleziona regioni"
+              [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let region of availableRegions" [nzValue]="region" [nzLabel]="region"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -148,7 +152,8 @@
             <nz-select 
               formControlName="includedCampaignIds" 
               nzMode="multiple" 
-              nzPlaceHolder="Seleziona campagne">
+              nzPlaceHolder="Seleziona campagne"
+              [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let campaign of availableCampaigns" [nzValue]="campaign.id" [nzLabel]="campaign.name"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -160,7 +165,8 @@
             <nz-select 
               formControlName="excludedCampaignIds" 
               nzMode="multiple" 
-              nzPlaceHolder="Seleziona campagne">
+              nzPlaceHolder="Seleziona campagne"
+              [nzOptionOverflowSize]="20">
               <nz-option *ngFor="let campaign of availableCampaigns" [nzValue]="campaign.id" [nzLabel]="campaign.name"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -184,7 +190,8 @@
             <nz-select 
               formControlName="includedDonorNames" 
               nzMode="tags" 
-              nzPlaceHolder="Digita nomi da includere">
+              nzPlaceHolder="Digita nomi da includere"
+              [nzOptionOverflowSize]="20">
             </nz-select>
             <nz-form-explain>Premi invio dopo ogni nome</nz-form-explain>
           </nz-form-control>
@@ -196,7 +203,8 @@
             <nz-select 
               formControlName="excludedDonorNames" 
               nzMode="tags" 
-              nzPlaceHolder="Digita nomi da escludere">
+              nzPlaceHolder="Digita nomi da escludere"
+              [nzOptionOverflowSize]="20">
             </nz-select>
             <nz-form-explain>Premi invio dopo ogni nome</nz-form-explain>
           </nz-form-control>

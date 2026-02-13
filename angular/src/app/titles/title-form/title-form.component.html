@@ -38,7 +38,7 @@
           <nz-form-item>
             <nz-form-label>Genere Associato</nz-form-label>
             <nz-form-control>
-              <nz-select formControlName="associatedGender" nzPlaceHolder="Nessuno (neutro)" nzAllowClear>
+              <nz-select formControlName="associatedGender" nzPlaceHolder="Nessuno (neutro)" nzAllowClear [nzOptionOverflowSize]="20">
                 <nz-option [nzValue]="Gender.Male" nzLabel="Maschio"></nz-option>
                 <nz-option [nzValue]="Gender.Female" nzLabel="Femmina"></nz-option>
               </nz-select>

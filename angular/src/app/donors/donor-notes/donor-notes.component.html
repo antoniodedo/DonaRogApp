@@ -142,7 +142,7 @@
           <nz-form-item>
             <nz-form-label>Categoria</nz-form-label>
             <nz-form-control>
-              <nz-select formControlName="category" nzPlaceHolder="Seleziona..." nzAllowClear>
+              <nz-select formControlName="category" nzPlaceHolder="Seleziona..." nzAllowClear [nzOptionOverflowSize]="20">
                 <nz-option *ngFor="let cat of categories" [nzValue]="cat.value" [nzLabel]="cat.label"></nz-option>
               </nz-select>
             </nz-form-control>

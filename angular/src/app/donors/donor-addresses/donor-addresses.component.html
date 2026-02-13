@@ -107,7 +107,8 @@
               <nz-select [(ngModel)]="selectedCountryCode" 
                          [ngModelOptions]="{standalone: true}"
                          (ngModelChange)="onCountryChange()"
-                         nzPlaceHolder="Seleziona paese">
+                         nzPlaceHolder="Seleziona paese"
+                         [nzOptionOverflowSize]="20">
                 <nz-option *ngFor="let c of countries" [nzValue]="c.code" [nzLabel]="c.label"></nz-option>
               </nz-select>
             </nz-form-control>
@@ -216,7 +217,7 @@
           <nz-form-item>
             <nz-form-label>Tipologia</nz-form-label>
             <nz-form-control>
-              <nz-select formControlName="type" nzPlaceHolder="Seleziona tipo">
+              <nz-select formControlName="type" nzPlaceHolder="Seleziona tipo" [nzOptionOverflowSize]="20">
                 <nz-option [nzValue]="AddressType.Home" nzLabel="Residenza"></nz-option>
                 <nz-option [nzValue]="AddressType.Work" nzLabel="Lavoro"></nz-option>
                 <nz-option [nzValue]="AddressType.Billing" nzLabel="Fatturazione"></nz-option>

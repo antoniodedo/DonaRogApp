@@ -18,6 +18,9 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { DonationService } from '../../proxy/donations/donation.service';
 import {
   DonationListDto,
@@ -53,6 +56,9 @@ import { PagedResultDto } from '@abp/ng.core';
     NzInputModule,
     NzGridModule,
     NzIconModule,
+    NzToolTipModule,
+    NzDrawerModule,
+    NzEmptyModule,
   ],
 })
 export class DonationsListComponent implements OnInit {
@@ -73,6 +79,9 @@ export class DonationsListComponent implements OnInit {
   minAmount?: number;
   maxAmount?: number;
   
+  // Advanced filters drawer
+  isAdvancedFiltersVisible = false;
+  
   // Statistics
   statistics?: DonationStatisticsDto;
   
@@ -85,9 +94,12 @@ export class DonationsListComponent implements OnInit {
     { value: DonationChannel.BankTransfer, label: 'Bonifico Bancario' },
     { value: DonationChannel.PostalOrder, label: 'Bollettino Postale' },
     { value: DonationChannel.PostalOrderTelematic, label: 'Bollettino Telematico' },
-    { value: DonationChannel.PayPal, label: 'PayPal' },
+    { value: DonationChannel.CreditCard, label: 'Carta di Credito' },
+    { value: DonationChannel.DirectDebit, label: 'RID/SDD' },
     { value: DonationChannel.Cash, label: 'Contanti' },
     { value: DonationChannel.Check, label: 'Assegno' },
+    { value: DonationChannel.PayPal, label: 'PayPal' },
+    { value: DonationChannel.Stripe, label: 'Stripe' },
     { value: DonationChannel.Bequest, label: 'Lasciti' },
     { value: DonationChannel.Other, label: 'Altro' },
   ];
@@ -182,6 +194,11 @@ export class DonationsListComponent implements OnInit {
     this.loadDonations();
   }
 
+  clearSearch(): void {
+    this.searchText = '';
+    this.onSearch();
+  }
+
   resetFilters(): void {
     this.searchText = '';
     this.selectedChannel = undefined;
@@ -190,20 +207,59 @@ export class DonationsListComponent implements OnInit {
     this.minAmount = undefined;
     this.maxAmount = undefined;
     this.pageIndex = 1;
+    this.isAdvancedFiltersVisible = false;
     this.loadDonations();
   }
 
-  viewDonation(id: string): void {
-    this.router.navigate(['/donations', id]);
+  openAdvancedFilters(): void {
+    this.isAdvancedFiltersVisible = true;
   }
 
-  verifyDonation(id: string): void {
-    this.router.navigate(['/donations/verify', id]);
+  closeAdvancedFilters(): void {
+    this.isAdvancedFiltersVisible = false;
+  }
+
+  applyFilters(): void {
+    this.pageIndex = 1;
+    this.loadDonations();
+    this.isAdvancedFiltersVisible = false;
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(
+      this.searchText ||
+      this.selectedChannel !== undefined ||
+      this.selectedStatus !== undefined ||
+      this.dateRange.length > 0 ||
+      this.minAmount ||
+      this.maxAmount
+    );
+  }
+
+  getActiveFiltersCount(): number {
+    let count = 0;
+    if (this.searchText) count++;
+    if (this.selectedChannel !== undefined) count++;
+    if (this.selectedStatus !== undefined) count++;
+    if (this.dateRange.length > 0) count++;
+    if (this.minAmount) count++;
+    if (this.maxAmount) count++;
+    return count;
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    this.pageSize = pageSize;
+    this.pageIndex = 1;
+    this.loadDonations();
   }
 
   createDonation(): void {
     this.router.navigate(['/donations/new']);
   }
+
+  // Formatter/Parser for nz-input-number
+  formatterEuro = (value: number) => `€ ${value}`;
+  parserEuro = (value: string) => value.replace('€ ', '');
 
   deleteDonation(id: string): void {
     this.donationService.delete(id).subscribe({
@@ -247,14 +303,40 @@ export class DonationsListComponent implements OnInit {
       case DonationChannel.PostalOrder:
       case DonationChannel.PostalOrderTelematic:
         return 'mail';
+      case DonationChannel.CreditCard:
+        return 'credit-card';
+      case DonationChannel.DirectDebit:
+        return 'transaction';
       case DonationChannel.PayPal:
-        return 'paypal';
+        return 'paypal-circle';
+      case DonationChannel.Stripe:
+        return 'credit-card';
       case DonationChannel.Cash:
         return 'dollar';
       case DonationChannel.Check:
         return 'file-text';
+      case DonationChannel.Bequest:
+        return 'gift';
       default:
         return 'question-circle';
     }
+  }
+
+  getChannelLabel(channel: DonationChannel): string {
+    const labels: Record<DonationChannel, string> = {
+      [DonationChannel.BankTransfer]: 'Bonifico Bancario',
+      [DonationChannel.PostalOrder]: 'Bollettino Postale',
+      [DonationChannel.PostalOrderTelematic]: 'Bollettino Telematico',
+      [DonationChannel.CreditCard]: 'Carta di Credito',
+      [DonationChannel.DirectDebit]: 'RID/SDD',
+      [DonationChannel.Cash]: 'Contanti',
+      [DonationChannel.Check]: 'Assegno',
+      [DonationChannel.PayPal]: 'PayPal',
+      [DonationChannel.Stripe]: 'Stripe',
+      [DonationChannel.Bequest]: 'Lasciti',
+      [DonationChannel.Unknown]: 'Sconosciuto',
+      [DonationChannel.Other]: 'Altro',
+    };
+    return labels[channel] || 'N/D';
   }
 }

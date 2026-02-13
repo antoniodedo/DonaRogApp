@@ -1,60 +1,307 @@
-<div class="donations-container">
-  <!-- Header with statistics -->
-  <nz-card *ngIf="statistics">
-    <div nz-row [nzGutter]="16">
-      <div nz-col [nzSpan]="6">
-        <nz-statistic
-          [nzValue]="statistics.totalCount"
-          nzTitle="Totale Donazioni">
-        </nz-statistic>
+<div class="donation-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="euro-circle" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
       </div>
-      <div nz-col [nzSpan]="6">
-        <nz-statistic
-          [nzValue]="statistics.pendingCount"
-          nzTitle="Da Verificare"
-          [nzValueStyle]="{ color: '#fa8c16' }">
-        </nz-statistic>
-      </div>
-      <div nz-col [nzSpan]="6">
-        <nz-statistic
-          [nzValue]="statistics.totalVerifiedAmount | currency: 'EUR'"
-          nzTitle="Totale Verificato">
-        </nz-statistic>
-      </div>
-      <div nz-col [nzSpan]="6">
-        <nz-statistic
-          [nzValue]="statistics.averageAmount | currency: 'EUR'"
-          nzTitle="Media Donazione">
-        </nz-statistic>
+      <div class="hero-text">
+        <h1>Le tue Donazioni</h1>
+        <p>Monitora e gestisci tutte le donazioni ricevute</p>
       </div>
     </div>
-  </nz-card>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="createDonation()" nz-tooltip="Nuova Donazione">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
 
-  <nz-divider></nz-divider>
+  <!-- Quick Stats -->
+  <div class="quick-stats" *ngIf="statistics">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="dollar"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ statistics.totalCount }}</span>
+        <span class="stat-label">Totale Donazioni</span>
+      </div>
+    </div>
+    <div class="stat-card stat-pending">
+      <div class="stat-icon">
+        <span nz-icon nzType="clock-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ statistics.pendingCount }}</span>
+        <span class="stat-label">Da Verificare</span>
+      </div>
+    </div>
+    <div class="stat-card stat-verified">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ statistics.totalVerifiedAmount | currency:'EUR':'symbol':'1.0-0' }}</span>
+        <span class="stat-label">Totale Verificato</span>
+      </div>
+    </div>
+    <div class="stat-card stat-average">
+      <div class="stat-icon">
+        <span nz-icon nzType="rise"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ statistics.averageAmount | currency:'EUR':'symbol':'1.0-0' }}</span>
+        <span class="stat-label">Media Donazione</span>
+      </div>
+    </div>
+  </div>
 
-  <!-- Filters -->
-  <nz-card nzTitle="Filtri" [nzExtra]="extraTemplate">
-    <div nz-row [nzGutter]="16">
-      <div nz-col [nzSpan]="8">
-        <nz-input-group [nzPrefix]="prefixIconSearch">
-          <input
-            type="text"
-            nz-input
-            placeholder="Cerca riferimento, note..."
-            [(ngModel)]="searchText"
-            (keyup.enter)="onSearch()" />
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <div class="toolbar">
+      <div class="search-box">
+        <nz-input-group [nzPrefix]="prefixIcon" [nzSuffix]="suffixIcon">
+          <input nz-input placeholder="Cerca per riferimento, donatore o note..." 
+                 [(ngModel)]="searchText" 
+                 (ngModelChange)="onSearch()" />
         </nz-input-group>
-        <ng-template #prefixIconSearch>
+        <ng-template #prefixIcon>
           <span nz-icon nzType="search"></span>
         </ng-template>
+        <ng-template #suffixIcon>
+          <span nz-icon nzType="close-circle" 
+                *ngIf="searchText" 
+                (click)="clearSearch()" 
+                class="search-clear-icon"></span>
+        </ng-template>
+      </div>
+      <div class="toolbar-actions">
+        <button nz-button nzType="default" (click)="openAdvancedFilters()" 
+                class="filter-btn"
+                [class.active]="hasActiveFilters()">
+          <nz-badge [nzCount]="getActiveFiltersCount()" [nzShowZero]="false" nzSize="small">
+            <span nz-icon nzType="filter" [nzTheme]="hasActiveFilters() ? 'fill' : 'outline'"></span>
+          </nz-badge>
+          <span class="btn-text">Filtri</span>
+        </button>
+        <button nz-button nzType="default" (click)="loadDonations()" nz-tooltip="Aggiorna lista">
+          <span nz-icon nzType="reload"></span>
+        </button>
+        <button nz-button nzType="default" [routerLink]="['/donations/demo']" nz-tooltip="Demo Flussi Esterni">
+          <span nz-icon nzType="experiment"></span>
+        </button>
+      </div>
+    </div>
+
+    <nz-table
+      #donationsTable
+      [nzData]="donations"
+      [nzLoading]="loading"
+      [nzTotal]="total"
+      [nzPageSize]="pageSize"
+      [nzPageIndex]="pageIndex"
+      [nzFrontPagination]="false"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 20, 50, 100]"
+      (nzPageIndexChange)="onPageChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)"
+      [nzNoResult]="emptyTemplate">
+      <thead>
+        <tr>
+          <th>Riferimento</th>
+          <th>Donatore</th>
+          <th>Canale</th>
+          <th>Stato</th>
+          <th>Importo</th>
+          <th>Data</th>
+          <th>Campagna</th>
+          <th>Progetti</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let donation of donations; let i = index" 
+            class="donation-row" 
+            [style.animation-delay]="i * 50 + 'ms'">
+          <td>
+            <a [routerLink]="['/donations', donation.id]" class="reference-link">
+              {{ donation.reference }}
+            </a>
+          </td>
+          <td>
+            <a [routerLink]="['/donors', donation.donorId]" class="donor-link">
+              {{ donation.donorFullName }}
+            </a>
+          </td>
+          <td>
+            <span class="channel-icon" nz-icon [nzType]="getChannelIcon(donation.channel)" nz-tooltip="{{ getChannelLabel(donation.channel) }}"></span>
+          </td>
+          <td>
+            <nz-tag [nzColor]="getStatusColor(donation.status)" class="status-tag">
+              <span class="status-dot"></span>
+              {{ getStatusText(donation.status) }}
+            </nz-tag>
+          </td>
+          <td>
+            <span class="amount-value">{{ donation.totalAmount | currency: 'EUR':'symbol':'1.0-0' }}</span>
+          </td>
+          <td>
+            <span class="date-value">{{ donation.donationDate | date: 'dd/MM/yyyy' }}</span>
+          </td>
+          <td>
+            <a *ngIf="donation.campaignId" [routerLink]="['/campaigns', donation.campaignId]" class="campaign-link">
+              {{ donation.campaignName }}
+            </a>
+            <span *ngIf="!donation.campaignId" class="no-data">-</span>
+          </td>
+          <td>
+            <nz-tag *ngFor="let proj of donation.projectNames" class="project-tag">{{ proj }}</nz-tag>
+            <span *ngIf="!donation.projectNames || donation.projectNames.length === 0" class="no-data">-</span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="action-btn view" nz-button nzType="link" nzSize="small" 
+                      [routerLink]="['/donations', donation.id]"
+                      nz-tooltip="Visualizza dettaglio">
+                <span nz-icon nzType="eye"></span>
+              </button>
+              <button class="action-btn edit" nz-button nzType="link" nzSize="small"
+                      *ngIf="donation.status === DonationStatus.Verified || donation.status === DonationStatus.Rejected || donation.status === DonationStatus.Suspended"
+                      [routerLink]="['/donations', donation.id, 'edit']"
+                      nz-tooltip="Modifica">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              <button class="action-btn delete" nz-button nzType="link" nzSize="small"
+                      *ngIf="donation.status === DonationStatus.Pending"
+                      nz-popconfirm
+                      nzPopconfirmTitle="Sei sicuro di eliminare questa donazione?"
+                      nzOkText="Elimina" nzCancelText="Annulla"
+                      (nzOnConfirm)="deleteDonation(donation.id)"
+                      nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-illustration">
+          <div class="empty-icon">
+            <span nz-icon nzType="inbox"></span>
+          </div>
+          <div class="empty-rings">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+          </div>
+        </div>
+        <h3>Nessuna donazione trovata</h3>
+        <p *ngIf="hasActiveFilters()">Prova a modificare i filtri di ricerca</p>
+        <p *ngIf="!hasActiveFilters()">Inizia registrando la prima donazione</p>
+        <button nz-button nzType="primary" (click)="createDonation()">
+          <span nz-icon nzType="plus"></span>
+          Nuova Donazione
+        </button>
+      </div>
+    </ng-template>
+  </nz-card>
+</div>
+
+<!-- Advanced Filters Drawer -->
+<nz-drawer
+  [nzVisible]="isAdvancedFiltersVisible"
+  nzPlacement="right"
+  [nzTitle]="drawerTitle"
+  nzWidth="400px"
+  (nzOnClose)="closeAdvancedFilters()">
+  <ng-template #drawerTitle>
+    <span class="drawer-title-icon" nz-icon nzType="filter" nzTheme="fill"></span>
+    Filtri Avanzati
+  </ng-template>
+  
+  <ng-container *nzDrawerContent>
+    <div class="advanced-search-content">
+      <h4>
+        <span nz-icon nzType="dollar"></span>
+        Importo
+      </h4>
+      <div class="filter-section">
+        <label>
+          <span nz-icon nzType="rise"></span>
+          Importo Minimo
+        </label>
+        <nz-input-number
+          style="width: 100%;"
+          [(ngModel)]="minAmount"
+          [nzMin]="0"
+          [nzStep]="10"
+          nzPlaceHolder="Es: 50"
+          [nzFormatter]="formatterEuro"
+          [nzParser]="parserEuro">
+        </nz-input-number>
       </div>
 
-      <div nz-col [nzSpan]="8">
+      <div class="filter-section">
+        <label>
+          <span nz-icon nzType="fall"></span>
+          Importo Massimo
+        </label>
+        <nz-input-number
+          style="width: 100%;"
+          [(ngModel)]="maxAmount"
+          [nzMin]="0"
+          [nzStep]="10"
+          nzPlaceHolder="Es: 1000"
+          [nzFormatter]="formatterEuro"
+          [nzParser]="parserEuro">
+        </nz-input-number>
+      </div>
+
+      <nz-divider></nz-divider>
+
+      <h4>
+        <span nz-icon nzType="calendar"></span>
+        Periodo
+      </h4>
+      <div class="filter-section">
+        <label>
+          <span nz-icon nzType="calendar"></span>
+          Intervallo Date
+        </label>
+        <nz-range-picker
+          style="width: 100%;"
+          [(ngModel)]="dateRange"
+          nzFormat="dd/MM/yyyy">
+        </nz-range-picker>
+      </div>
+
+      <nz-divider></nz-divider>
+
+      <h4>
+        <span nz-icon nzType="credit-card"></span>
+        Canale
+      </h4>
+      <div class="filter-section">
+        <label>
+          <span nz-icon nzType="pay-circle"></span>
+          Metodo di Pagamento
+        </label>
         <nz-select
           nzPlaceHolder="Seleziona canale"
           nzAllowClear
           [(ngModel)]="selectedChannel"
-          (ngModelChange)="onSearch()">
+          style="width: 100%;"
+          [nzOptionOverflowSize]="20">
           <nz-option
             *ngFor="let opt of channelOptions"
             [nzValue]="opt.value"
@@ -63,195 +310,42 @@
         </nz-select>
       </div>
 
-      <div nz-col [nzSpan]="8">
-        <nz-range-picker
-          [(ngModel)]="dateRange"
-          (ngModelChange)="onSearch()">
-        </nz-range-picker>
+      <nz-divider></nz-divider>
+
+      <h4>
+        <span nz-icon nzType="check-circle"></span>
+        Stato
+      </h4>
+      <div class="filter-section">
+        <label>
+          <span nz-icon nzType="flag"></span>
+          Stato Donazione
+        </label>
+        <nz-select
+          nzPlaceHolder="Seleziona stato"
+          nzAllowClear
+          [(ngModel)]="selectedStatus"
+          style="width: 100%;"
+          [nzOptionOverflowSize]="20">
+          <nz-option nzLabel="Da Verificare" [nzValue]="DonationStatus.Pending"></nz-option>
+          <nz-option nzLabel="Verificata" [nzValue]="DonationStatus.Verified"></nz-option>
+          <nz-option nzLabel="Rifiutata" [nzValue]="DonationStatus.Rejected"></nz-option>
+          <nz-option nzLabel="Sospesa" [nzValue]="DonationStatus.Suspended"></nz-option>
+        </nz-select>
       </div>
     </div>
+  </ng-container>
 
-    <div nz-row [nzGutter]="16" style="margin-top: 16px;">
-      <div nz-col [nzSpan]="8">
-        <nz-input-number
-          style="width: 100%;"
-          [(ngModel)]="minAmount"
-          [nzMin]="0"
-          nzPlaceHolder="Importo minimo"
-          (ngModelChange)="onSearch()">
-        </nz-input-number>
-      </div>
-
-      <div nz-col [nzSpan]="8">
-        <nz-input-number
-          style="width: 100%;"
-          [(ngModel)]="maxAmount"
-          [nzMin]="0"
-          nzPlaceHolder="Importo massimo"
-          (ngModelChange)="onSearch()">
-        </nz-input-number>
-      </div>
-
-      <div nz-col [nzSpan]="8">
-        <button nz-button nzType="default" (click)="resetFilters()">
-          <span nz-icon nzType="redo"></span>
-          Reset Filtri
-        </button>
-      </div>
+  <ng-container *nzDrawerFooter>
+    <div class="drawer-footer">
+      <button nz-button nzType="default" (click)="resetFilters()">
+        <span nz-icon nzType="redo"></span>
+        Reset
+      </button>
+      <button nz-button nzType="primary" (click)="applyFilters()">
+        <span nz-icon nzType="search"></span>
+        Applica
+      </button>
     </div>
-  </nz-card>
-
-  <nz-divider></nz-divider>
-
-  <!-- Actions -->
-  <div style="margin-bottom: 16px;">
-    <button nz-button nzType="primary" (click)="createDonation()">
-      <span nz-icon nzType="plus"></span>
-      Registra Donazione
-    </button>
-    <button
-      nz-button
-      nzType="dashed"
-      style="margin-left: 8px;"
-      [routerLink]="['/donations/demo']">
-      <span nz-icon nzType="experiment"></span>
-      Demo Flussi Esterni
-    </button>
-  </div>
-
-  <!-- Tabs and Table -->
-  <nz-tabset [(nzSelectedIndex)]="activeTab" (nzSelectedIndexChange)="onTabChange($event)">
-    <nz-tab nzTitle="Tutte">
-      <ng-template nz-tab>
-        <ng-container *ngTemplateOutlet="donationsTable"></ng-container>
-      </ng-template>
-    </nz-tab>
-
-    <nz-tab>
-      <ng-template nz-tab>
-        <nz-badge
-          [nzCount]="statistics?.pendingCount || 0"
-          [nzOverflowCount]="999"
-          [nzStyle]="{ backgroundColor: '#fa8c16' }">
-          <span>Da Verificare</span>
-        </nz-badge>
-      </ng-template>
-      <ng-container *ngTemplateOutlet="donationsTable"></ng-container>
-    </nz-tab>
-
-    <nz-tab nzTitle="Verificate">
-      <ng-template nz-tab>
-        <ng-container *ngTemplateOutlet="donationsTable"></ng-container>
-      </ng-template>
-    </nz-tab>
-
-    <nz-tab nzTitle="Rifiutate">
-      <ng-template nz-tab>
-        <ng-container *ngTemplateOutlet="donationsTable"></ng-container>
-      </ng-template>
-    </nz-tab>
-  </nz-tabset>
-</div>
-
-<!-- Donations Table Template -->
-<ng-template #donationsTable>
-  <nz-table
-    #donationsTableRef
-    [nzData]="donations"
-    [nzLoading]="loading"
-    [nzTotal]="total"
-    [nzPageSize]="pageSize"
-    [nzPageIndex]="pageIndex"
-    [nzFrontPagination]="false"
-    (nzPageIndexChange)="onPageChange($event)">
-    <thead>
-      <tr>
-        <th>Riferimento</th>
-        <th>Donatore</th>
-        <th>Canale</th>
-        <th>Stato</th>
-        <th>Importo</th>
-        <th>Data</th>
-        <th>Campagna</th>
-        <th>Progetti</th>
-        <th>Azioni</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let donation of donations">
-        <td>
-          <a [routerLink]="['/donations', donation.id]">
-            {{ donation.reference }}
-          </a>
-        </td>
-        <td>
-          <a [routerLink]="['/donors', donation.donorId]">
-            {{ donation.donorFullName }}
-          </a>
-        </td>
-        <td>
-          <span nz-icon [nzType]="getChannelIcon(donation.channel)"></span>
-        </td>
-        <td>
-          <nz-tag [nzColor]="getStatusColor(donation.status)">
-            {{ getStatusText(donation.status) }}
-          </nz-tag>
-        </td>
-        <td>{{ donation.totalAmount | currency: 'EUR' }}</td>
-        <td>{{ donation.donationDate | date: 'dd/MM/yyyy' }}</td>
-        <td>
-          <a *ngIf="donation.campaignId" [routerLink]="['/campaigns', donation.campaignId]">
-            {{ donation.campaignName }}
-          </a>
-          <span *ngIf="!donation.campaignId">-</span>
-        </td>
-        <td>
-          <nz-tag *ngFor="let proj of donation.projectNames">{{ proj }}</nz-tag>
-        </td>
-        <td>
-          <button
-            *ngIf="donation.status === DonationStatus.Pending"
-            nz-button
-            nzType="primary"
-            nzSize="small"
-            (click)="verifyDonation(donation.id)">
-            Verifica
-          </button>
-          <button
-            nz-button
-            nzType="default"
-            nzSize="small"
-            (click)="viewDonation(donation.id)">
-            Visualizza
-          </button>
-          <button
-            *ngIf="donation.status === DonationStatus.Verified || donation.status === DonationStatus.Rejected"
-            nz-button
-            nzType="default"
-            nzSize="small"
-            [routerLink]="['/donations', donation.id, 'edit']">
-            Modifica
-          </button>
-          <button
-            *ngIf="donation.status === DonationStatus.Pending"
-            nz-button
-            nzType="default"
-            nzSize="small"
-            nzDanger
-            nz-popconfirm
-            nzPopconfirmTitle="Sei sicuro di eliminare?"
-            (nzOnConfirm)="deleteDonation(donation.id)">
-            Elimina
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </nz-table>
-</ng-template>
-
-<ng-template #extraTemplate>
-  <button nz-button nzType="primary" [routerLink]="['/donations/new']">
-    <span nz-icon nzType="plus"></span>
-    Nuova Donazione
-  </button>
-</ng-template>
+  </ng-container>
+</nz-drawer>

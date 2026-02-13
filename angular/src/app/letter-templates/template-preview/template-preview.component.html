@@ -37,7 +37,8 @@
                   (ngModelChange)="onDonorChange()"
                   nzShowSearch
                   nzPlaceHolder="Seleziona un donatore"
-                  style="width: 100%">
+                  style="width: 100%"
+                  [nzOptionOverflowSize]="20">
                   <nz-option
                     *ngFor="let donor of donors"
                     [nzValue]="donor.id"
@@ -76,7 +77,8 @@
                 nzAllowClear
                 nzShowSearch
                 nzPlaceHolder="Seleziona un donatore o lascia vuoto"
-                style="width: 100%">
+                style="width: 100%"
+                [nzOptionOverflowSize]="20">
                 <nz-option
                   *ngFor="let donor of donors"
                   [nzValue]="donor.id"

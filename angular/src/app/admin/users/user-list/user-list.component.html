@@ -249,7 +249,7 @@
       <nz-form-item>
         <nz-form-label>Ruoli</nz-form-label>
         <nz-form-control>
-          <nz-select formControlName="roleNames" nzMode="multiple" nzPlaceHolder="Seleziona i ruoli" nzShowSearch>
+          <nz-select formControlName="roleNames" nzMode="multiple" nzPlaceHolder="Seleziona i ruoli" nzShowSearch [nzOptionOverflowSize]="20">
             <nz-option *ngFor="let role of availableRoles" [nzLabel]="role.name" [nzValue]="role.name"></nz-option>
           </nz-select>
         </nz-form-control>

@@ -562,7 +562,7 @@
                       </button>
                       <button nz-button nzType="link" nzSize="small" 
                               *ngIf="donation.status === DonationStatusEnum.Pending"
-                              [routerLink]="['/donations/verify', donation.id]"
+                              [routerLink]="['/donations', donation.id]"
                               nz-tooltip="Verifica donazione">
                         <span nz-icon nzType="check-circle" style="color: #52c41a;"></span>
                       </button>

@@ -30,34 +30,56 @@
     ng-zorro-antd "~19.0.0"
     tslib "^2.0.0"
 
-"@abp/ng.core@>=9.2.3", "@abp/ng.core@~9.2.2", "@abp/ng.core@~9.2.3":
-  version "9.2.3"
-  resolved "https://registry.npmjs.org/@abp/ng.core/-/ng.core-9.2.3.tgz"
-  integrity sha512-j+3yNUyk/h5qJainvgvpYM6UUVuoa+AF2ryynybXEpijF0yN2j70gszsXYTXSu7OX7AQ0LgYi5UaKu+JklJ4hw==
+"@abp/ng.components@~9.2.4":
+  version "9.2.4"
+  resolved "https://registry.npmjs.org/@abp/ng.components/-/ng.components-9.2.4.tgz"
+  integrity sha512-9+TfxDVjotjgKnXrjN1bMGo64o8RCOQSlRgnrVCYumSH2wCy/f8bs1yXJkkuo5S/gwVqhZdX5eHuO86yZSJ0uQ==
   dependencies:
-    "@abp/utils" "~9.2.3"
+    "@ctrl/tinycolor" "^4.0.0"
+    chart.js "^3.5.1"
+    ng-zorro-antd "~19.0.0"
+    tslib "^2.0.0"
+
+"@abp/ng.core@>=9.2.3", "@abp/ng.core@~9.2.2", "@abp/ng.core@~9.2.3", "@abp/ng.core@~9.2.4":
+  version "9.2.4"
+  resolved "https://registry.npmjs.org/@abp/ng.core/-/ng.core-9.2.4.tgz"
+  integrity sha512-p+r9eL/iPx/II5GFdg378Dlb63H9ed8eqtWhn/SsAFLQVUE3Nn+SwLsFs4rhmxEjt9Snuh9MzjMtEkP8VU6JxA==
+  dependencies:
+    "@abp/utils" "~9.2.4"
     just-clone "^6.0.0"
     just-compare "^2.0.0"
     luxon "^3.0.0"
     ts-toolbelt "^9.0.0"
     tslib "^2.0.0"
 
-"@abp/ng.feature-management@~9.2.2", "@abp/ng.feature-management@~9.2.3":
-  version "9.2.3"
-  resolved "https://registry.npmjs.org/@abp/ng.feature-management/-/ng.feature-management-9.2.3.tgz"
-  integrity sha512-95nHqRT1moKa/PhiJDCPKoKzHZFszs6ULgFgrjbE6hZms8Uu43RvQsUOR3ppG0bu/qVjjhHA5YukRnBG1vVxFQ==
+"@abp/ng.core@>=9.2.4":
+  version "10.0.2"
+  resolved "https://registry.npmjs.org/@abp/ng.core/-/ng.core-10.0.2.tgz"
+  integrity sha512-RMQdxaA74hfQbYvHujQDvU9oIrhHhumXbO8Eix08qTaL+czQn3rUBjF49HRzuvsQyp3Mi0DY5qHm3NWPRRXn4A==
   dependencies:
-    "@abp/ng.theme.shared" "~9.2.3"
+    "@abp/utils" "~10.0.2"
+    just-clone "^6.0.0"
+    just-compare "^2.0.0"
+    luxon "^3.0.0"
+    ts-toolbelt "^9.0.0"
+    tslib "^2.0.0"
+
+"@abp/ng.feature-management@~9.2.2", "@abp/ng.feature-management@~9.2.4":
+  version "9.2.4"
+  resolved "https://registry.npmjs.org/@abp/ng.feature-management/-/ng.feature-management-9.2.4.tgz"
+  integrity sha512-IaQ6GShNH2tOrWQQpvK8uDy0/Kopqhfhe7RgTkzaHKGBZrV9WlypMXY2ENEDEhs5yO8XK20HZHjKb/JBELg5SQ==
+  dependencies:
+    "@abp/ng.theme.shared" "~9.2.4"
     tslib "^2.0.0"
 
 "@abp/ng.identity@~9.2.2":
-  version "9.2.3"
-  resolved "https://registry.npmjs.org/@abp/ng.identity/-/ng.identity-9.2.3.tgz"
-  integrity sha512-8B+M1Fe6I4Gxb90mY5jS7d+ou393LCsTqI68Tauvt3K2RjScJHxL12jC8hZgF1+Ngj2jDrlfSO/RYej7NFfhJA==
+  version "9.2.4"
+  resolved "https://registry.npmjs.org/@abp/ng.identity/-/ng.identity-9.2.4.tgz"
+  integrity sha512-2MuO/PTw7+ihr3Y4r/MRTvd52eoYnndzNzw8cQzFJEluBungB/zI9uu3hcSZo06R7xJBDGQ9hGKV93OGAFpDUQ==
   dependencies:
-    "@abp/ng.components" "~9.2.3"
-    "@abp/ng.permission-management" "~9.2.3"
-    "@abp/ng.theme.shared" "~9.2.3"
+    "@abp/ng.components" "~9.2.4"
+    "@abp/ng.permission-management" "~9.2.4"
+    "@abp/ng.theme.shared" "~9.2.4"
     tslib "^2.0.0"
 
 "@abp/ng.oauth@~9.2.2":
@@ -72,12 +94,12 @@
     just-compare "^2.0.0"
     tslib "^2.0.0"
 
-"@abp/ng.permission-management@~9.2.3":
-  version "9.2.3"
-  resolved "https://registry.npmjs.org/@abp/ng.permission-management/-/ng.permission-management-9.2.3.tgz"
-  integrity sha512-TIn83TL0tskRxAuNR0+MhVP+p+E6wheuA1jECRyVdxfIPMqos1SwW36TvmNR5AWLphvvNtzMiIeLB/Ch8lAxmQ==
+"@abp/ng.permission-management@~9.2.4":
+  version "9.2.4"
+  resolved "https://registry.npmjs.org/@abp/ng.permission-management/-/ng.permission-management-9.2.4.tgz"
+  integrity sha512-2ezLVHE0kA/z6YnoxVb3HLDiqCgns3ySh62vFyxMbkh+JspjI6Y5k+rbPIVxiE3DUqy9UykoVJ1vzDuNHYVvNA==
   dependencies:
-    "@abp/ng.theme.shared" "~9.2.3"
+    "@abp/ng.theme.shared" "~9.2.4"
     tslib "^2.0.0"
 
 "@abp/ng.schematics@~9.2.2":
@@ -103,12 +125,12 @@
     tslib "^2.0.0"
 
 "@abp/ng.tenant-management@~9.2.2":
-  version "9.2.3"
-  resolved "https://registry.npmjs.org/@abp/ng.tenant-management/-/ng.tenant-management-9.2.3.tgz"
-  integrity sha512-Y9jYfq3G3ec8djjG0UF1yYUfTrrTvqTh1khSdHxIaXhICg2Bq7UiDlVDXDD6JULbao0OM9ZvKc0GBGjM4g9V5A==
+  version "9.2.4"
+  resolved "https://registry.npmjs.org/@abp/ng.tenant-management/-/ng.tenant-management-9.2.4.tgz"
+  integrity sha512-3rGW3EN6fBW21O28fjT3XHHxnEtTq7/jVsmlWq5/NlrGFpMZSC2bsp3p2gw30GF+qT/AI0sXLhFgrbWh4hdkQg==
   dependencies:
-    "@abp/ng.feature-management" "~9.2.3"
-    "@abp/ng.theme.shared" "~9.2.3"
+    "@abp/ng.feature-management" "~9.2.4"
+    "@abp/ng.theme.shared" "~9.2.4"
     tslib "^2.0.0"
 
 "@abp/ng.theme.lepton-x@~4.2.2":
@@ -120,12 +142,12 @@
     "@volo/ngx-lepton-x.lite" "4.2.3"
     tslib "^2.3.0"
 
-"@abp/ng.theme.shared@>=9.2.3", "@abp/ng.theme.shared@~9.2.2", "@abp/ng.theme.shared@~9.2.3":
-  version "9.2.3"
-  resolved "https://registry.npmjs.org/@abp/ng.theme.shared/-/ng.theme.shared-9.2.3.tgz"
-  integrity sha512-FkPGl841buVqWJW3q1J9c4YMW3bA0Mv6UFgTsCY7YWyDkCmQ8EUh+x7q+hYXi5eBb6/bbzRaV3Wj2qJuCPeqFg==
+"@abp/ng.theme.shared@>=9.2.3", "@abp/ng.theme.shared@>=9.2.4", "@abp/ng.theme.shared@~9.2.2", "@abp/ng.theme.shared@~9.2.3", "@abp/ng.theme.shared@~9.2.4":
+  version "9.2.4"
+  resolved "https://registry.npmjs.org/@abp/ng.theme.shared/-/ng.theme.shared-9.2.4.tgz"
+  integrity sha512-5mGMRhO0+zSiIZANzR9YlQcrSat2MMBowG8+4Q/SJfqYSEHt0u43Tm01C3uiIEBzbYIkOSHun4DnQHu5LGVbGQ==
   dependencies:
-    "@abp/ng.core" "~9.2.3"
+    "@abp/ng.core" "~9.2.4"
     "@fortawesome/fontawesome-free" "^5.0.0"
     "@ng-bootstrap/ng-bootstrap" "~18.0.0"
     "@ngx-validate/core" "^0.2.0"
@@ -134,10 +156,24 @@
     bootstrap "^5.0.0"
     tslib "^2.0.0"
 
+"@abp/utils@~10.0.2":
+  version "10.0.2"
+  resolved "https://registry.npmjs.org/@abp/utils/-/utils-10.0.2.tgz"
+  integrity sha512-+akwevzwZBWakgBihjQ5nHerM8OEJYDLThzCGrBw6Sg+xpBc1RL5YRDXh4ZU8rD8r8okL1+jRuwv0KEBuqYufw==
+  dependencies:
+    just-compare "^2.3.0"
+
 "@abp/utils@~9.2.3":
   version "9.2.3"
   resolved "https://registry.npmjs.org/@abp/utils/-/utils-9.2.3.tgz"
   integrity sha512-W14tJNRREeI2xFC2WloEChUseSBkkiJENyB2T6nYUB/pqZ4e3vqOTNzxnQtqol777c10eMIxlmxi5r/8Cp08vw==
+  dependencies:
+    just-compare "^2.3.0"
+
+"@abp/utils@~9.2.4":
+  version "9.2.4"
+  resolved "https://registry.npmjs.org/@abp/utils/-/utils-9.2.4.tgz"
+  integrity sha512-lm86rmdLb1CY09UeYXuXqiYCsdDAtQ4lDFpG80fGXuvyzh35I3OP4wMpa5nUeBYUrNm3k0LDhlsT/QTf8D1Jmg==
   dependencies:
     just-compare "^2.3.0"
 
@@ -2033,10 +2069,10 @@
   dependencies:
     defer-to-connect "^2.0.0"
 
-"@tinymce/tinymce-angular@^9.1.0":
-  version "9.1.0"
-  resolved "https://registry.npmjs.org/@tinymce/tinymce-angular/-/tinymce-angular-9.1.0.tgz"
-  integrity sha512-hskVrvFpY0rb32zg+htrmDt3HuzFJADUA6i7Jtxy255xtGE+CD+vt9QkTTYsh1fVputUBRbo7PGY28iVGCCw7A==
+"@tinymce/tinymce-angular@^9.1.1":
+  version "9.1.1"
+  resolved "https://registry.npmjs.org/@tinymce/tinymce-angular/-/tinymce-angular-9.1.1.tgz"
+  integrity sha512-4W15Ruheqg9hnCUhtNoYX/SnvytT9N0ugv1Tk/aXXXVQMUCQwL3MQBNn8SNer8iZvkDbP+11au0zWW9dWVGSVA==
   dependencies:
     tslib "^2.3.0"
 
@@ -5544,7 +5580,7 @@ neo-async@^2.6.2:
   resolved "https://registry.npmjs.org/neo-async/-/neo-async-2.6.2.tgz"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-ng-zorro-antd@~19.0.0:
+ng-zorro-antd@^19.0.2, ng-zorro-antd@~19.0.0:
   version "19.0.2"
   resolved "https://registry.npmjs.org/ng-zorro-antd/-/ng-zorro-antd-19.0.2.tgz"
   integrity sha512-F0Ct4cJEXpEAAIIirviw5wt6njoITp9jfPq8Tsv3JY6bOriaPQ/6dUgnsXKMAQ7ocoi1hpykStwAMmAQwGIVog==
@@ -7106,10 +7142,10 @@ tinyglobby@^0.2.12:
     fdir "^6.4.4"
     picomatch "^4.0.2"
 
-"tinymce@^8.0.0 || ^7.0.0 || ^6.0.0 || ^5.5.0", tinymce@^8.0.1:
-  version "8.0.1"
-  resolved "https://registry.npmjs.org/tinymce/-/tinymce-8.0.1.tgz"
-  integrity sha512-KQ/+KaWmkIzSkNCYmqhXD2mftt+EEhz1bd1QCVopa2DNkoJ/rYFXhMnYGg1gVcRQa43xkmmv0Jj0ph+05VY0hQ==
+"tinymce@^8.0.0 || ^7.0.0 || ^6.0.0 || ^5.5.0", tinymce@^8.3.2:
+  version "8.3.2"
+  resolved "https://registry.npmjs.org/tinymce/-/tinymce-8.3.2.tgz"
+  integrity sha512-iZ8aIUtrgGOw2AkukNf8spUM0LOzNLoCHRepwXQwWmHxP2TI5LzHjjG0SmXGxbya4EmoD5/pAox0ZXJfLO5DUw==
 
 tmp@^0.0.33:
   version "0.0.33"

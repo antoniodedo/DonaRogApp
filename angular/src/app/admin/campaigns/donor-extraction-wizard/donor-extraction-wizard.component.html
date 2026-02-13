@@ -1,0 +1,343 @@
+<div class="extraction-wizard">
+  <div class="wizard-header">
+    <h2><i nz-icon nzType="filter" nzTheme="outline"></i> Estrazione Donatori</h2>
+    <p>Configura i criteri per estrarre i donatori da aggiungere alla campagna</p>
+  </div>
+
+  <nz-steps [nzCurrent]="currentStep" class="wizard-steps">
+    <nz-step nzTitle="Filtri Base" nzIcon="setting"></nz-step>
+    <nz-step nzTitle="Tag & Segmenti" nzIcon="tags"></nz-step>
+    <nz-step nzTitle="Geografici" nzIcon="environment"></nz-step>
+    <nz-step nzTitle="Campagne" nzIcon="mail"></nz-step>
+    <nz-step nzTitle="Nomi & Opzioni" nzIcon="user"></nz-step>
+    <nz-step nzTitle="Anteprima" nzIcon="eye"></nz-step>
+  </nz-steps>
+
+  <div class="wizard-content">
+    <!-- Step 0: Base Filters -->
+    <div *ngIf="currentStep === 0" class="step-content">
+      <h3>Filtri Base</h3>
+      <form nz-form [formGroup]="baseFiltersForm" [nzLayout]="'vertical'">
+        <nz-form-item>
+          <nz-form-label>Stato Donatore</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="donorStatus" nzAllowClear nzPlaceHolder="Seleziona stato">
+              <nz-option *ngFor="let opt of donorStatusOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Categoria Donatore</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="donorCategory" nzAllowClear nzPlaceHolder="Seleziona categoria">
+              <nz-option *ngFor="let opt of donorCategoryOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Consensi</nz-form-label>
+          <nz-form-control>
+            <label nz-checkbox formControlName="requireNewsletterConsent">Richiedi consenso newsletter</label>
+            <label nz-checkbox formControlName="requireMailConsent">Richiedi consenso posta</label>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Operatore Logico</nz-form-label>
+          <nz-form-control>
+            <nz-radio-group formControlName="logicalOperator">
+              <label nz-radio nzValue="And">AND (tutti i filtri devono corrispondere)</label>
+              <label nz-radio nzValue="Or">OR (almeno un filtro deve corrispondere)</label>
+            </nz-radio-group>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+
+    <!-- Step 1: Tags & Segments -->
+    <div *ngIf="currentStep === 1" class="step-content">
+      <h3>Tag e Segmenti</h3>
+      <form nz-form [formGroup]="tagsForm" [nzLayout]="'vertical'">
+        <nz-form-item>
+          <nz-form-label>Tag da Includere</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="includedTagIds" 
+              nzMode="multiple" 
+              nzPlaceHolder="Seleziona tag">
+              <nz-option *ngFor="let tag of availableTags" [nzValue]="tag.id" [nzLabel]="tag.name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Tag da Escludere</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="excludedTagIds" 
+              nzMode="multiple" 
+              nzPlaceHolder="Seleziona tag">
+              <nz-option *ngFor="let tag of availableTags" [nzValue]="tag.id" [nzLabel]="tag.name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Modalità Filtro Tag</nz-form-label>
+          <nz-form-control>
+            <nz-radio-group formControlName="tagFilterMode">
+              <label nz-radio nzValue="Any">ANY (almeno un tag)</label>
+              <label nz-radio nzValue="All">ALL (tutti i tag)</label>
+            </nz-radio-group>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-alert 
+          nzType="info" 
+          nzMessage="I segmenti verranno implementati nel modulo Segmenti"
+          nzShowIcon>
+        </nz-alert>
+      </form>
+    </div>
+
+    <!-- Step 2: Geographic Filters -->
+    <div *ngIf="currentStep === 2" class="step-content">
+      <h3>Filtri Geografici</h3>
+      <form nz-form [formGroup]="geographicForm" [nzLayout]="'vertical'">
+        <nz-form-item>
+          <nz-form-label>Regioni da Includere</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="includedRegions" 
+              nzMode="multiple" 
+              nzPlaceHolder="Seleziona regioni">
+              <nz-option *ngFor="let region of availableRegions" [nzValue]="region" [nzLabel]="region"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Regioni da Escludere</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="excludedRegions" 
+              nzMode="multiple" 
+              nzPlaceHolder="Seleziona regioni">
+              <nz-option *ngFor="let region of availableRegions" [nzValue]="region" [nzLabel]="region"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-alert 
+          nzType="info" 
+          nzMessage="Il filtro per province sarà disponibile dopo aver selezionato delle regioni"
+          nzShowIcon>
+        </nz-alert>
+      </form>
+    </div>
+
+    <!-- Step 3: Campaign Participation -->
+    <div *ngIf="currentStep === 3" class="step-content">
+      <h3>Partecipazione a Campagne</h3>
+      <form nz-form [formGroup]="campaignsForm" [nzLayout]="'vertical'">
+        <nz-form-item>
+          <nz-form-label>Campagne da Includere (ha partecipato)</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="includedCampaignIds" 
+              nzMode="multiple" 
+              nzPlaceHolder="Seleziona campagne">
+              <nz-option *ngFor="let campaign of availableCampaigns" [nzValue]="campaign.id" [nzLabel]="campaign.name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Campagne da Escludere (ha partecipato)</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="excludedCampaignIds" 
+              nzMode="multiple" 
+              nzPlaceHolder="Seleziona campagne">
+              <nz-option *ngFor="let campaign of availableCampaigns" [nzValue]="campaign.id" [nzLabel]="campaign.name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-alert 
+          nzType="warning" 
+          nzMessage="La partecipazione a campagne richiederà il modulo Donazioni per essere completamente funzionale"
+          nzShowIcon>
+        </nz-alert>
+      </form>
+    </div>
+
+    <!-- Step 4: Names & Options -->
+    <div *ngIf="currentStep === 4" class="step-content">
+      <h3>Nomi Specifici e Opzioni</h3>
+      <form nz-form [formGroup]="namesForm" [nzLayout]="'vertical'">
+        <nz-form-item>
+          <nz-form-label>Nomi da Includere (ricerca parziale)</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="includedDonorNames" 
+              nzMode="tags" 
+              nzPlaceHolder="Digita nomi da includere">
+            </nz-select>
+            <nz-form-explain>Premi invio dopo ogni nome</nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Nomi da Escludere (ricerca parziale)</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="excludedDonorNames" 
+              nzMode="tags" 
+              nzPlaceHolder="Digita nomi da escludere">
+            </nz-select>
+            <nz-form-explain>Premi invio dopo ogni nome</nz-form-explain>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Numero Massimo di Risultati</nz-form-label>
+          <nz-form-control>
+            <nz-input-number 
+              formControlName="maxResults" 
+              [nzMin]="1" 
+              [nzMax]="10000" 
+              nzPlaceHolder="Illimitato">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-control>
+            <label nz-checkbox formControlName="randomSample">Campionamento casuale (per test)</label>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+
+    <!-- Step 5: Preview -->
+    <div *ngIf="currentStep === 5" class="step-content preview-step">
+      <h3>Anteprima Estrazione</h3>
+      
+      <div *ngIf="previewLoading" class="loading-container">
+        <nz-spin nzTip="Caricamento anteprima..."></nz-spin>
+      </div>
+
+      <div *ngIf="!previewLoading && preview" class="preview-content">
+        <!-- Statistics -->
+        <div class="preview-stats">
+          <nz-card nzTitle="Statistiche Estrazione" [nzBordered]="false">
+            <div nz-row [nzGutter]="16">
+              <div nz-col [nzSpan]="8">
+                <nz-statistic 
+                  [nzValue]="preview.totalCount!" 
+                  nzTitle="Donatori Estratti" 
+                  [nzValueStyle]="{ color: '#3f8600' }">
+                </nz-statistic>
+              </div>
+              <div nz-col [nzSpan]="8">
+                <nz-statistic 
+                  [nzValue]="preview.statistics?.averageRecencyScore || 0" 
+                  nzTitle="RFM Medio (R)" 
+                  [nzPrecision]="1">
+                </nz-statistic>
+              </div>
+              <div nz-col [nzSpan]="8">
+                <nz-statistic 
+                  [nzValue]="preview.statistics?.activeCount || 0" 
+                  nzTitle="Donatori Attivi">
+                </nz-statistic>
+              </div>
+            </div>
+          </nz-card>
+        </div>
+
+        <!-- Filter Breakdown -->
+        <nz-card nzTitle="Riepilogo Filtri" class="filter-summary" *ngIf="preview.filterBreakdown && preview.filterBreakdown.length > 0">
+          <nz-list [nzDataSource]="preview.filterBreakdown" nzBordered [nzSize]="'small'">
+            <nz-list-item *ngFor="let filter of preview.filterBreakdown">
+              <span><strong>{{ filter.filterName }}:</strong> {{ filter.filterValue }} ({{ filter.matchingCount }} risultati)</span>
+            </nz-list-item>
+          </nz-list>
+        </nz-card>
+
+        <!-- Sample Donors -->
+        <nz-card nzTitle="Anteprima Donatori (primi 50)" class="donors-preview">
+          <nz-table 
+            [nzData]="preview.donors || []" 
+            [nzPageSize]="10"
+            [nzSize]="'small'">
+            <thead>
+              <tr>
+                <th>Codice</th>
+                <th>Nome</th>
+                <th>Stato</th>
+                <th>Categoria</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let donor of preview.donors">
+                <td>{{ donor.donorCode }}</td>
+                <td>{{ donor.fullName }}</td>
+                <td>
+                  <nz-tag [nzColor]="'green'">{{ donor.status }}</nz-tag>
+                </td>
+                <td>
+                  <nz-tag [nzColor]="'blue'">{{ donor.category }}</nz-tag>
+                </td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </nz-card>
+
+        <nz-alert 
+          *ngIf="!hasActiveFilters()" 
+          nzType="warning" 
+          nzMessage="Attenzione: nessun filtro attivo. Verranno estratti TUTTI i donatori!" 
+          nzShowIcon>
+        </nz-alert>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="wizard-footer">
+    <button nz-button nzType="default" (click)="cancel()">
+      <i nz-icon nzType="close" nzTheme="outline"></i> Annulla
+    </button>
+    
+    <div class="nav-buttons">
+      <button 
+        nz-button 
+        nzType="default" 
+        (click)="prevStep()" 
+        *ngIf="currentStep > 0">
+        <i nz-icon nzType="left" nzTheme="outline"></i> Indietro
+      </button>
+      
+      <button 
+        nz-button 
+        nzType="primary" 
+        (click)="nextStep()" 
+        *ngIf="currentStep < 5">
+        Avanti <i nz-icon nzType="right" nzTheme="outline"></i>
+      </button>
+      
+      <button 
+        nz-button 
+        nzType="primary" 
+        (click)="executeExtraction()" 
+        [nzLoading]="loading"
+        *ngIf="currentStep === 5">
+        <i nz-icon nzType="check" nzTheme="outline"></i> Esegui Estrazione
+      </button>
+    </div>
+  </div>
+</div>

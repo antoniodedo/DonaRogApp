@@ -1,0 +1,43 @@
+<div *ngIf="statistics" nz-row [nzGutter]="[16, 16]">
+  <div nz-col [nzSpan]="6">
+    <nz-card>
+      <nz-statistic [nzValue]="statistics.extractedDonorCount" nzTitle="Donatori Estratti"></nz-statistic>
+    </nz-card>
+  </div>
+  <div nz-col [nzSpan]="6">
+    <nz-card>
+      <nz-statistic [nzValue]="statistics.donationCount" nzTitle="Donazioni" [nzValueStyle]="{ color: '#3f8600' }"></nz-statistic>
+    </nz-card>
+  </div>
+  <div nz-col [nzSpan]="6">
+    <nz-card>
+      <nz-statistic [nzValue]="statistics.totalRaised" [nzPrefix]="'€'" nzTitle="Totale Raccolto" [nzValueStyle]="{ color: '#3f8600' }"></nz-statistic>
+    </nz-card>
+  </div>
+  <div nz-col [nzSpan]="6">
+    <nz-card>
+      <nz-statistic [nzValue]="statistics.roi" [nzSuffix]="'%'" nzTitle="ROI" [nzPrecision]="1" [nzValueStyle]="{ color: statistics.roi > 0 ? '#3f8600' : '#cf1322' }"></nz-statistic>
+    </nz-card>
+  </div>
+
+  <div nz-col [nzSpan]="24">
+    <nz-card nzTitle="Tassi di Conversione">
+      <div nz-row [nzGutter]="[16, 16]">
+        <div nz-col [nzSpan]="6">
+          <nz-statistic [nzValue]="statistics.responseRate" [nzSuffix]="'%'" nzTitle="Tasso di Risposta" [nzPrecision]="2"></nz-statistic>
+        </div>
+        <div nz-col [nzSpan]="6">
+          <nz-statistic [nzValue]="statistics.openRate" [nzSuffix]="'%'" nzTitle="Tasso di Apertura" [nzPrecision]="2"></nz-statistic>
+        </div>
+        <div nz-col [nzSpan]="6">
+          <nz-statistic [nzValue]="statistics.clickRate" [nzSuffix]="'%'" nzTitle="Tasso di Click" [nzPrecision]="2"></nz-statistic>
+        </div>
+        <div nz-col [nzSpan]="6">
+          <nz-statistic [nzValue]="statistics.conversionRate" [nzSuffix]="'%'" nzTitle="Tasso di Conversione" [nzPrecision]="2"></nz-statistic>
+        </div>
+      </div>
+    </nz-card>
+  </div>
+</div>
+
+<nz-spin *ngIf="loading" nzSimple></nz-spin>

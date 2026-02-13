@@ -1,0 +1,152 @@
+<div class="project-detail-container" *ngIf="project && !loading">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <button nz-button nzType="link" (click)="goBack()">
+        <span nz-icon nzType="arrow-left"></span>
+        Torna alla lista
+      </button>
+      
+      <div class="hero-main">
+        <div class="hero-image" *ngIf="project.mainImageUrl">
+          <img [src]="project.mainImageUrl" [alt]="project.name">
+        </div>
+        
+        <div class="hero-info">
+          <h1>{{ project.name }}</h1>
+          <p class="project-code">{{ project.code }}</p>
+          
+          <div class="hero-tags">
+            <nz-tag [nzColor]="'blue'">{{ getCategoryLabel(project.category) }}</nz-tag>
+            <nz-tag [nzColor]="project.status === ProjectStatus.Active ? 'green' : 'default'">
+              {{ getStatusLabel(project.status) }}
+            </nz-tag>
+            <nz-tag *ngIf="project.isOngoing" nzColor="processing">In corso</nz-tag>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="hero-actions">
+      <button nz-button nzType="default" (click)="editProject()">
+        <span nz-icon nzType="edit"></span>
+        Modifica
+      </button>
+      <button
+        nz-button
+        nzDanger
+        nz-popconfirm
+        nzPopconfirmTitle="Eliminare questo progetto?"
+        (nzOnConfirm)="deleteProject()">
+        <span nz-icon nzType="delete"></span>
+        Elimina
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-row">
+    <nz-card>
+      <nz-statistic
+        [nzValue]="project.totalAmountRaised"
+        [nzSuffix]="project.currency"
+        nzTitle="Totale Raccolto">
+      </nz-statistic>
+    </nz-card>
+
+    <nz-card *ngIf="project.targetAmount">
+      <nz-statistic
+        [nzValue]="project.targetAmount"
+        [nzSuffix]="project.currency"
+        nzTitle="Budget Target">
+      </nz-statistic>
+    </nz-card>
+
+    <nz-card>
+      <nz-statistic
+        [nzValue]="project.targetCompletionPercentage"
+        nzSuffix="%"
+        nzTitle="Completamento"
+        [nzValueStyle]="{ color: project.hasReachedTarget ? '#3f8600' : '#cf1322' }">
+      </nz-statistic>
+    </nz-card>
+
+    <nz-card>
+      <nz-statistic
+        [nzValue]="project.totalDonationsCount"
+        nzTitle="Numero Donazioni">
+      </nz-statistic>
+    </nz-card>
+  </div>
+
+  <!-- Tabs -->
+  <nz-tabset [(nzSelectedIndex)]="selectedTabIndex">
+    <nz-tab nzTitle="Informazioni">
+      <nz-card nzTitle="Dettagli Progetto">
+        <nz-descriptions nzBordered [nzColumn]="2">
+          <nz-descriptions-item nzTitle="Codice">{{ project.code }}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Categoria">{{ getCategoryLabel(project.category) }}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Stato">{{ getStatusLabel(project.status) }}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Data Inizio">
+            {{ project.startDate | date:'dd/MM/yyyy' }}
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Data Fine" *ngIf="project.endDate">
+            {{ project.endDate | date:'dd/MM/yyyy' }}
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Ubicazione" *ngIf="project.location">
+            {{ project.location }}
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Responsabile" [nzSpan]="2" *ngIf="project.responsiblePerson">
+            {{ project.responsiblePerson }}
+            <span *ngIf="project.responsibleEmail"> ({{ project.responsibleEmail }})</span>
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Descrizione" [nzSpan]="2" *ngIf="project.description">
+            {{ project.description }}
+          </nz-descriptions-item>
+        </nz-descriptions>
+      </nz-card>
+
+      <nz-card nzTitle="Budget e Finanziamenti" class="mt-3">
+        <nz-descriptions nzBordered [nzColumn]="2">
+          <nz-descriptions-item nzTitle="Budget Target">
+            <span *ngIf="project.targetAmount">
+              {{ project.targetAmount | number:'1.2-2' }} {{ project.currency }}
+            </span>
+            <span *ngIf="!project.targetAmount">Non definito</span>
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Totale Raccolto">
+            {{ project.totalAmountRaised | number:'1.2-2' }} {{ project.currency }}
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Importo Rimanente" *ngIf="project.targetAmount">
+            {{ project.remainingAmount | number:'1.2-2' }} {{ project.currency }}
+          </nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Progresso" *ngIf="project.targetAmount">
+            <nz-progress
+              [nzPercent]="project.targetCompletionPercentage"
+              [nzStatus]="project.hasReachedTarget ? 'success' : 'active'">
+            </nz-progress>
+          </nz-descriptions-item>
+        </nz-descriptions>
+      </nz-card>
+    </nz-tab>
+
+    <nz-tab nzTitle="Statistiche">
+      <app-project-statistics [projectId]="projectId"></app-project-statistics>
+    </nz-tab>
+
+    <nz-tab nzTitle="Documenti">
+      <app-project-documents [projectId]="projectId"></app-project-documents>
+    </nz-tab>
+  </nz-tabset>
+
+  <!-- Form modal -->
+  <app-project-form
+    [(visible)]="isFormModalVisible"
+    [project]="project"
+    (saved)="onFormSaved()">
+  </app-project-form>
+</div>
+
+<div class="loading-container" *ngIf="loading">
+  <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+</div>

@@ -1,0 +1,361 @@
+<div class="donor-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="heart" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>I tuoi Donatori</h1>
+        <p>Gestisci e coltiva le relazioni con i tuoi sostenitori</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openCreateModal()" nz-tooltip="Nuovo Donatore">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="team"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total }}</span>
+        <span class="stat-label">Donatori Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span nz-icon nzType="heart" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Attivi</span>
+      </div>
+    </div>
+    <div class="stat-card stat-individuals">
+      <div class="stat-icon">
+        <span nz-icon nzType="user"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getIndividualsCount() }}</span>
+        <span class="stat-label">Persone Fisiche</span>
+      </div>
+    </div>
+    <div class="stat-card stat-organizations">
+      <div class="stat-icon">
+        <span nz-icon nzType="bank"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getOrganizationsCount() }}</span>
+        <span class="stat-label">Organizzazioni</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <div class="toolbar">
+      <div class="search-box">
+        <nz-input-group [nzPrefix]="prefixIcon" [nzSuffix]="suffixIcon">
+          <input nz-input placeholder="Cerca per nome, codice o email..." 
+                 [(ngModel)]="searchText" 
+                 (ngModelChange)="onSearch()" />
+        </nz-input-group>
+        <ng-template #prefixIcon>
+          <span nz-icon nzType="search"></span>
+        </ng-template>
+        <ng-template #suffixIcon>
+          <span nz-icon nzType="close-circle" 
+                *ngIf="searchText" 
+                (click)="clearSearch()" 
+                class="search-clear-icon"></span>
+        </ng-template>
+      </div>
+      <div class="toolbar-actions">
+        <button nz-button nzType="default" (click)="openAdvancedSearch()" 
+                class="filter-btn"
+                [class.active]="hasActiveFilters()">
+          <nz-badge [nzCount]="getActiveFiltersCount()" [nzShowZero]="false" nzSize="small">
+            <span nz-icon nzType="filter" [nzTheme]="hasActiveFilters() ? 'fill' : 'outline'"></span>
+          </nz-badge>
+          <span class="btn-text">Filtri</span>
+        </button>
+        <button nz-button nzType="default" (click)="loadDonors()" nz-tooltip="Aggiorna lista">
+          <span nz-icon nzType="reload"></span>
+        </button>
+      </div>
+    </div>
+
+    <nz-table
+      #donorTable
+      [nzData]="donors"
+      [nzLoading]="loading"
+      [nzTotal]="total"
+      [nzPageSize]="pageSize"
+      [nzPageIndex]="pageIndex"
+      [nzFrontPagination]="false"
+      (nzPageIndexChange)="onPageIndexChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 25, 50, 100]"
+      nzShowPagination
+      [nzNoResult]="emptyTemplate"
+    >
+      <thead>
+        <tr>
+          <th nzWidth="60px">Tipo</th>
+          <th nzWidth="120px">Codice</th>
+          <th>Nome Completo</th>
+          <th>Indirizzo</th>
+          <th>Email</th>
+          <th nzWidth="100px">Stato</th>
+          <th nzWidth="130px" nzAlign="center">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let donor of donorTable.data; let i = index" 
+            class="donor-row" 
+            [style.animation-delay]="i * 50 + 'ms'">
+          <td class="type-cell">
+            <span class="type-icon" [class.organization]="donor.subjectType !== SubjectType.Individual">
+              <span nz-icon [nzType]="getSubjectTypeIcon(donor.subjectType)" 
+                    [nz-tooltip]="getSubjectTypeLabel(donor.subjectType)"></span>
+            </span>
+          </td>
+          <td>
+            <span class="donor-code">{{ donor.donorCode }}</span>
+          </td>
+          <td>
+            <div class="donor-name-cell">
+              <a (click)="viewDonor(donor)" class="donor-name">{{ donor.fullName }}</a>
+            </div>
+          </td>
+          <td>
+            <div class="contact-cell" *ngIf="donor.primaryAddress">
+              <span nz-icon nzType="environment" class="contact-icon"></span>
+              <span class="contact-text">{{ donor.primaryAddress }}</span>
+            </div>
+            <span *ngIf="!donor.primaryAddress" class="empty-cell">-</span>
+          </td>
+          <td>
+            <div class="contact-cell" *ngIf="donor.primaryEmail">
+              <span nz-icon nzType="mail" class="contact-icon"></span>
+              <span class="contact-text">{{ donor.primaryEmail }}</span>
+            </div>
+            <span *ngIf="!donor.primaryEmail" class="empty-cell">-</span>
+          </td>
+          <td>
+            <nz-tag [nzColor]="getStatusColor(donor.status, donor.isAnonymized)" class="status-tag">
+              <span class="status-dot"></span>
+              {{ getStatusLabel(donor.status, donor.isAnonymized) }}
+            </nz-tag>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="action-btn view" nz-button nzType="link" nzSize="small" 
+                      (click)="viewDonor(donor)" nz-tooltip="Visualizza dettagli">
+                <span nz-icon nzType="eye"></span>
+              </button>
+              <button class="action-btn edit" nz-button nzType="link" nzSize="small" 
+                      (click)="openEditModal(donor)" nz-tooltip="Modifica">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              <button class="action-btn delete" nz-button nzType="link" nzSize="small"
+                      nz-popconfirm nzPopconfirmTitle="Vuoi eliminare questo donatore?"
+                      nzOkText="Elimina" nzCancelText="Annulla"
+                      (nzOnConfirm)="deleteDonor(donor)" nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-illustration">
+          <div class="empty-icon">
+            <span nz-icon nzType="heart" nzTheme="outline"></span>
+          </div>
+          <div class="empty-circles">
+            <div class="circle c1"></div>
+            <div class="circle c2"></div>
+            <div class="circle c3"></div>
+          </div>
+        </div>
+        <h3>Nessun donatore trovato</h3>
+        <p>Inizia ad aggiungere i tuoi donatori per gestire le relazioni</p>
+        <button nz-button nzType="primary" (click)="openCreateModal()">
+          <span nz-icon nzType="plus"></span>
+          Aggiungi il primo donatore
+        </button>
+      </div>
+    </ng-template>
+  </nz-card>
+</div>
+
+<!-- Modal Form -->
+<app-donor-form
+  *ngIf="isFormModalVisible"
+  [visible]="isFormModalVisible"
+  [donor]="editingDonor"
+  (visibleChange)="closeFormModal()"
+  (saved)="onFormSaved()">
+</app-donor-form>
+
+<!-- Advanced Search Drawer -->
+<nz-drawer
+  [nzVisible]="isAdvancedSearchVisible"
+  [nzWidth]="480"
+  [nzTitle]="drawerTitleTpl"
+  (nzOnClose)="closeAdvancedSearch()"
+  [nzFooter]="drawerFooter">
+  <ng-template #drawerTitleTpl>
+    <span nz-icon nzType="search" class="drawer-title-icon"></span>
+    Ricerca Avanzata
+  </ng-template>
+  <div *nzDrawerContent class="advanced-search-content">
+    <h4>Filtri Generali</h4>
+    
+    <div class="filter-section">
+      <label>Tipo Soggetto</label>
+      <nz-select 
+        [(ngModel)]="advancedFilters.subjectType" 
+        nzAllowClear 
+        nzPlaceHolder="Tutti"
+        style="width: 100%;">
+        <nz-option [nzValue]="SubjectType.Individual" nzLabel="Persona Fisica"></nz-option>
+        <nz-option [nzValue]="SubjectType.Organization" nzLabel="Organizzazione"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="filter-section">
+      <label>Stato</label>
+      <nz-select 
+        [(ngModel)]="advancedFilters.status" 
+        nzAllowClear 
+        nzPlaceHolder="Tutti"
+        style="width: 100%;">
+        <nz-option [nzValue]="DonorStatus.New" nzLabel="Nuovo"></nz-option>
+        <nz-option [nzValue]="DonorStatus.Active" nzLabel="Attivo"></nz-option>
+        <nz-option [nzValue]="DonorStatus.Inactive" nzLabel="Inattivo"></nz-option>
+        <nz-option [nzValue]="DonorStatus.Suspended" nzLabel="Sospeso"></nz-option>
+        <nz-option [nzValue]="DonorStatus.Deceased" nzLabel="Deceduto"></nz-option>
+        <nz-option [nzValue]="DonorStatus.Lapsed" nzLabel="Decaduto"></nz-option>
+        <nz-option [nzValue]="DonorStatus.Disabled" nzLabel="Disabilitato"></nz-option>
+        <nz-option [nzValue]="DonorStatus.DoNotContact" nzLabel="Non contattare"></nz-option>
+        <nz-option [nzValue]="DonorStatus.Duplicate" nzLabel="Duplicato"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="filter-section">
+      <label>Categoria</label>
+      <nz-select 
+        [(ngModel)]="advancedFilters.category" 
+        nzAllowClear 
+        nzPlaceHolder="Tutte"
+        style="width: 100%;">
+        <nz-option [nzValue]="DonorCategory.Major" nzLabel="Major"></nz-option>
+        <nz-option [nzValue]="DonorCategory.Regular" nzLabel="Regular"></nz-option>
+        <nz-option [nzValue]="DonorCategory.Occasional" nzLabel="Occasionale"></nz-option>
+        <nz-option [nzValue]="DonorCategory.FirstTime" nzLabel="Prima volta"></nz-option>
+        <nz-option [nzValue]="DonorCategory.Lapsed" nzLabel="Decaduto"></nz-option>
+        <nz-option [nzValue]="DonorCategory.Legacy" nzLabel="Eredità"></nz-option>
+        <nz-option [nzValue]="DonorCategory.Corporate" nzLabel="Aziendale"></nz-option>
+        <nz-option [nzValue]="DonorCategory.Foundation" nzLabel="Fondazione"></nz-option>
+      </nz-select>
+    </div>
+
+    <nz-divider></nz-divider>
+
+    <h4>Ricerca Specifica</h4>
+
+    <div class="filter-section">
+      <label><span nz-icon nzType="number"></span> Codice Donatore</label>
+      <input nz-input 
+             [(ngModel)]="advancedFilters.donorCode" 
+             placeholder="Cerca per codice (es: DON001)"
+             nzSize="default" />
+    </div>
+
+    <div class="filter-section">
+      <label><span nz-icon nzType="mail"></span> Email</label>
+      <input nz-input 
+             [(ngModel)]="advancedFilters.email" 
+             placeholder="Cerca per indirizzo email"
+             nzSize="default" />
+    </div>
+
+    <div class="filter-section">
+      <label><span nz-icon nzType="phone"></span> Telefono</label>
+      <input nz-input 
+             [(ngModel)]="advancedFilters.phoneNumber" 
+             placeholder="Cerca per numero (+39...)"
+             nzSize="default" />
+    </div>
+
+    <nz-divider></nz-divider>
+
+    <h4>Indirizzo</h4>
+
+    <div class="filter-section">
+      <label><span nz-icon nzType="environment"></span> Città</label>
+      <input nz-input 
+             [(ngModel)]="advancedFilters.city" 
+             placeholder="Cerca per città"
+             nzSize="default" />
+    </div>
+
+    <div class="filter-section">
+      <label><span nz-icon nzType="pushpin"></span> CAP</label>
+      <input nz-input 
+             [(ngModel)]="advancedFilters.postalCode" 
+             placeholder="Cerca per codice postale"
+             nzSize="default" />
+    </div>
+
+    <div class="filter-section">
+      <label><span nz-icon nzType="compass"></span> Provincia</label>
+      <input nz-input 
+             [(ngModel)]="advancedFilters.province" 
+             placeholder="Sigla provincia (es: MI)"
+             nzSize="default" />
+    </div>
+
+    <div class="filter-section">
+      <label><span nz-icon nzType="global"></span> Nazione</label>
+      <input nz-input 
+             [(ngModel)]="advancedFilters.country" 
+             placeholder="Cerca per nazione"
+             nzSize="default" />
+    </div>
+
+    <nz-divider></nz-divider>
+
+    <div class="filter-actions">
+      <button nz-button nzType="default" nzBlock (click)="clearAdvancedFilters()">
+        <span nz-icon nzType="clear"></span>
+        Cancella tutti i filtri
+      </button>
+    </div>
+  </div>
+
+  <ng-template #drawerFooter>
+    <div class="drawer-footer">
+      <button nz-button nzType="default" (click)="closeAdvancedSearch()">Annulla</button>
+      <button nz-button nzType="primary" (click)="applyAdvancedFilters()">Applica</button>
+    </div>
+  </ng-template>
+</nz-drawer>

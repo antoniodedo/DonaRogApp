@@ -1,0 +1,128 @@
+<div class="documents-container">
+  <nz-card nzTitle="Documenti Progetto">
+    <button nz-button nzType="primary" class="mb-3" (click)="openAddDocumentModal()">
+      <span nz-icon nzType="plus-circle"></span>
+      Aggiungi Documento
+    </button>
+
+    <nz-list [nzDataSource]="documents" [nzRenderItem]="documentItem" [nzLoading]="loading">
+      <ng-template #documentItem let-item>
+        <nz-list-item [nzActions]="[fileSizeInfo, downloadAction, deleteAction]">
+          <nz-list-item-meta
+            [nzTitle]="item.fileName"
+            [nzDescription]="item.description || 'Nessuna descrizione'">
+            <nz-list-item-meta-avatar>
+              <span nz-icon nzType="file-text" nzTheme="outline" style="font-size: 24px;"></span>
+            </nz-list-item-meta-avatar>
+          </nz-list-item-meta>
+          <ng-template #fileSizeInfo>
+            <nz-tag>{{ formatFileSize(item.fileSize) }}</nz-tag>
+          </ng-template>
+          <ng-template #downloadAction>
+            <button nz-button nzType="link" [href]="item.fileUrl" target="_blank" nz-tooltip="Scarica">
+              <span nz-icon nzType="download"></span>
+            </button>
+          </ng-template>
+          <ng-template #deleteAction>
+            <button
+              nz-button
+              nzType="link"
+              nzDanger
+              nz-popconfirm
+              nzPopconfirmTitle="Eliminare questo documento?"
+              (nzOnConfirm)="deleteDocument(item)"
+              nz-tooltip="Elimina">
+              <span nz-icon nzType="delete"></span>
+            </button>
+          </ng-template>
+        </nz-list-item>
+      </ng-template>
+    </nz-list>
+
+    <nz-empty *ngIf="documents.length === 0 && !loading" nzNotFoundContent="Nessun documento"></nz-empty>
+  </nz-card>
+
+  <!-- Document Upload Modal -->
+  <nz-modal
+    [(nzVisible)]="isDocumentModalVisible"
+    nzTitle="Aggiungi Documento"
+    [nzWidth]="600"
+    [nzFooter]="documentModalFooter"
+    (nzOnCancel)="closeDocumentModal()"
+    nzCentered>
+    
+    <ng-container *nzModalContent>
+      <form nz-form [formGroup]="documentForm" nzLayout="vertical">
+        <nz-alert
+          nzType="info"
+          nzMessage="Per ora, carica il file su un servizio cloud (es. Google Drive, Dropbox) e incolla qui l'URL."
+          nzShowIcon
+          class="mb-3">
+        </nz-alert>
+
+        <nz-form-item>
+          <nz-form-label nzRequired>Nome File</nz-form-label>
+          <nz-form-control nzErrorTip="Il nome del file è obbligatorio">
+            <input nz-input formControlName="fileName" placeholder="Es. Relazione_Progetto_2026.pdf" maxlength="255" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label nzRequired>URL File</nz-form-label>
+          <nz-form-control nzErrorTip="L'URL del file è obbligatorio">
+            <input nz-input formControlName="fileUrl" placeholder="https://example.com/documento.pdf" maxlength="1000" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Tipo File</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="fileType" nzPlaceHolder="Seleziona tipo">
+                  <nz-option nzValue="application/pdf" nzLabel="PDF"></nz-option>
+                  <nz-option nzValue="application/msword" nzLabel="Word (DOC)"></nz-option>
+                  <nz-option nzValue="application/vnd.openxmlformats-officedocument.wordprocessingml.document" nzLabel="Word (DOCX)"></nz-option>
+                  <nz-option nzValue="application/vnd.ms-excel" nzLabel="Excel (XLS)"></nz-option>
+                  <nz-option nzValue="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" nzLabel="Excel (XLSX)"></nz-option>
+                  <nz-option nzValue="image/jpeg" nzLabel="Immagine (JPG)"></nz-option>
+                  <nz-option nzValue="image/png" nzLabel="Immagine (PNG)"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Dimensione (bytes)</nz-form-label>
+              <nz-form-control nzErrorTip="Inserisci la dimensione del file">
+                <nz-input-number 
+                  formControlName="fileSize" 
+                  [nzMin]="1"
+                  [nzStep]="1024"
+                  nzPlaceHolder="Es. 1024000"
+                  style="width: 100%">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label>Descrizione</nz-form-label>
+          <nz-form-control>
+            <textarea nz-input formControlName="description" rows="3" placeholder="Descrizione del documento" maxlength="500"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </ng-container>
+    
+    <ng-template #documentModalFooter>
+      <button nz-button nzType="default" (click)="closeDocumentModal()" [disabled]="savingDocument">
+        Annulla
+      </button>
+      <button nz-button nzType="primary" (click)="saveDocument()" [nzLoading]="savingDocument">
+        Aggiungi
+      </button>
+    </ng-template>
+  </nz-modal>
+</div>

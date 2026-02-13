@@ -1,0 +1,130 @@
+/* ============================================
+   Title Form - Consistent Styling
+   ============================================ */
+
+.uppercase-input {
+  text-transform: uppercase;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: var(--text-muted, #6b7280);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  span[nz-icon] {
+    font-size: 12px;
+  }
+}
+
+::ng-deep {
+  .ant-modal-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 8px 8px 0 0;
+    padding: 20px 24px;
+    
+    .ant-modal-title {
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+    }
+  }
+
+  .ant-modal-close {
+    color: white;
+
+    &:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .ant-modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .ant-modal-body {
+    padding: 24px;
+  }
+
+  .ant-modal-footer {
+    padding: 16px 24px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+
+    button {
+      height: 40px;
+      padding: 0 24px;
+      border-radius: 8px;
+      font-weight: 500;
+
+      &.ant-btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+
+        &:hover {
+          background: linear-gradient(135deg, #5a67d8, #6b21a8);
+        }
+
+        span[nz-icon] {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  .ant-form-item-label {
+    label {
+      font-weight: 500;
+      color: var(--text-primary, #1a1a1a);
+    }
+  }
+
+  .ant-input,
+  .ant-select-selector,
+  .ant-input-number {
+    border-radius: 8px !important;
+    border-color: #e5e7eb !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+      border-color: #667eea !important;
+    }
+
+    &:focus,
+    &.ant-input-focused,
+    &.ant-select-focused {
+      border-color: #667eea !important;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15) !important;
+    }
+  }
+
+  .ant-select-selection-item {
+    font-weight: 500;
+  }
+
+  textarea.ant-input {
+    resize: none;
+  }
+}
+
+/* Section divider for form */
+.form-section {
+  margin-bottom: 20px;
+
+  &:not(:first-child) {
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+}

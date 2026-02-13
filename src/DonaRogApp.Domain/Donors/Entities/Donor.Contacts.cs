@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Domain.Donors.Entities;
+using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Domain.Donors.Events;
 using DonaRogApp.Enums.Shared;
 using DonaRogApp.ValueObjects;
@@ -69,12 +69,7 @@ namespace DonaRogApp.Domain.Donors.Entities
                     .WithData("phone", phoneNumber);
             }
 
-            if (Contacts.Count == 1)
-            {
-                throw new BusinessException(DonorErrorCodes.CannotRemoveOnlyContact);
-            }
-
-            // Se è default, assegna default a un altro
+            // Se è default e ci sono altri contatti, assegna default a un altro
             if (contact.IsDefault && Contacts.Count > 1)
             {
                 var newDefault = Contacts.First(c => c.Id != contact.Id);

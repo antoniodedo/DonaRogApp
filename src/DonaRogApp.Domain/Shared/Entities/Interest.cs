@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.MultiTenancy;
 
 namespace DonaRogApp.Domain.Shared.Entities
 {
@@ -9,8 +10,12 @@ namespace DonaRogApp.Domain.Shared.Entities
     /// Shared Entity per tracciare interessi dei donatori
     /// Esempi: "Educazione", "Sanità", "Ambiente", "Cultura"
     /// </summary>
-    public class Interest : AggregateRoot<Guid>
+    public class Interest : AggregateRoot<Guid>, IMultiTenant
     {
+        /// <summary>
+        /// Tenant ID - ogni tenant ha le sue aree di interesse
+        /// </summary>
+        public Guid? TenantId { get; private set; }
         /// <summary>
         /// Codice univoco (es: "EDU", "HEALTH", "ENV")
         /// </summary>

@@ -1,0 +1,104 @@
+<div class="tags-container">
+  <div class="section-header">
+    <h3>
+      <span class="section-icon">
+        <span nz-icon nzType="tags"></span>
+      </span>
+      Tag
+    </h3>
+    <button nz-button nzType="primary" (click)="openAddModal()" [disabled]="getUnassignedTags().length === 0">
+      <span nz-icon nzType="plus"></span>
+      Aggiungi Tag
+    </button>
+  </div>
+
+  <!-- Tags List -->
+  <div class="tags-list" *ngIf="!loading && donorTags.length > 0">
+    <div class="tag-item" *ngFor="let tag of donorTags">
+      <nz-tag [nzColor]="tag.colorCode || '#1890ff'" class="tag-badge">
+        {{ tag.tagName }}
+      </nz-tag>
+      <div class="tag-info">
+        <span class="tag-category" *ngIf="tag.category">{{ tag.category }}</span>
+        <span class="tag-date">
+          <span nz-icon nzType="calendar"></span>
+          {{ formatDate(tag.taggedAt) }}
+        </span>
+        <span class="tag-auto" *ngIf="tag.isAutomatic" nz-tooltip="Tag automatico">
+          <span nz-icon nzType="robot"></span>
+        </span>
+      </div>
+      <button class="remove-btn" nz-button nzType="link" nzSize="small" nzDanger
+              nz-popconfirm 
+              [nzPopconfirmTitle]="'Rimuovere il tag \'' + tag.tagName + '\'?'"
+              nzOkText="Rimuovi" 
+              nzCancelText="Annulla"
+              (nzOnConfirm)="removeTag(tag)"
+              nz-tooltip="Rimuovi tag">
+        <span nz-icon nzType="close"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && donorTags.length === 0">
+    <div class="empty-icon">
+      <span nz-icon nzType="tags"></span>
+    </div>
+    <h4>Nessun tag assegnato</h4>
+    <p>Assegna dei tag per categorizzare questo donatore</p>
+    <button nz-button nzType="primary" (click)="openAddModal()" [disabled]="availableTags.length === 0">
+      <span nz-icon nzType="plus"></span>
+      Aggiungi Tag
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <nz-spin nzSimple></nz-spin>
+  </div>
+</div>
+
+<!-- Modal Aggiungi Tag -->
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  nzTitle="Aggiungi Tag"
+  [nzWidth]="450"
+  [nzFooter]="modalFooter"
+  (nzOnCancel)="closeModal()">
+  
+  <ng-container *nzModalContent>
+    <div class="add-tag-form">
+      <p class="form-hint">Seleziona un tag da assegnare al donatore:</p>
+      
+      <nz-select 
+        [(ngModel)]="selectedTagId" 
+        nzPlaceHolder="Seleziona tag..."
+        nzShowSearch
+        style="width: 100%">
+        <nz-option *ngFor="let tag of getUnassignedTags()" 
+                   [nzValue]="tag.id" 
+                   [nzLabel]="tag.name"
+                   nzCustomContent>
+          <div class="tag-option">
+            <nz-tag [nzColor]="tag.colorCode || '#1890ff'">{{ tag.name }}</nz-tag>
+            <span class="tag-option-category" *ngIf="tag.category">{{ tag.category }}</span>
+          </div>
+        </nz-option>
+      </nz-select>
+
+      <div class="no-tags-hint" *ngIf="getUnassignedTags().length === 0">
+        <span nz-icon nzType="info-circle"></span>
+        Tutti i tag disponibili sono già assegnati
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #modalFooter>
+    <button nz-button (click)="closeModal()">Annulla</button>
+    <button nz-button nzType="primary" (click)="assignTag()" [disabled]="!selectedTagId">
+      <span nz-icon nzType="plus"></span>
+      Assegna
+    </button>
+  </ng-template>
+</nz-modal>

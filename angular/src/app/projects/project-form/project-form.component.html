@@ -1,0 +1,211 @@
+<nz-modal
+  [(nzVisible)]="visible"
+  [nzTitle]="modalTitle"
+  [nzWidth]="800"
+  [nzFooter]="modalFooter"
+  (nzOnCancel)="close()"
+  nzCentered>
+  
+  <ng-template #modalTitle>
+    <div class="modal-title">
+      <span class="title-icon" [class.edit]="isEditMode">
+        <span nz-icon [nzType]="isEditMode ? 'edit' : 'plus-circle'"></span>
+      </span>
+      {{ isEditMode ? 'Modifica Progetto' : 'Nuovo Progetto' }}
+    </div>
+  </ng-template>
+  
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+      
+      <!-- Informazioni Base -->
+      <div class="form-section">
+        <h4>Informazioni Base</h4>
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label>Codice</nz-form-label>
+              <nz-form-control nzErrorTip="Il codice è obbligatorio (max 50 caratteri)">
+                <input nz-input formControlName="code" placeholder="Es. PROJ-2026-001" maxlength="50" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="16">
+            <nz-form-item>
+              <nz-form-label>Nome Progetto</nz-form-label>
+              <nz-form-control nzErrorTip="Il nome è obbligatorio (max 200 caratteri)">
+                <input nz-input formControlName="name" placeholder="Es. Scuola in Africa" maxlength="200" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <div nz-row [nzGutter]="16" *ngIf="isEditMode">
+          <div nz-col [nzSpan]="24">
+            <nz-form-item>
+              <nz-form-label>Stato</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="status">
+                  <nz-option [nzValue]="ProjectStatus.Active" nzLabel="Attivo"></nz-option>
+                  <nz-option [nzValue]="ProjectStatus.Inactive" nzLabel="Inattivo"></nz-option>
+                  <nz-option [nzValue]="ProjectStatus.Archived" nzLabel="Archiviato"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label>Descrizione</nz-form-label>
+          <nz-form-control>
+            <textarea nz-input formControlName="description" rows="4" placeholder="Descrizione dettagliata del progetto" maxlength="2000"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Date e Budget -->
+      <div class="form-section">
+        <h4>Date e Budget</h4>
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Data Fine</nz-form-label>
+              <nz-form-control>
+                <nz-date-picker formControlName="endDate" nzPlaceHolder="Seleziona data (opzionale)" style="width: 100%"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Valuta</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="currency">
+                  <nz-option nzValue="EUR" nzLabel="EUR (€)"></nz-option>
+                  <nz-option nzValue="USD" nzLabel="USD ($)"></nz-option>
+                  <nz-option nzValue="GBP" nzLabel="GBP (£)"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label>Budget Target</nz-form-label>
+          <nz-form-control nzErrorTip="Inserisci un importo valido">
+            <nz-input-number 
+              formControlName="targetAmount" 
+              [nzMin]="0" 
+              [nzStep]="100"
+              nzPlaceHolder="Es. 50000"
+              style="width: 100%">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Responsabile -->
+      <div class="form-section">
+        <h4>Responsabile Progetto</h4>
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Nome Responsabile</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="responsiblePerson" placeholder="Es. Mario Rossi" maxlength="100" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Telefono</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="responsiblePhone" placeholder="Es. +39 123 456 7890" maxlength="50" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label>Email Responsabile</nz-form-label>
+          <nz-form-control nzErrorTip="Inserisci un'email valida">
+            <input nz-input formControlName="responsibleEmail" placeholder="Es. responsabile@example.com" type="email" maxlength="256" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Ubicazione -->
+      <div class="form-section">
+        <h4>Ubicazione</h4>
+        <nz-form-item>
+          <nz-form-label>Località</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="location" placeholder="Es. Nairobi, Kenya" maxlength="200" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Latitudine</nz-form-label>
+              <nz-form-control nzErrorTip="Valore tra -90 e 90">
+                <nz-input-number 
+                  formControlName="latitude" 
+                  [nzMin]="-90" 
+                  [nzMax]="90"
+                  [nzStep]="0.000001"
+                  nzPlaceHolder="Es. 45.4642"
+                  style="width: 100%">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Longitudine</nz-form-label>
+              <nz-form-control nzErrorTip="Valore tra -180 e 180">
+                <nz-input-number 
+                  formControlName="longitude" 
+                  [nzMin]="-180" 
+                  [nzMax]="180"
+                  [nzStep]="0.000001"
+                  nzPlaceHolder="Es. 9.1900"
+                  style="width: 100%">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+      </div>
+
+      <!-- Immagini -->
+      <div class="form-section">
+        <h4>Immagini</h4>
+        <nz-form-item>
+          <nz-form-label>URL Immagine Principale</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="mainImageUrl" placeholder="https://example.com/image.jpg" maxlength="1000" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>URL Thumbnail</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="thumbnailUrl" placeholder="https://example.com/thumbnail.jpg" maxlength="1000" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+    </form>
+  </ng-container>
+  
+  <ng-template #modalFooter>
+    <div class="modal-footer">
+      <button nz-button nzType="default" (click)="close()" [disabled]="saving">
+        Annulla
+      </button>
+      <button nz-button nzType="primary" (click)="save()" [nzLoading]="saving">
+        {{ isEditMode ? 'Aggiorna' : 'Crea' }} Progetto
+      </button>
+    </div>
+  </ng-template>
+</nz-modal>

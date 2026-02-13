@@ -1,0 +1,261 @@
+<div class="project-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="project" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>I tuoi Progetti</h1>
+        <p>Gestisci e monitora tutti i progetti benefici</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openCreateModal()" nz-tooltip="Nuovo Progetto">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats" *ngIf="aggregateStats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="project"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ aggregateStats.totalProjects }}</span>
+        <span class="stat-label">Progetti Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ aggregateStats.activeProjects }}</span>
+        <span class="stat-label">Attivi</span>
+      </div>
+    </div>
+    <div class="stat-card stat-raised">
+      <div class="stat-icon">
+        <span nz-icon nzType="euro"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ aggregateStats.totalAmountRaised | number:'1.0-0' }}€</span>
+        <span class="stat-label">Totale Raccolto</span>
+      </div>
+    </div>
+    <div class="stat-card stat-donations">
+      <div class="stat-icon">
+        <span nz-icon nzType="heart" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ aggregateStats.totalDonationsCount }}</span>
+        <span class="stat-label">Donazioni</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <nz-input-group [nzSuffix]="suffixIconSearch" class="search-input">
+        <input
+          type="text"
+          nz-input
+          placeholder="Cerca progetti..."
+          [(ngModel)]="searchText"
+          (keyup.enter)="onSearch()" />
+      </nz-input-group>
+      <ng-template #suffixIconSearch>
+        <span nz-icon nzType="search"></span>
+      </ng-template>
+
+      <button nz-button nzType="default" (click)="showFilterDrawer()">
+        <span nz-icon nzType="filter"></span>
+        Filtri
+      </button>
+
+      <button nz-button nzType="primary" (click)="openCreateModal()">
+        <span nz-icon nzType="plus"></span>
+        Nuovo Progetto
+      </button>
+    </div>
+
+    <!-- Projects table -->
+    <nz-table
+    #projectTable
+    [nzData]="projects"
+    [nzLoading]="loading"
+    [nzTotal]="total"
+    [nzPageSize]="pageSize"
+    [nzPageIndex]="pageIndex"
+    [nzFrontPagination]="false"
+    (nzPageIndexChange)="onPageChange($event)"
+    (nzPageSizeChange)="onPageSizeChange($event)"
+    [nzShowSizeChanger]="true">
+    <thead>
+      <tr>
+        <th>Codice</th>
+        <th>Nome</th>
+        <th>Categoria</th>
+        <th>Stato</th>
+        <th>Budget</th>
+        <th>Raccolto</th>
+        <th>Progresso</th>
+        <th>Ubicazione</th>
+        <th nzWidth="180px">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let project of projects">
+        <td>{{ project.code }}</td>
+        <td>
+          <a (click)="viewProject(project)">{{ project.name }}</a>
+        </td>
+        <td>
+          <nz-tag [nzColor]="getCategoryColor(project.category)">
+            {{ getCategoryLabel(project.category) }}
+          </nz-tag>
+        </td>
+        <td>
+          <nz-tag [nzColor]="getStatusColor(project.status)">
+            {{ getStatusLabel(project.status) }}
+          </nz-tag>
+        </td>
+        <td>
+          <span *ngIf="project.targetAmount">
+            {{ project.targetAmount | number:'1.2-2' }} {{ project.currency }}
+          </span>
+          <span *ngIf="!project.targetAmount">-</span>
+        </td>
+        <td>
+          {{ project.totalAmountRaised | number:'1.2-2' }} {{ project.currency }}
+          <nz-badge
+            *ngIf="project.totalDonationsCount > 0"
+            [nzCount]="project.totalDonationsCount"
+            [nzStyle]="{ backgroundColor: '#52c41a' }">
+          </nz-badge>
+        </td>
+        <td>
+          <nz-progress
+            *ngIf="project.targetAmount"
+            [nzPercent]="project.targetCompletionPercentage"
+            [nzStatus]="project.targetCompletionPercentage >= 100 ? 'success' : 'active'"
+            [nzStrokeWidth]="8">
+          </nz-progress>
+          <span *ngIf="!project.targetAmount">-</span>
+        </td>
+        <td>
+          <span *ngIf="project.location">{{ project.location }}</span>
+          <span *ngIf="!project.location">-</span>
+        </td>
+        <td>
+          <button
+            nz-button
+            nzType="link"
+            nzSize="small"
+            (click)="viewProject(project)"
+            nz-tooltip="Dettagli">
+            <span nz-icon nzType="eye"></span>
+          </button>
+          <button
+            nz-button
+            nzType="link"
+            nzSize="small"
+            (click)="openEditModal(project)"
+            nz-tooltip="Modifica">
+            <span nz-icon nzType="edit"></span>
+          </button>
+          <button
+            *ngIf="project.status !== ProjectStatus.Archived"
+            nz-button
+            nzType="link"
+            nzSize="small"
+            nz-popconfirm
+            nzPopconfirmTitle="Archiviare questo progetto?"
+            (nzOnConfirm)="archiveProject(project)"
+            nz-tooltip="Archivia">
+            <span nz-icon nzType="inbox"></span>
+          </button>
+          <button
+            nz-button
+            nzType="link"
+            nzSize="small"
+            nzDanger
+            nz-popconfirm
+            nzPopconfirmTitle="Eliminare questo progetto?"
+            (nzOnConfirm)="deleteProject(project)"
+            nz-tooltip="Elimina">
+            <span nz-icon nzType="delete"></span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+  </nz-card>
+
+  <!-- Filter drawer -->
+  <nz-drawer
+    [nzVisible]="filterDrawerVisible"
+    [nzWidth]="400"
+    nzTitle="Filtri Avanzati"
+    (nzOnClose)="closeFilterDrawer()">
+    <ng-container *nzDrawerContent>
+      <div class="filters-form">
+        <nz-form-item>
+          <nz-form-label>Stato</nz-form-label>
+          <nz-form-control>
+            <nz-select [(ngModel)]="selectedStatus" nzAllowClear nzPlaceHolder="Seleziona stato">
+              <nz-option [nzValue]="ProjectStatus.Active" nzLabel="Attivo"></nz-option>
+              <nz-option [nzValue]="ProjectStatus.Inactive" nzLabel="Inattivo"></nz-option>
+              <nz-option [nzValue]="ProjectStatus.Archived" nzLabel="Archiviato"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Categoria</nz-form-label>
+          <nz-form-control>
+            <nz-select [(ngModel)]="selectedCategory" nzAllowClear nzPlaceHolder="Seleziona categoria">
+              <nz-option [nzValue]="ProjectCategory.Education" nzLabel="Educazione"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.Health" nzLabel="Salute"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.Environment" nzLabel="Ambiente"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.SocialWelfare" nzLabel="Assistenza Sociale"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.Emergency" nzLabel="Emergenze"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.Infrastructure" nzLabel="Infrastrutture"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.Culture" nzLabel="Cultura"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.Research" nzLabel="Ricerca"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.Sports" nzLabel="Sport"></nz-option>
+              <nz-option [nzValue]="ProjectCategory.Other" nzLabel="Altro"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <div class="drawer-actions">
+          <button nz-button nzType="default" (click)="clearFilters()">
+            Cancella Filtri
+          </button>
+          <button nz-button nzType="primary" (click)="applyFilters()">
+            Applica Filtri
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </nz-drawer>
+
+  <!-- Form modal -->
+  <app-project-form
+    [(visible)]="isFormModalVisible"
+    [project]="editingProject"
+    (saved)="onFormSaved()">
+  </app-project-form>
+</div>

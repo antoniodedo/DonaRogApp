@@ -1,0 +1,270 @@
+<nz-modal
+  [(nzVisible)]="visible"
+  [nzTitle]="modalTitle"
+  [nzWidth]="680"
+  [nzFooter]="modalFooter"
+  (nzOnCancel)="close()"
+  nzCentered>
+  
+  <ng-template #modalTitle>
+    <div class="modal-title">
+      <span class="title-icon" [class.edit]="isEditMode">
+        <span nz-icon [nzType]="isEditMode ? 'edit' : 'user-add'"></span>
+      </span>
+      {{ isEditMode ? 'Modifica Donatore' : 'Nuovo Donatore' }}
+    </div>
+  </ng-template>
+  
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+      
+      <!-- Tipo Soggetto -->
+      <div class="form-section" *ngIf="!isEditMode">
+        <h4>Tipo di Soggetto</h4>
+        <nz-form-item>
+          <nz-form-control>
+            <nz-radio-group formControlName="subjectType">
+              <label nz-radio [nzValue]="SubjectType.Individual">
+                <span nz-icon nzType="user"></span>
+                <span class="radio-label">Persona Fisica</span>
+              </label>
+              <label nz-radio [nzValue]="SubjectType.Organization">
+                <span nz-icon nzType="bank"></span>
+                <span class="radio-label">Organizzazione</span>
+              </label>
+            </nz-radio-group>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Campi Persona Fisica -->
+      <div *ngIf="isIndividual" class="form-section">
+        <h4>Dati Anagrafici</h4>
+        <div nz-row [nzGutter]="20">
+          <div nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label>Titolo</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="titleId" nzPlaceHolder="Seleziona..." nzAllowClear>
+                  <nz-option *ngFor="let title of titles" [nzValue]="title.id" [nzLabel]="title.abbreviation + ' - ' + title.name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label nzRequired>Nome</nz-form-label>
+              <nz-form-control nzErrorTip="Il nome è obbligatorio">
+                <input nz-input formControlName="firstName" placeholder="Es. Mario" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label nzRequired>Cognome</nz-form-label>
+              <nz-form-control nzErrorTip="Il cognome è obbligatorio">
+                <input nz-input formControlName="lastName" placeholder="Es. Rossi" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <div nz-row [nzGutter]="20">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Genere</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="gender" nzPlaceHolder="Seleziona...">
+                  <nz-option [nzValue]="Gender.Unspecified" nzLabel="Non specificato"></nz-option>
+                  <nz-option [nzValue]="Gender.Male" nzLabel="Maschio"></nz-option>
+                  <nz-option [nzValue]="Gender.Female" nzLabel="Femmina"></nz-option>
+                  <nz-option [nzValue]="Gender.Other" nzLabel="Altro"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Data di Nascita</nz-form-label>
+              <nz-form-control>
+                <nz-date-picker formControlName="birthDate" nzPlaceHolder="Seleziona data" style="width: 100%"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label>Codice Fiscale</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="taxCode" placeholder="Es. RSSMRA80A01H501U" maxlength="16" class="uppercase-input" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Campi Organizzazione -->
+      <div *ngIf="!isIndividual" class="form-section">
+        <h4>Dati Organizzazione</h4>
+        <nz-form-item>
+          <nz-form-label nzRequired>Ragione Sociale</nz-form-label>
+          <nz-form-control nzErrorTip="La ragione sociale è obbligatoria">
+            <input nz-input formControlName="companyName" placeholder="Es. Fondazione XYZ" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <div nz-row [nzGutter]="20">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Tipo Organizzazione</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="organizationType" nzPlaceHolder="Seleziona...">
+                  <nz-option [nzValue]="OrganizationType.Association" nzLabel="Associazione"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.Foundation" nzLabel="Fondazione"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.NGO" nzLabel="ONG"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.Charity" nzLabel="Ente Benefico"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.Religious" nzLabel="Religioso"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.Educational" nzLabel="Educativo"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.Healthcare" nzLabel="Sanitario"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.Government" nzLabel="Ente Pubblico"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.PrivateCompany" nzLabel="Azienda Privata"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.Cooperative" nzLabel="Cooperativa"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.SocialEnterprise" nzLabel="Impresa Sociale"></nz-option>
+                  <nz-option [nzValue]="OrganizationType.Other" nzLabel="Altro"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Forma Giuridica</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="legalForm" nzPlaceHolder="Seleziona...">
+                  <nz-option [nzValue]="LegalForm.SoleProprietorship" nzLabel="Ditta Individuale"></nz-option>
+                  <nz-option [nzValue]="LegalForm.LLC" nzLabel="S.R.L."></nz-option>
+                  <nz-option [nzValue]="LegalForm.SimplifiedLLC" nzLabel="S.R.L.S."></nz-option>
+                  <nz-option [nzValue]="LegalForm.Corporation" nzLabel="S.P.A."></nz-option>
+                  <nz-option [nzValue]="LegalForm.GeneralPartnership" nzLabel="S.N.C."></nz-option>
+                  <nz-option [nzValue]="LegalForm.LimitedPartnership" nzLabel="S.A.S."></nz-option>
+                  <nz-option [nzValue]="LegalForm.Cooperative" nzLabel="Cooperativa"></nz-option>
+                  <nz-option [nzValue]="LegalForm.Association" nzLabel="Associazione"></nz-option>
+                  <nz-option [nzValue]="LegalForm.Foundation" nzLabel="Fondazione"></nz-option>
+                  <nz-option [nzValue]="LegalForm.ONLUS" nzLabel="ONLUS"></nz-option>
+                  <nz-option [nzValue]="LegalForm.ETS" nzLabel="ETS"></nz-option>
+                  <nz-option [nzValue]="LegalForm.Other" nzLabel="Altro"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <div nz-row [nzGutter]="20">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Partita IVA</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="vatNumber" placeholder="Es. 12345678901" maxlength="11" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Codice Fiscale</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="taxCode" placeholder="Es. 12345678901" maxlength="16" class="uppercase-input" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contatti -->
+      <div class="form-section" *ngIf="!isEditMode">
+        <h4>Contatti Principali</h4>
+        <div nz-row [nzGutter]="20">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Email</nz-form-label>
+              <nz-form-control nzErrorTip="Inserisci un'email valida">
+                <nz-input-group [nzPrefix]="emailIcon">
+                  <input nz-input formControlName="email" placeholder="email@esempio.it" type="email" />
+                </nz-input-group>
+                <ng-template #emailIcon>
+                  <span nz-icon nzType="mail" class="input-icon"></span>
+                </ng-template>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Telefono</nz-form-label>
+              <nz-form-control>
+                <nz-input-group [nzPrefix]="phoneIcon">
+                  <input nz-input formControlName="phoneNumber" placeholder="+39 333 1234567" />
+                </nz-input-group>
+                <ng-template #phoneIcon>
+                  <span nz-icon nzType="phone" class="input-icon"></span>
+                </ng-template>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+      </div>
+
+      <!-- Altre Info -->
+      <div class="form-section">
+        <h4>Informazioni Aggiuntive</h4>
+        <div nz-row [nzGutter]="20">
+          <div nz-col [nzSpan]="12" *ngIf="!isEditMode">
+            <nz-form-item>
+              <nz-form-label>Come ci ha conosciuto?</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="origin" nzPlaceHolder="Seleziona origine...">
+                  <nz-option [nzValue]="DonorOrigin.Unknown" nzLabel="Non specificato"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.Website" nzLabel="Sito Web"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.SocialMedia" nzLabel="Social Media"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.Event" nzLabel="Evento"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.Referral" nzLabel="Passaparola"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.DirectMail" nzLabel="Posta"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.PhoneCampaign" nzLabel="Telefono"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.EmailCampaign" nzLabel="Campagna Email"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.Media" nzLabel="Media"></nz-option>
+                  <nz-option [nzValue]="DonorOrigin.Other" nzLabel="Altro"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="isEditMode ? 24 : 12">
+            <nz-form-item>
+              <nz-form-label>Lingua Preferita</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="preferredLanguage">
+                  <nz-option nzValue="IT" nzLabel="Italiano"></nz-option>
+                  <nz-option nzValue="EN" nzLabel="Inglese"></nz-option>
+                  <nz-option nzValue="DE" nzLabel="Tedesco"></nz-option>
+                  <nz-option nzValue="FR" nzLabel="Francese"></nz-option>
+                  <nz-option nzValue="ES" nzLabel="Spagnolo"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label>Note</nz-form-label>
+          <nz-form-control>
+            <textarea nz-input formControlName="notes" placeholder="Aggiungi eventuali note sul donatore..." rows="3"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </form>
+  </ng-container>
+
+  <ng-template #modalFooter>
+    <div class="modal-footer">
+      <button nz-button (click)="close()">Annulla</button>
+      <button nz-button nzType="primary" (click)="save()" [nzLoading]="saving">
+        <span nz-icon [nzType]="isEditMode ? 'save' : 'plus'"></span>
+        {{ isEditMode ? 'Salva Modifiche' : 'Crea Donatore' }}
+      </button>
+    </div>
+  </ng-template>
+</nz-modal>

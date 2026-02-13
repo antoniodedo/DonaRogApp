@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Domain.Donors.Entities;
+using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Domain.Donors.Events;
 using DonaRogApp.Enums.Shared;
 using System;
@@ -19,6 +19,7 @@ namespace DonaRogApp.Domain.Donors.Entities
     {
         /// <summary>
         /// Aggiunge un nuovo indirizzo email al donatore
+        /// Se l'email era stata precedentemente cancellata (soft delete), la riattiva
         /// </summary>
         public void AddEmail(string emailAddress, EmailType type = EmailType.Personal)
         {
@@ -30,12 +31,36 @@ namespace DonaRogApp.Domain.Donors.Entities
                     .WithData("email", emailAddress);
             }
 
-            if (Emails.Any(e => e.EmailAddress.Equals(emailAddress, StringComparison.OrdinalIgnoreCase)))
+            // Controlla se esiste già un'email attiva con lo stesso indirizzo
+            var existingActiveEmail = Emails.FirstOrDefault(e => 
+                e.EmailAddress.Equals(emailAddress, StringComparison.OrdinalIgnoreCase) && !e.IsDeleted);
+            
+            if (existingActiveEmail != null)
             {
                 throw new BusinessException(DonorErrorCodes.DuplicateEmail)
                     .WithData("email", emailAddress);
             }
 
+            // Controlla se esiste un'email soft-deleted da riattivare
+            var existingDeletedEmail = Emails.FirstOrDefault(e => 
+                e.EmailAddress.Equals(emailAddress, StringComparison.OrdinalIgnoreCase) && e.IsDeleted);
+
+            if (existingDeletedEmail != null)
+            {
+                // Riattiva l'email esistente
+                existingDeletedEmail.Reactivate(type);
+                
+                // Se non ci sono altre email attive, imposta questa come default
+                if (!Emails.Any(e => !e.IsDeleted && e.Id != existingDeletedEmail.Id))
+                {
+                    existingDeletedEmail.SetAsDefault();
+                }
+                
+                AddLocalEvent(new DonorEmailAddedEvent(this.Id, emailAddress, type));
+                return;
+            }
+
+            // Crea nuova email
             var donorEmail = DonorEmail.Create(
                 donorId: this.Id,
                 emailAddress: emailAddress,
@@ -43,7 +68,7 @@ namespace DonaRogApp.Domain.Donors.Entities
                 tenantId: this.TenantId
             );
 
-            if (!Emails.Any())
+            if (!Emails.Any(e => !e.IsDeleted))
             {
                 donorEmail.SetAsDefault();
             }
@@ -68,11 +93,7 @@ namespace DonaRogApp.Domain.Donors.Entities
                     .WithData("email", emailAddress);
             }
 
-            if (Emails.Count == 1)
-            {
-                throw new BusinessException(DonorErrorCodes.CannotRemoveOnlyEmail);
-            }
-
+            // Se rimuovo l'email predefinita e ce ne sono altre, imposta un'altra come predefinita
             if (email.IsDefault && Emails.Count > 1)
             {
                 var newDefault = Emails.First(e => e.Id != email.Id);

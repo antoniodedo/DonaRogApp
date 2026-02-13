@@ -1,0 +1,47 @@
+@import '../admin-shared.scss';
+
+.users-theme {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3) !important;
+}
+
+.user-avatar {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  font-weight: 600;
+}
+
+.username {
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.email {
+  color: var(--text-secondary, #4b5563);
+}
+
+.verified-icon {
+  color: #10b981;
+  margin-left: 6px;
+  font-size: 14px;
+}
+
+.stat-total {
+  &::before { background: linear-gradient(180deg, #3b82f6, #1d4ed8); }
+  .stat-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35); }
+}
+
+.stat-active {
+  &::before { background: linear-gradient(180deg, #34d399, #10b981); }
+  .stat-icon { background: linear-gradient(135deg, #34d399, #10b981); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35); }
+}
+
+.stat-roles {
+  &::before { background: linear-gradient(180deg, #a78bfa, #8b5cf6); }
+  .stat-icon { background: linear-gradient(135deg, #a78bfa, #8b5cf6); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35); }
+}
+
+::ng-deep {
+  .ant-modal-header {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+  }
+}

@@ -1,0 +1,227 @@
+<div class="template-form-page">
+  <div class="form-content">
+    
+    <!-- Hero Header -->
+    <div class="hero-header">
+  <div class="hero-content">
+    <div class="back-btn" [routerLink]="['/admin/letter-templates']">
+      <span nz-icon nzType="arrow-left"></span>
+    </div>
+    
+    <div class="template-icon">
+      <span nz-icon [nzType]="isEditMode ? 'edit' : 'file-add'" nzTheme="outline"></span>
+    </div>
+    
+    <div class="hero-text">
+      <h1>
+        {{ isEditMode ? 'Modifica Template' : 'Nuovo Template' }}
+      </h1>
+      <div class="hero-meta" *ngIf="template">
+        <span>
+          <span nz-icon nzType="tag"></span>
+          {{ template.name }}
+        </span>
+        <span *ngIf="template.language">
+          <span nz-icon nzType="global"></span>
+          {{ template.language === 'it' ? 'Italiano' : 'English' }}
+        </span>
+        <span *ngIf="template.isActive">
+          <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+          Attivo
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Spinner -->
+<div *ngIf="loading" class="loading-container">
+  <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+</div>
+
+<!-- Form -->
+<form *ngIf="!loading" nz-form [formGroup]="form" (ngSubmit)="onSubmit()" nzLayout="vertical">
+  <div class="form-container-two-columns">
+    <div class="left-column">
+      <!-- Template Configuration -->
+      <div class="form-section">
+        <div class="section-header">
+          <span nz-icon nzType="setting" nzTheme="outline"></span>
+          <span>Configurazione Template</span>
+        </div>
+        <div class="section-body">
+        <div class="two-columns-grid">
+          <!-- Left Column -->
+          <div class="column">
+            <nz-form-item>
+              <nz-form-label nzRequired>Nome Template</nz-form-label>
+              <nz-form-control nzErrorTip="Inserisci il nome del template">
+                <input nz-input formControlName="name" placeholder="Es: Ringraziamento Donazione" />
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Descrizione</nz-form-label>
+              <nz-form-control>
+                <textarea
+                  nz-input
+                  formControlName="description"
+                  [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+                  placeholder="Breve descrizione del template..."></textarea>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Tipo Comunicazione</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="communicationType" nzAllowClear nzPlaceHolder="Email e Lettera">
+                  <nz-option [nzValue]="CommunicationType.Email" nzLabel="Solo Email"></nz-option>
+                  <nz-option [nzValue]="CommunicationType.Letter" nzLabel="Solo Lettera"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label nzRequired>Categoria</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="category" nzPlaceHolder="Seleziona categoria">
+                  <nz-option [nzValue]="TemplateCategory.ThankYou" nzLabel="Ringraziamento"></nz-option>
+                  <nz-option [nzValue]="TemplateCategory.Newsletter" nzLabel="Newsletter"></nz-option>
+                  <nz-option [nzValue]="TemplateCategory.HolidayGreeting" nzLabel="Auguri"></nz-option>
+                  <nz-option [nzValue]="TemplateCategory.ProjectUpdate" nzLabel="Agg. Progetto"></nz-option>
+                  <nz-option [nzValue]="TemplateCategory.Reminder" nzLabel="Promemoria"></nz-option>
+                  <nz-option [nzValue]="TemplateCategory.Confirmation" nzLabel="Conferma"></nz-option>
+                  <nz-option [nzValue]="TemplateCategory.Other" nzLabel="Altro"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label nzRequired>Lingua</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="language" nzPlaceHolder="Lingua">
+                  <nz-option nzValue="it" nzLabel="Italiano"></nz-option>
+                  <nz-option nzValue="en" nzLabel="English"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Opzioni</nz-form-label>
+              <nz-form-control>
+                <div class="checkboxes-inline">
+                  <label nz-checkbox formControlName="isDefault">
+                    <span nz-tooltip="Default per categoria e lingua">Default</span>
+                  </label>
+                  <label nz-checkbox formControlName="isActive">Attivo</label>
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <!-- Right Column -->
+          <div class="column">
+            <nz-form-item>
+              <nz-form-label>Progetto</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="projectId" nzAllowClear nzPlaceHolder="Tutti i progetti" nzShowSearch>
+                  <nz-option *ngFor="let project of projects" [nzValue]="project.id" [nzLabel]="project.name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Ricorrenza</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="recurrenceId" nzAllowClear nzPlaceHolder="Tutte le ricorrenze" nzShowSearch>
+                  <nz-option *ngFor="let recurrence of recurrences" [nzValue]="recurrence.id" [nzLabel]="recurrence.name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Importo Min (€)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number
+                  formControlName="minAmount"
+                  [nzMin]="0"
+                  [nzStep]="10"
+                  [nzPrecision]="2"
+                  nzPlaceHolder="0.00"
+                  style="width: 100%">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Importo Max (€)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number
+                  formControlName="maxAmount"
+                  [nzMin]="0"
+                  [nzStep]="10"
+                  [nzPrecision]="2"
+                  nzPlaceHolder="999999.99"
+                  style="width: 100%">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label>Destinatari</nz-form-label>
+              <nz-form-control>
+                <div class="checkboxes-inline">
+                  <label nz-checkbox formControlName="isForNewDonor">
+                    <span nz-tooltip="Per nuovi donatori">Nuovo Donatore</span>
+                  </label>
+                  <label nz-checkbox formControlName="isPlural">
+                    <span nz-tooltip="Per gruppi/famiglie">Plurale</span>
+                  </label>
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-column">
+      <!-- Content Editor -->
+      <div class="form-section editor-section">
+        <div class="section-header">
+          <span nz-icon nzType="file-text" nzTheme="outline"></span>
+          <span>Contenuto Template</span>
+        </div>
+        <div class="section-body">
+        <nz-form-item>
+          <nz-form-control nzErrorTip="Il contenuto del template è obbligatorio">
+            <editor
+              [init]="tinyMceConfig"
+              formControlName="content">
+            </editor>
+          </nz-form-control>
+        </nz-form-item>
+        <small>
+          <span nz-icon nzType="info-circle"></span>
+          Usa il bottone "Inserisci Tag" nella barra degli strumenti per aggiungere placeholder dinamici
+        </small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Actions -->
+  <div class="form-actions">
+    <button nz-button nzType="default" (click)="onCancel()" [disabled]="submitting">
+      Annulla
+    </button>
+    <button nz-button nzType="primary" type="submit" [nzLoading]="submitting">
+      <span nz-icon nzType="save"></span>
+      {{ template ? 'Aggiorna Template' : 'Crea Template' }}
+    </button>
+  </div>
+</form>
+
+  </div>
+</div>

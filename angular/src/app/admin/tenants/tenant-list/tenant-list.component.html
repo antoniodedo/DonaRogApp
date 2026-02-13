@@ -1,0 +1,159 @@
+<div class="tenant-list-container">
+  <!-- Header -->
+  <div class="admin-header">
+    <h1>Gestione Tenant</h1>
+    <p class="subtitle">Crea e gestisci le organizzazioni multi-tenant</p>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <nz-space>
+      <nz-input-group *nzSpaceItem nzSearch [nzAddOnAfter]="suffixIconButton">
+        <input 
+          type="text" 
+          nz-input 
+          placeholder="Cerca per nome..." 
+          [(ngModel)]="searchText"
+          (keyup.enter)="onSearch()" />
+      </nz-input-group>
+      <ng-template #suffixIconButton>
+        <button nz-button nzType="primary" nzSearch (click)="onSearch()">
+          <span nz-icon nzType="search"></span>
+        </button>
+      </ng-template>
+      <button *nzSpaceItem nz-button nzType="primary" (click)="openCreateModal()">
+        <span nz-icon nzType="plus"></span>
+        Nuovo Tenant
+      </button>
+    </nz-space>
+  </div>
+
+  <!-- Table -->
+  <nz-table
+    #tenantTable
+    [nzData]="tenants"
+    [nzLoading]="loading"
+    [nzTotal]="total"
+    [nzPageIndex]="pageIndex"
+    [nzPageSize]="pageSize"
+    [nzFrontPagination]="false"
+    [nzShowSizeChanger]="true"
+    [nzPageSizeOptions]="[10, 20, 50, 100]"
+    (nzPageIndexChange)="onPageChange($event)"
+    (nzPageSizeChange)="onPageSizeChange($event)"
+    nzShowPagination
+    [nzNoResult]="emptyTemplate">
+    
+    <thead>
+      <tr>
+        <th nzWidth="50%">Nome Tenant</th>
+        <th nzWidth="30%">ID</th>
+        <th nzWidth="20%" nzAlign="center">Azioni</th>
+      </tr>
+    </thead>
+    
+    <tbody>
+      <tr *ngFor="let tenant of tenants">
+        <td>
+          <strong>{{ tenant.name }}</strong>
+        </td>
+        <td>
+          <code class="tenant-id">{{ tenant.id }}</code>
+        </td>
+        <td nzAlign="center">
+          <nz-space>
+            <button 
+              *nzSpaceItem
+              nz-button 
+              nzType="default" 
+              nzSize="small"
+              (click)="openEditModal(tenant)">
+              <span nz-icon nzType="edit"></span>
+              Modifica
+            </button>
+            <button 
+              *nzSpaceItem
+              nz-button 
+              nzType="default" 
+              nzDanger
+              nzSize="small"
+              nz-popconfirm
+              nzPopconfirmTitle="Sei sicuro di voler eliminare questo tenant?"
+              nzPopconfirmPlacement="topRight"
+              (nzOnConfirm)="deleteTenant(tenant)">
+              <span nz-icon nzType="delete"></span>
+              Elimina
+            </button>
+          </nz-space>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+
+  <!-- Empty Template -->
+  <ng-template #emptyTemplate>
+    <nz-empty 
+      [nzNotFoundContent]="searchText ? 'Nessun tenant trovato' : 'Nessun tenant presente'">
+    </nz-empty>
+  </ng-template>
+</div>
+
+<!-- Modal Create/Edit -->
+<nz-modal
+  [nzVisible]="isModalVisible"
+  [nzTitle]="isEditMode ? 'Modifica Tenant' : 'Nuovo Tenant'"
+  [nzOkText]="isEditMode ? 'Aggiorna' : 'Crea'"
+  nzCancelText="Annulla"
+  [nzOkLoading]="modalLoading"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+  [nzWidth]="600">
+  
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="tenantForm" nzLayout="vertical">
+      
+      <!-- Nome Tenant -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Nome Tenant</nz-form-label>
+        <nz-form-control nzErrorTip="Inserisci un nome valido (max 256 caratteri)">
+          <input 
+            nz-input 
+            formControlName="name" 
+            placeholder="es: Acme Corporation" 
+            maxlength="256" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Admin Email (solo in creazione) -->
+      <nz-form-item *ngIf="!isEditMode">
+        <nz-form-label nzRequired>Email Admin</nz-form-label>
+        <nz-form-control nzErrorTip="Inserisci un'email valida">
+          <input 
+            nz-input 
+            formControlName="adminEmailAddress" 
+            type="email"
+            placeholder="admin@esempio.it" />
+        </nz-form-control>
+        <nz-form-extra>
+          L'utente admin sarà creato con questa email per gestire il tenant
+        </nz-form-extra>
+      </nz-form-item>
+
+      <!-- Admin Password (solo in creazione) -->
+      <nz-form-item *ngIf="!isEditMode">
+        <nz-form-label nzRequired>Password Admin</nz-form-label>
+        <nz-form-control nzErrorTip="Inserisci una password (min 6 caratteri)">
+          <input 
+            nz-input 
+            formControlName="adminPassword" 
+            type="password"
+            placeholder="Password sicura" />
+        </nz-form-control>
+        <nz-form-extra>
+          Password per l'utente admin del tenant (minimo 6 caratteri)
+        </nz-form-extra>
+      </nz-form-item>
+
+    </form>
+  </ng-container>
+</nz-modal>

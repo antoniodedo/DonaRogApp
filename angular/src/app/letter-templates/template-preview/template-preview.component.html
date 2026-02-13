@@ -1,0 +1,120 @@
+<div class="preview-container" *ngIf="template">
+  <!-- Template Info Header -->
+  <nz-card class="template-info-card">
+    <div class="template-info-header">
+      <div class="info-section">
+        <h3>{{ template.name }}</h3>
+        <p *ngIf="template.description">{{ template.description }}</p>
+      </div>
+      <div class="info-badges">
+        <nz-tag [nzColor]="'blue'">{{ template.language.toUpperCase() }}</nz-tag>
+        <nz-tag *ngIf="template.communicationType === 1" [nzColor]="'green'">Email</nz-tag>
+        <nz-tag *ngIf="template.communicationType === 2" [nzColor]="'orange'">Lettera</nz-tag>
+        <nz-tag *ngIf="!template.communicationType" [nzColor]="'purple'">Entrambi</nz-tag>
+      </div>
+    </div>
+  </nz-card>
+
+  <!-- Preview Tabs -->
+  <nz-card class="preview-card">
+    <nz-tabset [(nzSelectedIndex)]="selectedTab">
+      <!-- Raw Template Tab -->
+      <nz-tab nzTitle="Template Originale">
+        <div class="preview-content">
+          <div [innerHTML]="template.content" class="rendered-html"></div>
+        </div>
+      </nz-tab>
+
+      <!-- Preview with Data Tab -->
+      <nz-tab nzTitle="Anteprima con Dati Reali">
+        <nz-spin [nzSpinning]="loading">
+          <div class="preview-controls">
+            <nz-form-item>
+              <nz-form-label>Seleziona Donatore per Anteprima</nz-form-label>
+              <nz-form-control>
+                <nz-select
+                  [(ngModel)]="selectedDonorId"
+                  (ngModelChange)="onDonorChange()"
+                  nzShowSearch
+                  nzPlaceHolder="Seleziona un donatore"
+                  style="width: 100%">
+                  <nz-option
+                    *ngFor="let donor of donors"
+                    [nzValue]="donor.id"
+                    [nzLabel]="getDonorDisplayName(donor)">
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <nz-divider></nz-divider>
+
+          <div class="preview-content">
+            <div [innerHTML]="renderedContent" class="rendered-html"></div>
+          </div>
+        </nz-spin>
+      </nz-tab>
+
+      <!-- Test Email Tab -->
+      <nz-tab nzTitle="Test Email">
+        <div class="test-email-section">
+          <nz-alert
+            nzType="info"
+            nzMessage="Invia un'email di test"
+            nzDescription="L'email sarà inviata utilizzando i dati del donatore selezionato (se presente) o con placeholder generici."
+            [nzCloseable]="false"
+            nzShowIcon
+            style="margin-bottom: 24px">
+          </nz-alert>
+
+          <nz-form-item>
+            <nz-form-label>Donatore (opzionale)</nz-form-label>
+            <nz-form-control>
+              <nz-select
+                [(ngModel)]="selectedDonorId"
+                nzAllowClear
+                nzShowSearch
+                nzPlaceHolder="Seleziona un donatore o lascia vuoto"
+                style="width: 100%">
+                <nz-option
+                  *ngFor="let donor of donors"
+                  [nzValue]="donor.id"
+                  [nzLabel]="getDonorDisplayName(donor)">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item>
+            <nz-form-label nzRequired>Email Destinatario Test</nz-form-label>
+            <nz-form-control nzErrorTip="Inserisci un indirizzo email valido">
+              <input
+                nz-input
+                [(ngModel)]="testEmail"
+                type="email"
+                placeholder="test@example.com" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <button
+            nz-button
+            nzType="primary"
+            (click)="sendTestEmail()"
+            [nzLoading]="sendingTest"
+            [disabled]="!testEmail">
+            <span nz-icon nzType="mail"></span>
+            Invia Email di Test
+          </button>
+        </div>
+      </nz-tab>
+    </nz-tabset>
+  </nz-card>
+
+  <!-- Actions -->
+  <div class="preview-actions">
+    <button nz-button nzType="default" (click)="onClose()">
+      Chiudi
+    </button>
+  </div>
+</div>

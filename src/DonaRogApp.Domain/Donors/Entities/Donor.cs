@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Domain.Donors.Entities;
+using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Domain.Shared.Entities;
 using DonaRogApp.Enums;
 using DonaRogApp.Enums.Communications;
@@ -303,6 +303,16 @@ namespace DonaRogApp.Domain.Donors.Entities
         public bool MailConsent { get; private set; }
 
         /// <summary>
+        /// Postal mail consent date
+        /// </summary>
+        public DateTime? MailConsentDate { get; private set; }
+
+        /// <summary>
+        /// Date when privacy consent was revoked
+        /// </summary>
+        public DateTime? PrivacyConsentRevokedDate { get; private set; }
+
+        /// <summary>
         /// Profiling consent (behavioral analysis)
         /// </summary>
         public bool ProfilingConsent { get; private set; }
@@ -374,6 +384,19 @@ namespace DonaRogApp.Domain.Donors.Entities
         /// </summary>
         public virtual ICollection<DonorInterest> Interests { get; private set; }
 
+        /// <summary>
+        /// Status history tracking
+        /// </summary>
+        public virtual ICollection<DonorStatusHistory> StatusHistory { get; private set; }
+
+        // ======================================================================
+        // NAVIGATION PROPERTIES - Campaigns
+        // ======================================================================
+        /// <summary>
+        /// Campaigns the donor has been part of
+        /// </summary>
+        public virtual ICollection<DonaRogApp.Domain.Campaigns.Entities.CampaignDonor> CampaignParticipations { get; private set; }
+
         // ======================================================================
         // CONSTRUCTOR
         // ======================================================================
@@ -392,6 +415,8 @@ namespace DonaRogApp.Domain.Donors.Entities
             Segments = new List<DonorSegment>();
             Tags = new List<DonorTag>();
             Interests = new List<DonorInterest>();
+            StatusHistory = new List<DonorStatusHistory>();
+            CampaignParticipations = new List<DonaRogApp.Domain.Campaigns.Entities.CampaignDonor>();
 
             // Default values
             PreferredLanguage = "IT";
@@ -638,6 +663,7 @@ namespace DonaRogApp.Domain.Donors.Entities
         public const string PrivacyConsentRequired = "Donor:040";
         public const string DonorAlreadyAnonymized = "Donor:041";
         public const string CannotContactDonor = "Donor:042";
+        public const string CannotGrantConsentWithoutPrivacy = "Donor:043";
 
         // Statistics (Donor:050-059)
         public const string InconsistentStatistics = "Donor:050";

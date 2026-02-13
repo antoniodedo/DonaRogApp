@@ -1,0 +1,239 @@
+<div class="tags-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="tags" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>Gestione Tag</h1>
+        <p>Crea e gestisci i tag per categorizzare i donatori</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openCreateModal()" nz-tooltip="Nuovo Tag">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="tags"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ totalCount }}</span>
+        <span class="stat-label">Tag Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Attivi</span>
+      </div>
+    </div>
+    <div class="stat-card stat-categories">
+      <div class="stat-icon">
+        <span nz-icon nzType="folder"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getCategoriesCount() }}</span>
+        <span class="stat-label">Categorie</span>
+      </div>
+    </div>
+    <div class="stat-card stat-usage">
+      <div class="stat-icon">
+        <span nz-icon nzType="bar-chart"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getTotalUsage() }}</span>
+        <span class="stat-label">Utilizzi Totali</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <nz-table
+      #tagTable
+      [nzData]="tags"
+      [nzLoading]="loading"
+      [nzTotal]="totalCount"
+      [nzPageIndex]="pageIndex"
+      [nzPageSize]="pageSize"
+      [nzFrontPagination]="false"
+      (nzPageIndexChange)="onPageChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 20, 50]">
+      
+      <thead>
+        <tr>
+          <th nzWidth="220px">Tag</th>
+          <th>Descrizione</th>
+          <th nzWidth="140px">Categoria</th>
+          <th nzWidth="100px" nzAlign="center">Utilizzo</th>
+          <th nzWidth="100px" nzAlign="center">Stato</th>
+          <th nzWidth="160px" nzAlign="center">Azioni</th>
+        </tr>
+      </thead>
+      
+      <tbody>
+        <tr *ngFor="let tag of tagTable.data; let i = index" class="tag-row" [style.animation-delay.ms]="i * 40">
+          <td>
+            <div class="tag-cell">
+              <nz-tag [nzColor]="tag.colorCode || '#1890ff'" class="tag-preview">
+                <span nz-icon nzType="tag" nzTheme="fill" style="margin-right: 4px;"></span>
+                {{ tag.name }}
+              </nz-tag>
+              <code class="tag-code">{{ tag.code }}</code>
+            </div>
+          </td>
+          <td>
+            <span class="description">{{ tag.description || '-' }}</span>
+          </td>
+          <td>
+            <span *ngIf="tag.category" class="category-badge">
+              <span nz-icon nzType="folder"></span>
+              {{ tag.category }}
+            </span>
+            <span *ngIf="!tag.category" class="empty-cell">-</span>
+          </td>
+          <td nzAlign="center">
+            <nz-badge [nzCount]="tag.usageCount" [nzOverflowCount]="999"
+                      [nzStyle]="{ backgroundColor: tag.usageCount > 0 ? '#10b981' : '#d9d9d9' }">
+            </nz-badge>
+          </td>
+          <td nzAlign="center">
+            <nz-switch 
+              [ngModel]="tag.isActive"
+              [nzDisabled]="tag.isSystem"
+              (ngModelChange)="toggleActive(tag)">
+            </nz-switch>
+          </td>
+          <td nzAlign="center">
+            <div class="actions-cell">
+              <button nz-button nzType="text" class="action-btn edit" 
+                      (click)="openEditModal(tag)" 
+                      nz-tooltip="Modifica">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              
+              <button nz-button nzType="text" class="action-btn delete"
+                      [nzDisabled]="tag.isSystem"
+                      nz-popconfirm
+                      nzPopconfirmTitle="Sei sicuro di voler eliminare questo tag?"
+                      (nzOnConfirm)="deleteTag(tag.id)"
+                      nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && tags.length === 0" class="empty-state">
+      <div class="empty-illustration">
+        <div class="empty-icon">
+          <span nz-icon nzType="tags" nzTheme="outline"></span>
+        </div>
+        <div class="empty-circles">
+          <div class="circle c1"></div>
+          <div class="circle c2"></div>
+          <div class="circle c3"></div>
+        </div>
+      </div>
+      <h3>Nessun tag trovato</h3>
+      <p>Inizia creando il tuo primo tag per categorizzare i donatori</p>
+      <button nz-button nzType="primary" nzSize="large" (click)="openCreateModal()">
+        <span nz-icon nzType="plus"></span>
+        Crea il tuo primo tag
+      </button>
+    </div>
+  </nz-card>
+</div>
+
+<!-- Modal for Create/Edit -->
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  [nzTitle]="modalTitle"
+  [nzFooter]="null"
+  [nzWidth]="600"
+  (nzOnCancel)="handleCancel()">
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="form" nzLayout="vertical" class="modern-form">
+      <nz-form-item>
+        <nz-form-label nzRequired>Nome</nz-form-label>
+        <nz-form-control nzErrorTip="Il nome è obbligatorio">
+          <input nz-input formControlName="name" placeholder="Es: VIP, Fedele, Nuovo..." />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Codice</nz-form-label>
+        <nz-form-control nzErrorTip="Il codice è obbligatorio">
+          <input nz-input formControlName="code" placeholder="Es: VIP, FEDELE..." />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Descrizione</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="description" rows="3" 
+                    placeholder="Descrizione del tag..."></textarea>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Categoria</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="category" placeholder="Es: Fedeltà, Donazione, Evento..." />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Colore</nz-form-label>
+        <nz-form-control>
+          <input nz-input type="color" formControlName="colorCode" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Ordine di visualizzazione</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="displayOrder" [nzMin]="0" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control>
+          <label nz-checkbox formControlName="isActive">Tag attivo</label>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control>
+          <div class="form-actions">
+            <button nz-button (click)="handleCancel()">Annulla</button>
+            <button nz-button nzType="primary" (click)="handleSave()" [nzLoading]="saving">
+              Salva
+            </button>
+          </div>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>

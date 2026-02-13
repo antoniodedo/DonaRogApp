@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Enums.Donors;
+using DonaRogApp.Enums.Donors;
 using System;
 
 namespace DonaRogApp.Donors.Dtos
@@ -244,9 +244,24 @@ namespace DonaRogApp.Donors.Dtos
         public bool PrivacyConsent { get; set; }
 
         /// <summary>
+        /// Data consenso privacy
+        /// </summary>
+        public DateTime? PrivacyConsentDate { get; set; }
+
+        /// <summary>
+        /// Data revoca consenso privacy
+        /// </summary>
+        public DateTime? PrivacyConsentRevokedDate { get; set; }
+
+        /// <summary>
         /// Consenso newsletter
         /// </summary>
         public bool NewsletterConsent { get; set; }
+
+        /// <summary>
+        /// Data consenso newsletter
+        /// </summary>
+        public DateTime? NewsletterConsentDate { get; set; }
 
         /// <summary>
         /// Consenso telefono
@@ -254,14 +269,38 @@ namespace DonaRogApp.Donors.Dtos
         public bool PhoneConsent { get; set; }
 
         /// <summary>
-        /// Consenso posta
+        /// Consenso posta (spedizioni cartacee)
         /// </summary>
         public bool MailConsent { get; set; }
+
+        /// <summary>
+        /// Data consenso spedizioni cartacee
+        /// </summary>
+        public DateTime? MailConsentDate { get; set; }
 
         /// <summary>
         /// Donatore anonimizzato
         /// </summary>
         public bool IsAnonymized { get; set; }
+
+        #endregion
+
+        #region Primary Contact Info
+
+        /// <summary>
+        /// Email principale (default)
+        /// </summary>
+        public string? PrimaryEmail { get; set; }
+
+        /// <summary>
+        /// Indirizzo principale formattato (default)
+        /// </summary>
+        public string? PrimaryAddress { get; set; }
+
+        /// <summary>
+        /// Città dell'indirizzo principale
+        /// </summary>
+        public string? PrimaryCity { get; set; }
 
         #endregion
 

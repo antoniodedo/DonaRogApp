@@ -1,52 +1,19 @@
-import type { AuditedEntityDto, EntityDto } from '@abp/ng.core';
-import type { Gender } from '../../enums/gender.enum';
+import type { PagedAndSortedResultRequestDto } from '@abp/ng.core';
+import type { SubjectType } from '../../enums/donors/subject-type.enum';
+import type { DonorStatus } from '../../enums/donors/donor-status.enum';
+import type { DonorCategory } from '../../enums/donors/donor-category.enum';
 
-export interface CreateUpdateDonorDto extends EntityDto<string> {
-  firstName?: string;
-  lastName: string;
-  rawAddress?: string;
-  rawCap?: string;
-  rawComune?: string;
-}
-
-export interface CreateUpdateDonorTitleDto extends EntityDto<string> {
-  title: string;
-  gender: Gender;
-  isGroup: boolean;
-  isActive: boolean;
-}
-
-export interface CreateUpdateEmailDto extends AuditedEntityDto<string> {
-  donorId?: string;
-  address?: string;
-  isPrimary: boolean;
-}
-
-export interface DonorDto extends EntityDto<string> {
-  firstName?: string;
-  lastName?: string;
-  rawAddress?: string;
-  rawCap?: string;
-  rawComune?: string;
-}
-
-export interface DonorListDto extends EntityDto<string> {
-  firstName?: string;
-  lastName?: string;
-  rawAddress?: string;
-  rawCap?: string;
-  rawComune?: string;
-}
-
-export interface DonorTitleDto extends EntityDto<string> {
-  title?: string;
-  gender?: Gender;
-  isGroup: boolean;
-  isActive: boolean;
-}
-
-export interface EmailDto extends AuditedEntityDto<string> {
-  donorId?: string;
-  address?: string;
-  isPrimary: boolean;
+export interface GetDonorsInput extends PagedAndSortedResultRequestDto {
+  filter?: string;
+  subjectType?: SubjectType;
+  status?: DonorStatus;
+  category?: DonorCategory;
+  titleId?: string;
+  donorCode?: string;
+  email?: string;
+  phoneNumber?: string;
+  city?: string;
+  postalCode?: string;
+  province?: string;
+  country?: string;
 }

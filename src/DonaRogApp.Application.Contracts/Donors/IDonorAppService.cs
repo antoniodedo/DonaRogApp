@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Donors.Dto;
+using DonaRogApp.Donors.Dto;
 using System;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
@@ -10,10 +10,10 @@ namespace DonaRogApp.Donors
     ICrudAppService< //Defines CRUD methods
         DonorDto,
         Guid,
-        PagedAndSortedResultRequestDto, 
+        GetDonorsInput, 
         CreateUpdateDonorDto>
     {
-        Task<PagedResultDto<DonorListDto>> GetLightListAsync(PagedAndSortedResultRequestDto input);
+        Task<PagedResultDto<DonorListDto>> GetLightListAsync(GetDonorsInput input);
     }
 }
 

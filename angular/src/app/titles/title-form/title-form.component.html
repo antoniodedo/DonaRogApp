@@ -1,0 +1,76 @@
+<nz-modal
+  [(nzVisible)]="visible"
+  [nzTitle]="isEditMode ? 'Modifica Titolo' : 'Nuovo Titolo'"
+  [nzWidth]="500"
+  [nzFooter]="modalFooter"
+  (nzOnCancel)="close()">
+  
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Codice</nz-form-label>
+            <nz-form-control nzErrorTip="Il codice è obbligatorio">
+              <input nz-input formControlName="code" placeholder="Es. DOTT" class="uppercase-input" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Abbreviazione</nz-form-label>
+            <nz-form-control nzErrorTip="L'abbreviazione è obbligatoria">
+              <input nz-input formControlName="abbreviation" placeholder="Es. Dott." />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Nome Completo</nz-form-label>
+        <nz-form-control nzErrorTip="Il nome è obbligatorio">
+          <input nz-input formControlName="name" placeholder="Es. Dottore" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Genere Associato</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="associatedGender" nzPlaceHolder="Nessuno (neutro)" nzAllowClear>
+                <nz-option [nzValue]="Gender.Male" nzLabel="Maschio"></nz-option>
+                <nz-option [nzValue]="Gender.Female" nzLabel="Femmina"></nz-option>
+              </nz-select>
+            </nz-form-control>
+            <div class="field-hint">Solo i titoli con genere possono essere predefiniti</div>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Ordine</nz-form-label>
+            <nz-form-control>
+              <nz-input-number formControlName="displayOrder" [nzMin]="0" [nzStep]="1" style="width: 100%"></nz-input-number>
+            </nz-form-control>
+            <div class="field-hint">Ordine di visualizzazione nelle liste</div>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label>Note</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="notes" placeholder="Note interne..." rows="2"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+
+  <ng-template #modalFooter>
+    <button nz-button (click)="close()">Annulla</button>
+    <button nz-button nzType="primary" (click)="save()" [nzLoading]="saving">
+      <span nz-icon [nzType]="isEditMode ? 'save' : 'plus'"></span>
+      {{ isEditMode ? 'Salva' : 'Crea' }}
+    </button>
+  </ng-template>
+</nz-modal>

@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Enums.Shared;
+using DonaRogApp.Enums.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -276,7 +276,7 @@ namespace DonaRogApp.Domain.Donors.Entities
         }
 
         // --------------------------------------------------------------
-        // BUSINESS METHODS - Soft Delete
+        // BUSINESS METHODS - Soft Delete / Reactivate
         // --------------------------------------------------------------
 
         /// <summary>
@@ -286,6 +286,27 @@ namespace DonaRogApp.Domain.Donors.Entities
         {
             IsDeleted = true;
             DeletionTime = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Reactivates a soft-deleted email
+        /// </summary>
+        internal void Reactivate(EmailType type)
+        {
+            IsDeleted = false;
+            DeletionTime = null;
+            DeleterId = null;
+            Type = type;
+            DateAdded = DateTime.UtcNow;
+            
+            // Reset verification and bounce status
+            IsVerified = false;
+            VerifiedDate = null;
+            VerificationToken = null;
+            BounceCount = 0;
+            LastBounceDate = null;
+            LastBounceReason = null;
+            IsInvalid = false;
         }
     }
 }

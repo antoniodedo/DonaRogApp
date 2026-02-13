@@ -1,0 +1,190 @@
+<form nz-form [formGroup]="form" nzLayout="vertical" class="modern-form">
+  
+  <!-- ============================================ -->
+  <!-- SEZIONE 1: INFORMAZIONI GENERALI -->
+  <!-- ============================================ -->
+  <div class="form-section">
+    <h3 class="section-title">
+      <span nz-icon nzType="file-text" nzTheme="outline"></span>
+      Informazioni Generali
+    </h3>
+    
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="18">
+        <nz-form-item>
+          <nz-form-label nzRequired>
+            <span nz-icon nzType="tag" class="label-icon"></span>
+            Nome Ricorrenza
+          </nz-form-label>
+          <nz-form-control nzErrorTip="Inserisci il nome della ricorrenza">
+            <input nz-input formControlName="name" placeholder="Es: Natale, Pasqua, San Antonio" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="6">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="barcode" class="label-icon"></span>
+            Codice
+          </nz-form-label>
+          <nz-form-control nzExtra="Opzionale">
+            <input nz-input formControlName="code" placeholder="Es: NAT, PAS" [disabled]="isEditMode" style="text-transform: uppercase;" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Descrizione - sotto nome ricorrenza, full width -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="align-left" class="label-icon"></span>
+            Descrizione
+          </nz-form-label>
+          <nz-form-control>
+            <textarea
+              nz-input
+              formControlName="description"
+              placeholder="Descrizione pubblica della ricorrenza..."
+              rows="1">
+            </textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- ============================================ -->
+  <!-- SEZIONE 2: PERIODO DI VALIDITÀ -->
+  <!-- ============================================ -->
+  <div class="form-section">
+    <h3 class="section-title">
+      <span nz-icon nzType="calendar" nzTheme="outline"></span>
+      Periodo di Validità
+    </h3>
+    
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="4">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="number" class="label-icon"></span>
+            Giorno
+          </nz-form-label>
+          <nz-form-control nzExtra="1-31 (opzionale)">
+            <nz-input-number
+              formControlName="recurrenceDay"
+              [nzMin]="1"
+              [nzMax]="31"
+              nzPlaceHolder="Es: 25"
+              style="width: 100%;">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="4">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="calendar" class="label-icon"></span>
+            Mese
+          </nz-form-label>
+          <nz-form-control nzExtra="1-12 (opzionale)">
+            <nz-input-number
+              formControlName="recurrenceMonth"
+              [nzMin]="1"
+              [nzMax]="12"
+              nzPlaceHolder="Es: 12"
+              style="width: 100%;">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="arrow-left" class="label-icon"></span>
+            Giorni Prima
+          </nz-form-label>
+          <nz-form-control nzExtra="Periodo di validità N giorni prima (opzionale)">
+            <nz-input-number
+              formControlName="daysBeforeRecurrence"
+              [nzMin]="0"
+              [nzMax]="365"
+              [nzStep]="1"
+              style="width: 100%;"
+              nzPlaceHolder="0">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="arrow-right" class="label-icon"></span>
+            Giorni Dopo
+          </nz-form-label>
+          <nz-form-control nzExtra="Periodo di validità N giorni dopo (opzionale)">
+            <nz-input-number
+              formControlName="daysAfterRecurrence"
+              [nzMin]="0"
+              [nzMax]="365"
+              [nzStep]="1"
+              style="width: 100%;"
+              nzPlaceHolder="0">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- ============================================ -->
+  <!-- SEZIONE 3: NOTE INTERNE -->
+  <!-- ============================================ -->
+  <div class="form-section">
+    <h3 class="section-title">
+      <span nz-icon nzType="form" nzTheme="outline"></span>
+      Note Interne
+    </h3>
+    
+    <div nz-row [nzGutter]="16">
+      <!-- Note interne - full width -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="file-text" class="label-icon"></span>
+            Note Interne
+          </nz-form-label>
+          <nz-form-control>
+            <textarea
+              nz-input
+              formControlName="notes"
+              placeholder="Note interne per organizzazione..."
+              rows="1">
+            </textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- ACTIONS -->
+  <!-- ============================================ -->
+  <div class="form-actions">
+    <button nz-button nzType="default" nzSize="large" (click)="cancel()">
+      <span nz-icon nzType="close"></span>
+      Annulla
+    </button>
+    <button nz-button nzType="primary" nzSize="large" (click)="save()" [nzLoading]="loading">
+      <span nz-icon nzType="save"></span>
+      {{ isEditMode ? 'Aggiorna' : 'Salva' }}
+    </button>
+  </div>
+</form>

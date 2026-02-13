@@ -1,0 +1,135 @@
+<div class="emails-container">
+  <div class="section-header">
+    <h3>
+      <span class="section-icon">
+        <span nz-icon nzType="mail"></span>
+      </span>
+      Indirizzi Email
+    </h3>
+    <button nz-button nzType="primary" (click)="openAddModal()">
+      <span nz-icon nzType="plus"></span>
+      Aggiungi
+    </button>
+  </div>
+
+  <!-- Email List -->
+  <div class="emails-list" *ngIf="!loading && emails.length > 0">
+    <div class="email-item" *ngFor="let email of emails">
+      <div class="email-icon">
+        <span nz-icon nzType="mail"></span>
+      </div>
+      <div class="email-content">
+        <div class="email-address">
+          {{ email.emailAddress }}
+          <nz-tag *ngIf="email.isDefault" nzColor="blue" class="default-tag">
+            <span nz-icon nzType="star" nzTheme="fill"></span> Principale
+          </nz-tag>
+        </div>
+        <div class="email-meta">
+          <span class="email-type">{{ getEmailTypeLabel(email.type) }}</span>
+          <span class="email-status">
+            <span *ngIf="email.isVerified" class="status-verified">
+              <span nz-icon nzType="check-circle"></span> Verificata
+            </span>
+            <span *ngIf="!email.isVerified && !email.isInvalid" class="status-pending">
+              <span nz-icon nzType="clock-circle"></span> Da verificare
+            </span>
+            <span *ngIf="email.isInvalid" class="status-invalid">
+              <span nz-icon nzType="close-circle"></span> Non valida
+            </span>
+          </span>
+        </div>
+      </div>
+      <div class="email-actions">
+        <button class="action-btn star" nz-button nzType="link" nzSize="small" 
+                (click)="setDefault(email)" 
+                [disabled]="email.isDefault"
+                nz-tooltip="Imposta come principale">
+          <span nz-icon nzType="star" [nzTheme]="email.isDefault ? 'fill' : 'outline'"></span>
+        </button>
+        <button class="action-btn check" nz-button nzType="link" nzSize="small" 
+                (click)="verifyEmail(email)"
+                [disabled]="email.isVerified"
+                nz-tooltip="Verifica email">
+          <span nz-icon nzType="check"></span>
+        </button>
+        <button class="action-btn delete" nz-button nzType="link" nzSize="small"
+                nz-popconfirm nzPopconfirmTitle="Rimuovere questa email?"
+                nzOkText="Elimina" nzCancelText="Annulla"
+                (nzOnConfirm)="removeEmail(email)"
+                nz-tooltip="Elimina">
+          <span nz-icon nzType="delete"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && emails.length === 0">
+    <div class="empty-icon">
+      <span nz-icon nzType="mail"></span>
+    </div>
+    <h4>Nessuna email registrata</h4>
+    <p>Aggiungi un indirizzo email per contattare questo donatore</p>
+    <button nz-button nzType="primary" (click)="openAddModal()">
+      <span nz-icon nzType="plus"></span>
+      Aggiungi Email
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <nz-spin nzSimple></nz-spin>
+  </div>
+</div>
+
+<!-- Modal Aggiungi Email -->
+<nz-modal
+  [(nzVisible)]="isAddModalVisible"
+  nzTitle="Aggiungi Email"
+  [nzWidth]="480"
+  [nzFooter]="addFooter"
+  (nzOnCancel)="closeAddModal()"
+  nzCentered>
+  
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="addForm" nzLayout="vertical">
+      <div class="form-intro">
+        <p>Inserisci i dettagli dell'indirizzo email da aggiungere al donatore.</p>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Indirizzo Email</nz-form-label>
+        <nz-form-control nzErrorTip="Inserisci un indirizzo email valido">
+          <nz-input-group [nzPrefix]="emailIcon">
+            <input nz-input formControlName="emailAddress" placeholder="nome@esempio.it" type="email" />
+          </nz-input-group>
+          <ng-template #emailIcon>
+            <span nz-icon nzType="mail" style="color: var(--text-muted);"></span>
+          </ng-template>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Tipo di Email</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="type" nzPlaceHolder="Seleziona tipologia">
+            <nz-option [nzValue]="EmailType.Personal" nzLabel="Personale"></nz-option>
+            <nz-option [nzValue]="EmailType.Work" nzLabel="Lavoro"></nz-option>
+            <nz-option [nzValue]="EmailType.Other" nzLabel="Altro"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+
+  <ng-template #addFooter>
+    <div class="modal-footer">
+      <button nz-button (click)="closeAddModal()">Annulla</button>
+      <button nz-button nzType="primary" (click)="addEmail()" [nzLoading]="saving">
+        <span nz-icon nzType="plus"></span>
+        Aggiungi Email
+      </button>
+    </div>
+  </ng-template>
+</nz-modal>

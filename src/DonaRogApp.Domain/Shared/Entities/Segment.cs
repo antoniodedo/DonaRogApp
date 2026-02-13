@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.MultiTenancy;
 
 namespace DonaRogApp.Domain.Shared.Entities
 {
@@ -9,8 +10,12 @@ namespace DonaRogApp.Domain.Shared.Entities
     /// Shared Entity per categorizzare donatori in gruppi marketing
     /// Esempi: "Major Donors", "Lapsed Donors", "Monthly Contributors"
     /// </summary>
-    public class Segment : AggregateRoot<Guid>
+    public class Segment : AggregateRoot<Guid>, IMultiTenant
     {
+        /// <summary>
+        /// Tenant ID - ogni tenant ha i suoi segmenti
+        /// </summary>
+        public Guid? TenantId { get; private set; }
         /// <summary>
         /// Codice univoco segmento (es: "MAJ_DONORS", "LAPSED")
         /// </summary>

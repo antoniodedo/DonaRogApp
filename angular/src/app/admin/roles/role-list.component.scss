@@ -1,0 +1,67 @@
+@import '../admin-shared.scss';
+
+.roles-theme {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%) !important;
+  box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3) !important;
+}
+
+.role-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+
+  span[nz-icon] {
+    font-size: 20px;
+    color: white;
+  }
+
+  &.system {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  }
+}
+
+.role-name {
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.check-icon {
+  color: #10b981;
+  font-size: 18px;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.stat-total {
+  &::before { background: linear-gradient(180deg, #8b5cf6, #6d28d9); }
+  .stat-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35); }
+}
+
+.stat-default {
+  &::before { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
+  .stat-icon { background: linear-gradient(135deg, #fbbf24, #f59e0b); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
+}
+
+.stat-system {
+  &::before { background: linear-gradient(180deg, #f472b6, #ec4899); }
+  .stat-icon { background: linear-gradient(135deg, #f472b6, #ec4899); box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35); }
+}
+
+::ng-deep {
+  .ant-modal-header {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9) !important;
+  }
+}
+
+.action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

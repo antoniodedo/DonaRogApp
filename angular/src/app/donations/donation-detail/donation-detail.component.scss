@@ -1,0 +1,301 @@
+.donation-detail-page {
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.page-header {
+  background: white;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.content-wrapper {
+  padding: 0 24px 24px 24px;
+}
+
+// Layout a 2 colonne
+.main-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 16px;
+  align-items: start;
+}
+
+.left-column,
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// ========================================
+// AMOUNT CARD - Importo in evidenza
+// ========================================
+.amount-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  
+  ::ng-deep .ant-card-body {
+    padding: 32px;
+  }
+
+  .amount-display {
+    text-align: center;
+    color: white;
+
+    .amount-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .amount-value {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .amount-meta {
+      font-size: 16px;
+      opacity: 0.95;
+      
+      span {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// ========================================
+// INFO CARDS
+// ========================================
+.info-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  ::ng-deep .ant-card-head {
+    background: #fafafa;
+    border-bottom: 2px solid #f0f0f0;
+    
+    .ant-card-head-title {
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+
+  ::ng-deep .ant-descriptions-bordered .ant-descriptions-item-label {
+    background: #fafafa;
+    font-weight: 500;
+  }
+
+  .total-row {
+    background: #f6ffed;
+    font-weight: 600;
+
+    td {
+      border-top: 2px solid #d9d9d9 !important;
+    }
+  }
+}
+
+// Donatore section
+.donor-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .donor-name {
+    display: flex;
+    align-items: center;
+  }
+}
+
+// ========================================
+// LETTER CARD
+// ========================================
+.letter-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  ::ng-deep .ant-card-head {
+    background: linear-gradient(135deg, #fff7e6 0%, #fffbe6 100%);
+    border-bottom: 2px solid #faad14;
+    
+    .ant-card-head-title {
+      font-weight: 600;
+      color: #d48806;
+    }
+  }
+
+  .letter-preview {
+    background: #fafafa;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    padding: 24px;
+    margin: 16px 0;
+    font-family: Georgia, serif;
+    line-height: 1.8;
+    font-size: 14px;
+    color: #333;
+
+    p {
+      margin: 12px 0;
+    }
+
+    ul {
+      margin: 8px 0;
+      padding-left: 20px;
+
+      li {
+        margin: 4px 0;
+      }
+    }
+  }
+
+  .letter-actions {
+    margin-top: 16px;
+  }
+}
+
+// ========================================
+// HISTORY CARD
+// ========================================
+.history-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  ::ng-deep .ant-card-head {
+    background: #f0f5ff;
+    border-bottom: 2px solid #adc6ff;
+    
+    .ant-card-head-title {
+      font-weight: 600;
+      color: #0050b3;
+    }
+  }
+
+  .current-donation {
+    background: #e6f7ff !important;
+    border-left: 3px solid #1890ff !important;
+  }
+
+  ::ng-deep .ant-list-item {
+    transition: all 0.2s;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+  }
+}
+
+// ========================================
+// AUDIT CARD
+// ========================================
+.audit-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  ::ng-deep .ant-card-head {
+    background: #f5f5f5;
+    
+    .ant-card-head-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #8c8c8c;
+    }
+  }
+
+  ::ng-deep .ant-descriptions-item-label {
+    font-size: 12px;
+  }
+
+  ::ng-deep .ant-descriptions-item-content {
+    font-size: 12px;
+    color: #595959;
+  }
+}
+
+// ========================================
+// REJECTION ALERT
+// ========================================
+.rejection-alert {
+  margin: 16px 24px;
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+@media (max-width: 1200px) {
+  .main-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .right-column {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 0 12px 12px 12px;
+  }
+
+  .amount-card {
+    ::ng-deep .ant-card-body {
+      padding: 24px 16px;
+    }
+
+    .amount-display {
+      .amount-value {
+        font-size: 36px;
+      }
+    }
+  }
+}
+
+// ========================================
+// PRINT STYLES
+// ========================================
+@media print {
+  .page-header {
+    display: none !important;
+  }
+
+  .main-content-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .letter-card {
+    page-break-before: always;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .donation-detail-page {
+    background: white !important;
+  }
+
+  .info-card,
+  .letter-card,
+  .history-card,
+  .audit-card {
+    box-shadow: none !important;
+    border: 1px solid #d9d9d9 !important;
+    page-break-inside: avoid;
+  }
+
+  button {
+    display: none !important;
+  }
+
+  a[href]:after {
+    content: none !important;
+  }
+}

@@ -1,0 +1,246 @@
+<div class="campaign-detail-container" *ngIf="!loading && campaign">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="back-btn" (click)="goBack()" nz-tooltip="Torna alle campagne">
+      <span nz-icon nzType="arrow-left"></span>
+    </div>
+    
+    <div class="hero-content">
+      <div class="campaign-icon">
+        <span nz-icon nzType="rocket" nzTheme="fill"></span>
+      </div>
+      
+      <div class="hero-text">
+        <h1>{{ campaign.name }}</h1>
+        <div class="hero-meta">
+          <span class="campaign-code">
+            <span nz-icon nzType="barcode"></span>
+            {{ campaign.code }}
+          </span>
+          <span class="campaign-year">
+            <span nz-icon nzType="calendar"></span>
+            {{ campaign.year }}
+          </span>
+          <nz-tag [nzColor]="getStatusColor(campaign.status)" class="status-tag">
+            <span class="status-dot"></span>
+            {{ getStatusLabel(campaign.status) }}
+          </nz-tag>
+        </div>
+      </div>
+    </div>
+    
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openEditModal()" nz-tooltip="Modifica campagna">
+        <span nz-icon nzType="edit"></span>
+      </button>
+    </div>
+    
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-donors">
+      <div class="stat-icon">
+        <span nz-icon nzType="team"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ campaign.extractedDonorCount || 0 }}</span>
+        <span class="stat-label">Donatori Estratti</span>
+      </div>
+    </div>
+    <div class="stat-card stat-donations">
+      <div class="stat-icon">
+        <span nz-icon nzType="heart" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ campaign.donationCount || 0 }}</span>
+        <span class="stat-label">Donazioni Ricevute</span>
+      </div>
+    </div>
+    <div class="stat-card stat-raised">
+      <div class="stat-icon">
+        <span nz-icon nzType="euro"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ campaign.totalRaised | currency:'EUR':'symbol':'1.0-0' }}</span>
+        <span class="stat-label">Totale Raccolto</span>
+      </div>
+    </div>
+    <div class="stat-card stat-roi">
+      <div class="stat-icon">
+        <span nz-icon nzType="rise"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value" [class.positive]="campaign.roi > 0" [class.negative]="campaign.roi < 0">
+          {{ campaign.roi | number:'1.0-1' }}%
+        </span>
+        <span class="stat-label">ROI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Tabs -->
+  <nz-card class="detail-card">
+    <nz-tabset [nzTabBarExtraContent]="extraTemplate" class="modern-tabs">
+      <nz-tab>
+        <ng-template #nzTabHeading>
+          <span nz-icon nzType="info-circle"></span>
+          Panoramica
+        </ng-template>
+        <div class="tab-content">
+          <!-- Campaign Overview -->
+          <div class="section">
+            <h3 class="section-title">
+              <span nz-icon nzType="fund" class="section-icon"></span>
+              Dettagli Campagna
+            </h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Nome Campagna</span>
+                <span class="info-value">{{ campaign.name }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Codice</span>
+                <span class="info-value">{{ campaign.code }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Anno</span>
+                <span class="info-value">{{ campaign.year }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Evento Associato</span>
+                <span class="info-value">{{ campaign.eventName || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Tipo Campagna</span>
+                <span class="info-value">{{ getCampaignTypeLabel(campaign.type) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Canale</span>
+                <span class="info-value">{{ getCampaignChannelLabel(campaign.channel) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Overview -->
+          <div class="section">
+            <h3 class="section-title">
+              <span nz-icon nzType="euro" class="section-icon"></span>
+              Riepilogo Finanziario
+            </h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Costo Totale</span>
+                <span class="info-value">{{ campaign.totalCost | currency:'EUR' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Totale Raccolto</span>
+                <span class="info-value success">{{ campaign.totalRaised | currency:'EUR' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Donazione Media</span>
+                <span class="info-value">{{ campaign.averageDonation | currency:'EUR' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">ROI</span>
+                <span class="info-value" [class.success]="campaign.roi > 0" [class.error]="campaign.roi < 0">
+                  {{ campaign.roi | number:'1.0-1' }}%
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Tasso di Risposta</span>
+                <span class="info-value">{{ campaign.responseRate | number:'1.0-2' }}%</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Tasso di Conversione</span>
+                <span class="info-value">{{ campaign.conversionRate | number:'1.0-2' }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="section" *ngIf="campaign.description">
+            <h3 class="section-title">
+              <span nz-icon nzType="file-text" class="section-icon"></span>
+              Descrizione
+            </h3>
+            <div class="description-content">
+              {{ campaign.description }}
+            </div>
+          </div>
+        </div>
+      </nz-tab>
+
+      <nz-tab *ngIf="false">
+        <ng-template #nzTabHeading>
+          <span nz-icon nzType="team"></span>
+          Donatori
+        </ng-template>
+        <div class="tab-content">
+          <app-campaign-donors-list [campaignId]="campaignId"></app-campaign-donors-list>
+        </div>
+      </nz-tab>
+
+      <nz-tab *ngIf="false">
+        <ng-template #nzTabHeading>
+          <span nz-icon nzType="filter"></span>
+          Estrazione
+        </ng-template>
+        <div class="tab-content">
+          <app-donor-extraction-wizard [campaignId]="campaignId"></app-donor-extraction-wizard>
+        </div>
+      </nz-tab>
+
+      <nz-tab *ngIf="false">
+        <ng-template #nzTabHeading>
+          <span nz-icon nzType="bar-chart"></span>
+          Statistiche
+        </ng-template>
+        <div class="tab-content">
+          <app-campaign-statistics [campaignId]="campaignId"></app-campaign-statistics>
+        </div>
+      </nz-tab>
+    </nz-tabset>
+  </nz-card>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <nz-spin nzSimple nzSize="large"></nz-spin>
+  <p>Caricamento campagna...</p>
+</div>
+
+<!-- Extra Template for Tab Bar -->
+<ng-template #extraTemplate>
+  <div nz-space>
+    <button *nzSpaceItem nz-button nzType="primary" nzSize="small" (click)="openExtractionWizard()">
+      <span nz-icon nzType="filter"></span>
+      Estrai Donatori
+    </button>
+    <button *nzSpaceItem nz-button nzType="default" nzSize="small" (click)="goBack()">
+      <span nz-icon nzType="arrow-left"></span>
+      Torna alla lista
+    </button>
+  </div>
+</ng-template>
+
+<!-- Extraction Wizard Drawer -->
+<nz-drawer
+  [nzVisible]="wizardVisible"
+  [nzWidth]="900"
+  nzTitle="Wizard Estrazione Donatori"
+  [nzClosable]="true"
+  (nzOnClose)="closeExtractionWizard()">
+  <ng-container *nzDrawerContent>
+    <app-donor-extraction-wizard
+      [campaignId]="campaign.id"
+      (onComplete)="handleExtractionComplete()"
+      (onCancel)="closeExtractionWizard()">
+    </app-donor-extraction-wizard>
+  </ng-container>
+</nz-drawer>

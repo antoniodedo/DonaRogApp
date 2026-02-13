@@ -1,0 +1,283 @@
+<div class="user-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="team" nzTheme="outline"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>Gestione Utenti</h1>
+        <p>Crea e gestisci gli utenti dell'applicazione</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openCreateModal()" nz-tooltip="Nuovo Utente">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="team"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total }}</span>
+        <span class="stat-label">Utenti Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Attivi</span>
+      </div>
+    </div>
+    <div class="stat-card stat-inactive">
+      <div class="stat-icon">
+        <span nz-icon nzType="stop"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getInactiveCount() }}</span>
+        <span class="stat-label">Disattivi</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <div class="toolbar">
+      <div class="search-box">
+        <nz-input-group [nzPrefix]="prefixIcon" [nzSuffix]="suffixIcon">
+          <input nz-input
+                 type="text"
+                 placeholder="Cerca per username o email..."
+                 [(ngModel)]="searchText"
+                 (keyup.enter)="onSearch()" />
+        </nz-input-group>
+        <ng-template #prefixIcon>
+          <span nz-icon nzType="search"></span>
+        </ng-template>
+        <ng-template #suffixIcon>
+          <span nz-icon nzType="close-circle"
+                *ngIf="searchText"
+                (click)="clearSearch()"
+                class="search-clear-icon"></span>
+        </ng-template>
+      </div>
+      <div class="toolbar-actions">
+        <button nz-button nzType="default" (click)="loadUsers()" nz-tooltip="Aggiorna lista">
+          <span nz-icon nzType="reload"></span>
+        </button>
+      </div>
+    </div>
+
+    <nz-table
+      #userTable
+      [nzData]="users"
+      [nzLoading]="loading"
+      [nzTotal]="total"
+      [nzPageIndex]="pageIndex"
+      [nzPageSize]="pageSize"
+      [nzFrontPagination]="false"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 20, 50, 100]"
+      (nzPageIndexChange)="onPageChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)"
+      nzShowPagination
+      [nzNoResult]="emptyTemplate">
+
+      <thead>
+        <tr>
+          <th nzWidth="20%">Username</th>
+          <th nzWidth="20%">Nome Completo</th>
+          <th nzWidth="25%">Email</th>
+          <th nzWidth="15%">Telefono</th>
+          <th nzWidth="10%" nzAlign="center">Stato</th>
+          <th nzWidth="10%" nzAlign="center">Azioni</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let user of userTable.data; let i = index" class="user-row" [style.animation-delay]="i * 30 + 'ms'">
+          <td>
+            <strong>{{ user.userName }}</strong>
+          </td>
+          <td>
+            {{ (user.name || '') + ' ' + (user.surname || '') || '-' }}
+          </td>
+          <td>
+            <span class="email-cell">
+              <span nz-icon nzType="mail" class="cell-icon"></span>
+              {{ user.email }}
+              <nz-tag *ngIf="user.emailConfirmed" nzColor="green" class="verify-tag">Verificata</nz-tag>
+            </span>
+          </td>
+          <td>{{ user.phoneNumber || '-' }}</td>
+          <td nzAlign="center">
+            <nz-tag [nzColor]="user.isActive ? 'green' : 'red'" class="status-tag">
+              <span class="status-dot"></span>
+              {{ user.isActive ? 'Attivo' : 'Disattivo' }}
+            </nz-tag>
+          </td>
+          <td nzAlign="center">
+            <div class="actions-cell">
+              <button nz-button nzType="link" nzSize="small" class="action-btn edit"
+                      (click)="openEditModal(user)" nz-tooltip="Modifica">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              <button nz-button nzType="link" nzSize="small" class="action-btn delete"
+                      nz-popconfirm
+                      nzPopconfirmTitle="Sei sicuro di voler eliminare questo utente?"
+                      nzPopconfirmPlacement="topRight"
+                      (nzOnConfirm)="deleteUser(user)"
+                      nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-illustration">
+          <div class="empty-icon">
+            <span nz-icon nzType="team" nzTheme="outline"></span>
+          </div>
+          <div class="empty-circles">
+            <div class="circle c1"></div>
+            <div class="circle c2"></div>
+            <div class="circle c3"></div>
+          </div>
+        </div>
+        <h3>{{ searchText ? 'Nessun utente trovato' : 'Nessun utente presente' }}</h3>
+        <p>{{ searchText ? 'Prova a modificare i criteri di ricerca' : 'Inizia creando il primo utente' }}</p>
+        <button nz-button nzType="primary" (click)="openCreateModal()" *ngIf="!searchText">
+          <span nz-icon nzType="user-add"></span>
+          Nuovo Utente
+        </button>
+      </div>
+    </ng-template>
+  </nz-card>
+</div>
+
+<!-- Modal Create/Edit -->
+<nz-modal
+  [nzVisible]="isModalVisible"
+  [nzTitle]="isEditMode ? 'Modifica Utente' : 'Nuovo Utente'"
+  [nzOkText]="isEditMode ? 'Aggiorna' : 'Crea'"
+  nzCancelText="Annulla"
+  [nzOkLoading]="modalLoading"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+  [nzWidth]="700">
+
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="userForm" nzLayout="vertical">
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Username</nz-form-label>
+            <nz-form-control nzErrorTip="Inserisci uno username valido">
+              <input nz-input formControlName="userName" placeholder="username" maxlength="256" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Email</nz-form-label>
+            <nz-form-control nzErrorTip="Inserisci un'email valida">
+              <input nz-input formControlName="email" type="email" placeholder="user@esempio.it" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Nome</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="name" placeholder="Mario" maxlength="64" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Cognome</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="surname" placeholder="Rossi" maxlength="64" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Telefono</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="phoneNumber" placeholder="+39 123 456 7890" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label [nzRequired]="!isEditMode">Password</nz-form-label>
+            <nz-form-control [nzErrorTip]="isEditMode ? 'Password non valida' : 'Inserisci una password (min 6 caratteri)'">
+              <input nz-input formControlName="password" type="password"
+                     [placeholder]="isEditMode ? 'Lascia vuoto per non modificare' : 'Password sicura'" />
+            </nz-form-control>
+            <nz-form-extra *ngIf="isEditMode">Lascia vuoto per mantenere la password attuale</nz-form-extra>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label>Ruoli</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="roleNames" nzMode="multiple" nzPlaceHolder="Seleziona i ruoli" nzShowSearch>
+            <nz-option *ngFor="let role of availableRoles" [nzLabel]="role.name" [nzValue]="role.name"></nz-option>
+          </nz-select>
+        </nz-form-control>
+        <nz-form-extra>Assegna uno o più ruoli all'utente</nz-form-extra>
+      </nz-form-item>
+
+      <nz-divider></nz-divider>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Utente Attivo</nz-form-label>
+            <nz-form-control>
+              <nz-switch formControlName="isActive"></nz-switch>
+            </nz-form-control>
+            <nz-form-extra>Disabilita per impedire l'accesso</nz-form-extra>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Blocco automatico</nz-form-label>
+            <nz-form-control>
+              <nz-switch formControlName="lockoutEnabled"></nz-switch>
+            </nz-form-control>
+            <nz-form-extra>Blocca dopo tentativi di accesso falliti</nz-form-extra>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+  </ng-container>
+</nz-modal>

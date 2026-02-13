@@ -1,37 +1,54 @@
-import { authGuard, permissionGuard } from '@abp/ng.core';
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes, RouterModule } from '@angular/router';
+import { authGuard, permissionGuard } from '@abp/ng.core';
 
 const routes: Routes = [
-  {
-    path: '',
-    pathMatch: 'full',
-    loadChildren: () => import('./home/home.module').then(m => m.HomeModule),
+  { path: '', pathMatch: 'full', redirectTo: '/donors' },
+  { 
+    path: 'welcome', 
+    loadChildren: () => import('./pages/welcome/welcome.module').then(m => m.WelcomeModule),
+    canActivate: [authGuard]
   },
-  {
-    path: 'account',
-    loadChildren: () => import('@abp/ng.account').then(m => m.AccountModule.forLazy()),
+  { 
+    path: 'donors', 
+    loadChildren: () => import('./donors/donors.module').then(m => m.DonorsModule),
+    canActivate: [authGuard]
   },
-  {
-    path: 'identity',
-    loadChildren: () => import('@abp/ng.identity').then(m => m.IdentityModule.forLazy()),
+  { 
+    path: 'campaigns', 
+    loadChildren: () => import('./admin/campaigns/campaigns.module').then(m => m.CampaignsModule),
+    canActivate: [authGuard]
   },
-  {
-    path: 'tenant-management',
-    loadChildren: () =>
-      import('@abp/ng.tenant-management').then(m => m.TenantManagementModule.forLazy()),
+  { 
+    path: 'donations', 
+    loadChildren: () => import('./donations/donations.module').then(m => m.DonationsModule),
+    canActivate: [authGuard]
   },
-  {
-    path: 'setting-management',
-    loadChildren: () =>
-      import('@abp/ng.setting-management').then(m => m.SettingManagementModule.forLazy()),
+  { 
+    path: 'admin/titles', 
+    loadChildren: () => import('./titles/titles.module').then(m => m.TitlesModule),
+    canActivate: [authGuard]
   },
-  { path: 'donors', loadChildren: () => import('./donor/donor.module').then(m => m.DonorModule) },
-  { path: 'letter-templates', loadChildren: () => import('./letter-template/letter-template.module').then(m => m.LetterTemplateModule) },
+  { 
+    path: 'admin/letter-templates', 
+    loadChildren: () => import('./letter-templates/letter-templates.module').then(m => m.LetterTemplatesModule),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'admin/bank-accounts', 
+    loadChildren: () => import('./admin/bank-accounts/bank-accounts.module').then(m => m.BankAccountsModule),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'admin', 
+    loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule),
+    canActivate: [authGuard]
+  },
+  { path: 'login', redirectTo: '/' }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {})],
-  exports: [RouterModule],
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }

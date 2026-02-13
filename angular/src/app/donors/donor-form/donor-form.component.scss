@@ -1,0 +1,181 @@
+/* ============================================
+   Donor Form Modal - Modern CRM Style
+   ============================================ */
+
+/* Modal Title */
+::ng-deep .ant-modal-header {
+  background: linear-gradient(180deg, var(--neutral-50), var(--surface-card)) !important;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 20px;
+  font-weight: 700;
+
+  .title-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+
+    &.edit {
+      background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    }
+
+    span[nz-icon] {
+      font-size: 20px;
+      color: white;
+    }
+  }
+}
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-subtle);
+
+  &:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  h4 {
+    margin: 0 0 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    &::before {
+      content: '';
+      width: 4px;
+      height: 18px;
+      background: linear-gradient(180deg, var(--brand-400), var(--brand-600));
+      border-radius: 2px;
+    }
+  }
+}
+
+/* Input Icons */
+.input-icon {
+  color: var(--text-muted);
+}
+
+/* Uppercase Input */
+.uppercase-input {
+  text-transform: uppercase;
+}
+
+/* Radio Group - Subject Type */
+::ng-deep {
+  .ant-radio-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .ant-radio-wrapper {
+    display: flex !important;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 24px !important;
+    margin: 0 !important;
+    border: 2px solid var(--border-default);
+    border-radius: var(--radius-xl) !important;
+    transition: all var(--duration-normal) var(--ease-out);
+    background: var(--surface-card);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--brand-300);
+      background: var(--brand-50);
+    }
+
+    &.ant-radio-wrapper-checked {
+      border-color: var(--brand-500);
+      background: linear-gradient(135deg, var(--brand-50), rgba(20, 184, 166, 0.08));
+      box-shadow: 0 0 0 4px var(--brand-100);
+    }
+
+    .ant-radio {
+      display: none;
+    }
+
+    span[nz-icon] {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px !important;
+      color: white !important;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);
+    }
+
+    .radio-label {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+  }
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  button {
+    min-width: 130px;
+    height: 44px;
+    font-weight: 600;
+
+    span[nz-icon] {
+      margin-right: 8px;
+    }
+  }
+}
+
+::ng-deep {
+  .ant-modal-footer {
+    background: var(--neutral-50);
+    padding: 20px 28px !important;
+  }
+
+  .ant-modal-body {
+    max-height: 68vh;
+  }
+
+  /* Form Label */
+  .ant-form-item-label > label {
+    font-weight: 600 !important;
+  }
+
+  /* Date Picker */
+  .ant-picker {
+    width: 100%;
+  }
+
+  /* Textarea */
+  textarea.ant-input {
+    resize: none;
+  }
+}

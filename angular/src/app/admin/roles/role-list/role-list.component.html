@@ -1,0 +1,221 @@
+<div class="role-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="safety-certificate" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>Gestione Ruoli</h1>
+        <p>Crea e gestisci i ruoli e le autorizzazioni</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openCreateModal()" nz-tooltip="Nuovo Ruolo">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="safety-certificate"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total }}</span>
+        <span class="stat-label">Ruoli Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-default">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getDefaultCount() }}</span>
+        <span class="stat-label">Predefiniti</span>
+      </div>
+    </div>
+    <div class="stat-card stat-system">
+      <div class="stat-icon">
+        <span nz-icon nzType="lock"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getStaticCount() }}</span>
+        <span class="stat-label">Sistema</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <div class="toolbar">
+      <div class="search-box">
+        <nz-input-group [nzPrefix]="prefixIcon" [nzSuffix]="suffixIcon">
+          <input nz-input
+                 type="text"
+                 placeholder="Cerca per nome..."
+                 [(ngModel)]="searchText"
+                 (keyup.enter)="onSearch()" />
+        </nz-input-group>
+        <ng-template #prefixIcon>
+          <span nz-icon nzType="search"></span>
+        </ng-template>
+        <ng-template #suffixIcon>
+          <span nz-icon nzType="close-circle"
+                *ngIf="searchText"
+                (click)="clearSearch()"
+                class="search-clear-icon"></span>
+        </ng-template>
+      </div>
+      <div class="toolbar-actions">
+        <button nz-button nzType="default" (click)="loadRoles()" nz-tooltip="Aggiorna lista">
+          <span nz-icon nzType="reload"></span>
+        </button>
+      </div>
+    </div>
+
+    <nz-table
+      #roleTable
+      [nzData]="roles"
+      [nzLoading]="loading"
+      [nzTotal]="total"
+      [nzPageIndex]="pageIndex"
+      [nzPageSize]="pageSize"
+      [nzFrontPagination]="false"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 20, 50, 100]"
+      (nzPageIndexChange)="onPageChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)"
+      nzShowPagination
+      [nzNoResult]="emptyTemplate">
+
+      <thead>
+        <tr>
+          <th nzWidth="35%">Nome Ruolo</th>
+          <th nzWidth="15%" nzAlign="center">Predefinito</th>
+          <th nzWidth="15%" nzAlign="center">Pubblico</th>
+          <th nzWidth="15%" nzAlign="center">Sistema</th>
+          <th nzWidth="20%" nzAlign="center">Azioni</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let role of roleTable.data; let i = index" class="role-row" [style.animation-delay]="i * 30 + 'ms'">
+          <td>
+            <strong>{{ role.name }}</strong>
+          </td>
+          <td nzAlign="center">
+            <nz-tag *ngIf="role.isDefault" nzColor="blue">
+              <span nz-icon nzType="check"></span>
+              Predefinito
+            </nz-tag>
+            <span *ngIf="!role.isDefault" class="text-muted">-</span>
+          </td>
+          <td nzAlign="center">
+            <nz-tag [nzColor]="role.isPublic ? 'green' : 'default'">
+              {{ role.isPublic ? 'Pubblico' : 'Privato' }}
+            </nz-tag>
+          </td>
+          <td nzAlign="center">
+            <nz-tag *ngIf="role.isStatic" nzColor="orange">
+              <span nz-icon nzType="lock"></span>
+              Sistema
+            </nz-tag>
+            <span *ngIf="!role.isStatic" class="text-muted">-</span>
+          </td>
+          <td nzAlign="center">
+            <div class="actions-cell">
+              <button nz-button nzType="link" nzSize="small" class="action-btn edit"
+                      [disabled]="role.isStatic"
+                      (click)="openEditModal(role)"
+                      nz-tooltip="Modifica">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              <button nz-button nzType="link" nzSize="small" class="action-btn delete"
+                      [disabled]="role.isStatic"
+                      nz-popconfirm
+                      nzPopconfirmTitle="Sei sicuro di voler eliminare questo ruolo?"
+                      nzPopconfirmPlacement="topRight"
+                      (nzOnConfirm)="deleteRole(role)"
+                      nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-illustration">
+          <div class="empty-icon">
+            <span nz-icon nzType="safety-certificate" nzTheme="outline"></span>
+          </div>
+          <div class="empty-circles">
+            <div class="circle c1"></div>
+            <div class="circle c2"></div>
+            <div class="circle c3"></div>
+          </div>
+        </div>
+        <h3>{{ searchText ? 'Nessun ruolo trovato' : 'Nessun ruolo presente' }}</h3>
+        <p>{{ searchText ? 'Prova a modificare i criteri di ricerca' : 'Inizia creando il primo ruolo' }}</p>
+        <button nz-button nzType="primary" (click)="openCreateModal()" *ngIf="!searchText">
+          <span nz-icon nzType="plus"></span>
+          Nuovo Ruolo
+        </button>
+      </div>
+    </ng-template>
+  </nz-card>
+</div>
+
+<!-- Modal Create/Edit -->
+<nz-modal
+  [nzVisible]="isModalVisible"
+  [nzTitle]="isEditMode ? 'Modifica Ruolo' : 'Nuovo Ruolo'"
+  [nzOkText]="isEditMode ? 'Aggiorna' : 'Crea'"
+  nzCancelText="Annulla"
+  [nzOkLoading]="modalLoading"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+  [nzWidth]="600">
+
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="roleForm" nzLayout="vertical">
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Nome Ruolo</nz-form-label>
+        <nz-form-control nzErrorTip="Inserisci un nome valido (max 256 caratteri)">
+          <input nz-input formControlName="name" placeholder="es: Admin, Manager, User" maxlength="256" />
+        </nz-form-control>
+        <nz-form-extra>Il nome identificativo del ruolo</nz-form-extra>
+      </nz-form-item>
+
+      <nz-divider></nz-divider>
+
+      <nz-form-item>
+        <nz-form-label>Ruolo Predefinito</nz-form-label>
+        <nz-form-control>
+          <nz-switch formControlName="isDefault"></nz-switch>
+        </nz-form-control>
+        <nz-form-extra>Assegnato automaticamente ai nuovi utenti</nz-form-extra>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Ruolo Pubblico</nz-form-label>
+        <nz-form-control>
+          <nz-switch formControlName="isPublic"></nz-switch>
+        </nz-form-control>
+        <nz-form-extra>Può essere assegnato dagli amministratori del tenant</nz-form-extra>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>

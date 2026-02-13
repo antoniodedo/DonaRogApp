@@ -10,10 +10,10 @@ export class NoteService {
   apiName = 'Default';
   
 
-  createByDonor = (donorId: string, input: CreateUpdateNoteDto, config?: Partial<Rest.Config>) =>
+  createForDonor = (donorId: string, input: CreateUpdateNoteDto, config?: Partial<Rest.Config>) =>
     this.restService.request<any, NoteDto>({
       method: 'POST',
-      url: `/api/app/note/by-donor/${donorId}`,
+      url: `/api/app/note/for-donor/${donorId}`,
       body: input,
     },
     { apiName: this.apiName,...config });
@@ -44,10 +44,18 @@ export class NoteService {
     { apiName: this.apiName,...config });
   
 
-  updateByDonor = (donorId: string, id: string, input: CreateUpdateNoteDto, config?: Partial<Rest.Config>) =>
+  toggleImportant = (id: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, void>({
+      method: 'POST',
+      url: `/api/app/note/${id}/toggle-important`,
+    },
+    { apiName: this.apiName,...config });
+  
+
+  update = (id: string, input: CreateUpdateNoteDto, config?: Partial<Rest.Config>) =>
     this.restService.request<any, NoteDto>({
       method: 'PUT',
-      url: `/api/app/note/${id}/by-donor/${donorId}`,
+      url: `/api/app/note/${id}`,
       body: input,
     },
     { apiName: this.apiName,...config });

@@ -1,0 +1,321 @@
+<div class="campaigns-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="mail" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>Le tue Campagne</h1>
+        <p>Monitora e ottimizza le strategie di raccolta fondi</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openCreateModal()" nz-tooltip="Nuova Campagna">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="mail"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total }}</span>
+        <span class="stat-label">Campagne Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span nz-icon nzType="fire" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Attive</span>
+      </div>
+    </div>
+    <div class="stat-card stat-total-raised">
+      <div class="stat-icon">
+        <span nz-icon nzType="euro" nzTheme="outline"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getTotalRaised() | number:'1.0-0' }}€</span>
+        <span class="stat-label">Raccolto Totale</span>
+      </div>
+    </div>
+    <div class="stat-card stat-avg-roi">
+      <div class="stat-icon">
+        <span nz-icon nzType="rise" nzTheme="outline"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getAverageROI() | number:'1.0-1' }}%</span>
+        <span class="stat-label">ROI Medio</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <div class="toolbar">
+      <div class="search-box">
+        <nz-input-group [nzPrefix]="prefixIcon" [nzSuffix]="suffixIcon">
+          <input nz-input placeholder="Cerca per nome o codice..." 
+                 [(ngModel)]="searchText" 
+                 (ngModelChange)="onSearch()" />
+        </nz-input-group>
+        <ng-template #prefixIcon>
+          <span nz-icon nzType="search"></span>
+        </ng-template>
+        <ng-template #suffixIcon>
+          <span nz-icon nzType="close-circle" 
+                *ngIf="searchText" 
+                (click)="clearSearch()" 
+                style="cursor: pointer; color: #bfbfbf;"></span>
+        </ng-template>
+      </div>
+      <div class="toolbar-actions">
+        <button nz-button nzType="default" (click)="openAdvancedSearch()" 
+                class="filter-btn"
+                [class.active]="hasActiveFilters()">
+          <nz-badge [nzCount]="getActiveFiltersCount()" [nzShowZero]="false" nzSize="small">
+            <span nz-icon nzType="filter" [nzTheme]="hasActiveFilters() ? 'fill' : 'outline'"></span>
+          </nz-badge>
+          <span class="btn-text">Filtri</span>
+        </button>
+        <button nz-button nzType="default" (click)="loadCampaigns()" nz-tooltip="Aggiorna lista">
+          <span nz-icon nzType="reload"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Filters -->
+    <div class="quick-filters">
+      <div class="filter-group">
+        <label class="filter-label">
+          <span nz-icon nzType="calendar"></span>
+          Anno
+        </label>
+        <nz-select 
+          [(ngModel)]="quickFilters.year" 
+          (ngModelChange)="applyQuickFilters()"
+          nzAllowClear 
+          nzPlaceHolder="Tutti"
+          class="filter-select">
+          <nz-option *ngFor="let year of availableYears" [nzValue]="year" [nzLabel]="year.toString()"></nz-option>
+        </nz-select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">
+          <span nz-icon nzType="tag"></span>
+          Tipo
+        </label>
+        <nz-select 
+          [(ngModel)]="quickFilters.campaignType" 
+          (ngModelChange)="applyQuickFilters()"
+          nzAllowClear 
+          nzPlaceHolder="Tutti"
+          class="filter-select">
+          <nz-option *ngFor="let opt of campaignTypeOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
+        </nz-select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">
+          <span nz-icon nzType="flag"></span>
+          Stato
+        </label>
+        <nz-select 
+          [(ngModel)]="quickFilters.status" 
+          (ngModelChange)="applyQuickFilters()"
+          nzAllowClear 
+          nzPlaceHolder="Tutti"
+          class="filter-select">
+          <nz-option *ngFor="let opt of campaignStatusOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
+        </nz-select>
+      </div>
+
+      <button 
+        nz-button 
+        nzType="link" 
+        (click)="clearQuickFilters()"
+        *ngIf="hasQuickFilters()"
+        class="clear-filters-btn">
+        <span nz-icon nzType="close-circle"></span>
+        Pulisci filtri
+      </button>
+    </div>
+
+    <nz-table
+      #campaignsTable
+      [nzData]="campaigns"
+      [nzLoading]="loading"
+      [nzTotal]="total"
+      [nzPageSize]="pageSize"
+      [nzPageIndex]="pageIndex"
+      [nzFrontPagination]="false"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 20, 50, 100]"
+      (nzPageIndexChange)="onPageChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)">
+      <thead>
+        <tr>
+          <th nzWidth="100px">Codice</th>
+          <th>Nome</th>
+          <th nzWidth="80px">Tipo</th>
+          <th nzWidth="100px">Stato</th>
+          <th nzWidth="90px" nzAlign="center">Donatori</th>
+          <th nzWidth="110px" nzAlign="right">Raccolto</th>
+          <th nzWidth="70px" nzAlign="center">ROI %</th>
+          <th nzWidth="130px" nzAlign="center">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let campaign of campaigns; let i = index" 
+            class="campaign-row"
+            [style.animation-delay]="i * 50 + 'ms'">
+          <td>
+            <code class="code-badge">{{ campaign.code }}</code>
+          </td>
+          <td>
+            <div class="campaign-name-cell">
+              <a (click)="viewCampaign(campaign.id)" class="campaign-name">{{ campaign.name }}</a>
+              <div class="campaign-meta">
+                <span class="meta-item">
+                  <span nz-icon nzType="calendar"></span> {{ campaign.year }}
+                </span>
+                <span class="meta-item">
+                  <nz-tag [nzColor]="getChannelColor(campaign.channel)" style="margin: 0;">
+                    {{ getChannelText(campaign.channel) }}
+                  </nz-tag>
+                </span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <nz-tag [nzColor]="getTypeColor(campaign.campaignType)">{{ getTypeText(campaign.campaignType) }}</nz-tag>
+          </td>
+          <td>
+            <nz-badge [nzStatus]="getStatusColor(campaign.status)" [nzText]="getStatusText(campaign.status)"></nz-badge>
+          </td>
+          <td nzAlign="center">
+            <span class="stat-number">{{ campaign.extractedDonorCount || 0 }}</span>
+          </td>
+          <td nzAlign="right">
+            <strong [class.text-success]="campaign.totalRaised > 0">
+              {{ formatCurrency(campaign.totalRaised) }}
+            </strong>
+          </td>
+          <td nzAlign="center">
+            <strong [class.text-success]="campaign.roi > 0" [class.text-danger]="campaign.roi < 0">
+              {{ campaign.roi | number:'1.0-1' }}%
+            </strong>
+          </td>
+          <td nzAlign="center">
+            <div class="actions-cell">
+              <button nz-button nzType="link" nzSize="small" class="action-btn view"
+                      (click)="viewCampaign(campaign.id)" 
+                      nz-tooltip="Visualizza dettagli">
+                <span nz-icon nzType="eye"></span>
+              </button>
+              <button nz-button nzType="link" nzSize="small" class="action-btn edit"
+                      (click)="openEditModal(campaign)" 
+                      nz-tooltip="Modifica">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              <button nz-button nzType="link" nzSize="small" class="action-btn delete"
+                      nz-popconfirm
+                      nzPopconfirmTitle="Sei sicuro di voler eliminare questa campagna?"
+                      (nzOnConfirm)="deleteCampaign(campaign.id)"
+                      nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-card>
+</div>
+
+<!-- Advanced Search Drawer -->
+<nz-drawer
+  [nzVisible]="isAdvancedSearchVisible"
+  nzPlacement="right"
+  nzTitle="Filtri Avanzati"
+  [nzWidth]="400"
+  (nzOnClose)="closeAdvancedSearch()">
+  <ng-container *nzDrawerContent>
+    <form nz-form [formGroup]="filterForm" nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label>Anno (opzionale)</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="year" [nzMin]="2000" [nzMax]="2100" 
+                          nzPlaceHolder="Tutti gli anni" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Stato</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="status" nzAllowClear nzPlaceHolder="Tutti">
+            <nz-option *ngFor="let option of campaignStatusOptions" [nzValue]="option.value" [nzLabel]="option.key"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Tipo</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="campaignType" nzAllowClear nzPlaceHolder="Tutti">
+            <nz-option *ngFor="let option of campaignTypeOptions" [nzValue]="option.value" [nzLabel]="option.key"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control>
+          <button nz-button nzType="primary" nzBlock (click)="applyFilters()">
+            <span nz-icon nzType="search"></span>
+            Applica Filtri
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control>
+          <button nz-button nzBlock (click)="resetFilters()">
+            <span nz-icon nzType="reload"></span>
+            Reset Filtri
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-drawer>
+
+<!-- Modal for Create/Edit -->
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  [nzTitle]="modalTitle"
+  [nzFooter]="null"
+  [nzWidth]="900"
+  [nzBodyStyle]="{ 'max-height': '80vh', 'overflow-y': 'auto' }"
+  (nzOnCancel)="handleModalClose(false)">
+  <ng-container *nzModalContent>
+    <app-campaign-form
+      [campaignId]="selectedCampaign?.id"
+      (onSave)="handleModalClose(true)"
+      (onCancel)="handleModalClose(false)">
+    </app-campaign-form>
+  </ng-container>
+</nz-modal>

@@ -1,0 +1,650 @@
+<div class="donor-detail-container" *ngIf="!loading && donor">
+  <!-- Hero Header (coerente con lista) -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <button class="back-btn" (click)="goBack()" nz-tooltip="Torna alla lista">
+        <span nz-icon nzType="arrow-left"></span>
+      </button>
+      <div class="donor-avatar" [class.organization]="donor.subjectType !== SubjectType.Individual">
+        <span nz-icon [nzType]="donor.subjectType === SubjectType.Individual ? 'user' : 'bank'" nzTheme="outline"></span>
+        <div class="avatar-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>{{ donor.fullName }}</h1>
+        <div class="hero-meta">
+          <span class="donor-code">{{ donor.donorCode }}</span>
+          <nz-tag [nzColor]="getStatusColor(donor.status, donor.isAnonymized)" 
+                  class="status-tag clickable" 
+                  (click)="openStatusModal()"
+                  nz-tooltip="Clicca per cambiare stato">
+            <span class="status-dot"></span>
+            {{ getStatusLabel(donor.status, donor.isAnonymized) }}
+            <span nz-icon nzType="edit" class="status-edit-icon"></span>
+          </nz-tag>
+        </div>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openEditModal()" nz-tooltip="Modifica donatore">
+        <span nz-icon nzType="edit"></span>
+      </button>
+      <button nz-button class="hero-btn delete" 
+              nz-popconfirm nzPopconfirmTitle="Vuoi eliminare questo donatore?"
+              nzOkText="Elimina" nzCancelText="Annulla"
+              (nzOnConfirm)="deleteDonor()"
+              nz-tooltip="Elimina donatore">
+        <span nz-icon nzType="delete"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Stats Cards (stile coerente con lista) -->
+  <div class="stats-row">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="euro"></span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ formatCurrency(donor.totalDonated) }}</span>
+        <span class="stat-label">Totale Donato</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-donations">
+      <div class="stat-icon">
+        <span nz-icon nzType="heart" nzTheme="fill"></span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ donor.donationCount || 0 }}</span>
+        <span class="stat-label">Donazioni</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-average">
+      <div class="stat-icon">
+        <span nz-icon nzType="bar-chart"></span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ formatCurrency(donor.averageDonationAmount) }}</span>
+        <span class="stat-label">Media</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-date">
+      <div class="stat-icon">
+        <span nz-icon nzType="calendar"></span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ formatDate(donor.lastDonationDate) }}</span>
+        <span class="stat-label">Ultima Donazione</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panoramica Rapida (sempre visibile) -->
+  <div class="overview-section">
+    <!-- Info Base -->
+    <nz-card class="overview-card info-card">
+      <div class="card-header">
+        <span nz-icon nzType="idcard" class="header-icon"></span>
+        <h3>Informazioni Base</h3>
+      </div>
+      <div class="info-grid">
+        <div class="info-item" *ngIf="donor.subjectType === SubjectType.Individual">
+          <label>Nome Completo</label>
+          <span class="value">{{ donor.fullName }}</span>
+        </div>
+        <div class="info-item" *ngIf="donor.subjectType === SubjectType.Organization">
+          <label>Ragione Sociale</label>
+          <span class="value">{{ donor.companyName }}</span>
+        </div>
+        <div class="info-item">
+          <label>Tipo</label>
+          <span class="value">
+            <span class="type-badge-mini" [class.organization]="donor.subjectType !== SubjectType.Individual">
+              <span nz-icon [nzType]="donor.subjectType === SubjectType.Individual ? 'user' : 'bank'"></span>
+            </span>
+            {{ donor.subjectType === SubjectType.Individual ? 'Persona Fisica' : 'Organizzazione' }}
+          </span>
+        </div>
+        <div class="info-item" *ngIf="donor.taxCode">
+          <label>Codice Fiscale</label>
+          <span class="value code">{{ donor.taxCode }}</span>
+        </div>
+        <div class="info-item" *ngIf="donor.vatNumber">
+          <label>Partita IVA</label>
+          <span class="value code">{{ donor.vatNumber }}</span>
+        </div>
+        <div class="info-item" *ngIf="donor.birthDate && donor.subjectType === SubjectType.Individual">
+          <label>Data di Nascita</label>
+          <span class="value">{{ formatDate(donor.birthDate) }}</span>
+        </div>
+      </div>
+    </nz-card>
+
+    <!-- Contatti Principali -->
+    <nz-card class="overview-card contact-card">
+      <div class="card-header">
+        <span nz-icon nzType="contacts" class="header-icon"></span>
+        <h3>Contatti Principali</h3>
+      </div>
+      <div class="contact-list">
+        <div class="contact-item" *ngIf="donor.primaryAddress">
+          <span nz-icon nzType="environment" class="contact-icon address"></span>
+          <div class="contact-info">
+            <label>Indirizzo</label>
+            <span class="value">{{ donor.primaryAddress }}</span>
+          </div>
+        </div>
+        <div class="contact-item empty" *ngIf="!donor.primaryAddress">
+          <span nz-icon nzType="environment" class="contact-icon"></span>
+          <div class="contact-info">
+            <label>Indirizzo</label>
+            <span class="value muted">Nessun indirizzo</span>
+          </div>
+        </div>
+
+        <div class="contact-item" *ngIf="donor.primaryEmail">
+          <span nz-icon nzType="mail" class="contact-icon email"></span>
+          <div class="contact-info">
+            <label>Email</label>
+            <span class="value">{{ donor.primaryEmail }}</span>
+          </div>
+        </div>
+        <div class="contact-item empty" *ngIf="!donor.primaryEmail">
+          <span nz-icon nzType="mail" class="contact-icon"></span>
+          <div class="contact-info">
+            <label>Email</label>
+            <span class="value muted">Nessuna email</span>
+          </div>
+        </div>
+
+        <div class="contact-item" *ngIf="donor.primaryPhone">
+          <span nz-icon nzType="phone" class="contact-icon phone"></span>
+          <div class="contact-info">
+            <label>Telefono</label>
+            <span class="value">{{ donor.primaryPhone }}</span>
+          </div>
+        </div>
+        <div class="contact-item empty" *ngIf="!donor.primaryPhone">
+          <span nz-icon nzType="phone" class="contact-icon"></span>
+          <div class="contact-info">
+            <label>Telefono</label>
+            <span class="value muted">Nessun telefono</span>
+          </div>
+        </div>
+      </div>
+    </nz-card>
+
+    <!-- Note Recenti -->
+    <nz-card class="overview-card notes-card">
+      <div class="card-header">
+        <span nz-icon nzType="file-text" class="header-icon"></span>
+        <h3>Note Recenti</h3>
+      </div>
+      <div class="notes-preview">
+        <div class="note-item" *ngFor="let note of recentNotes">
+          <div class="note-meta">
+            <nz-tag [nzColor]="'blue'" *ngIf="note.category">
+              {{ getCategoryLabel(note.category) }}
+            </nz-tag>
+            <span class="note-date">{{ formatDate(note.interactionDate || note.creationTime) }}</span>
+            <span nz-icon nzType="star" nzTheme="fill" class="important-icon" *ngIf="note.isImportant"></span>
+          </div>
+          <p>{{ note.content | slice:0:100 }}{{ note.content && note.content.length > 100 ? '...' : '' }}</p>
+        </div>
+        <div class="note-item empty" *ngIf="recentNotes.length === 0">
+          <p class="muted">Nessuna nota disponibile</p>
+        </div>
+      </div>
+    </nz-card>
+  </div>
+
+  <!-- Tabs Card (ridotte e raggruppate) -->
+  <nz-card class="detail-card">
+    <nz-tabset>
+      <!-- Tab 1: Dati Generali Completi -->
+      <nz-tab nzTitle="Dati Generali">
+        <div class="tab-content">
+          <nz-descriptions nzBordered [nzColumn]="2">
+            <nz-descriptions-item nzTitle="Tipo" [nzSpan]="1">
+              <span class="type-badge" [class.organization]="donor.subjectType !== SubjectType.Individual">
+                <span nz-icon [nzType]="donor.subjectType === SubjectType.Individual ? 'user' : 'bank'"></span>
+              </span>
+              {{ donor.subjectType === SubjectType.Individual ? 'Persona Fisica' : 'Organizzazione' }}
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Codice Donatore" [nzSpan]="1">
+              <span class="code">{{ donor.donorCode }}</span>
+            </nz-descriptions-item>
+
+            <!-- Persona Fisica -->
+            <ng-container *ngIf="donor.subjectType === SubjectType.Individual">
+              <nz-descriptions-item nzTitle="Titolo" [nzSpan]="1">{{ donor.titleName || '-' }}</nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Nome" [nzSpan]="1">{{ donor.firstName || '-' }}</nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Cognome" [nzSpan]="1">{{ donor.lastName || '-' }}</nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Genere" [nzSpan]="1">{{ getGenderLabel(donor.gender) }}</nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Data di Nascita" [nzSpan]="1">{{ formatDate(donor.birthDate) }}</nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Codice Fiscale" [nzSpan]="1">
+                <span class="code">{{ donor.taxCode || '-' }}</span>
+              </nz-descriptions-item>
+            </ng-container>
+
+            <!-- Organizzazione -->
+            <ng-container *ngIf="donor.subjectType === SubjectType.Organization">
+              <nz-descriptions-item nzTitle="Ragione Sociale" [nzSpan]="2">{{ donor.companyName || '-' }}</nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Tipo Organizzazione" [nzSpan]="1">{{ getOrganizationTypeLabel(donor.organizationType) }}</nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Forma Giuridica" [nzSpan]="1">{{ getLegalFormLabel(donor.legalForm) }}</nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Partita IVA" [nzSpan]="1">
+                <span class="code">{{ donor.vatNumber || '-' }}</span>
+              </nz-descriptions-item>
+              <nz-descriptions-item nzTitle="Codice Fiscale" [nzSpan]="1">
+                <span class="code">{{ donor.taxCode || '-' }}</span>
+              </nz-descriptions-item>
+            </ng-container>
+
+            <nz-descriptions-item nzTitle="Origine" [nzSpan]="1">{{ getOriginLabel(donor.origin) }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Lingua Preferita" [nzSpan]="1">{{ donor.preferredLanguage || 'IT' }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Note" [nzSpan]="2">{{ donor.notes || '-' }}</nz-descriptions-item>
+          </nz-descriptions>
+        </div>
+      </nz-tab>
+
+      <!-- Tab 2: Contatti Completi (Indirizzi + Email + Telefoni) -->
+      <nz-tab nzTitle="Contatti">
+        <div class="tab-content">
+          <h4 class="section-title">
+            <span nz-icon nzType="environment" class="section-icon"></span>
+            Indirizzi
+          </h4>
+          <app-donor-addresses [donorId]="donorId"></app-donor-addresses>
+
+          <nz-divider></nz-divider>
+
+          <h4 class="section-title">
+            <span nz-icon nzType="mail" class="section-icon"></span>
+            Email
+          </h4>
+          <app-donor-emails [donorId]="donorId"></app-donor-emails>
+
+          <nz-divider></nz-divider>
+
+          <h4 class="section-title">
+            <span nz-icon nzType="phone" class="section-icon"></span>
+            Telefoni
+          </h4>
+          <app-donor-contacts [donorId]="donorId"></app-donor-contacts>
+        </div>
+      </nz-tab>
+
+      <!-- Tab 3: Note -->
+      <nz-tab nzTitle="Note">
+        <div class="tab-content">
+          <app-donor-notes [donorId]="donorId"></app-donor-notes>
+        </div>
+      </nz-tab>
+
+      <!-- Tab 4: Tag -->
+      <nz-tab nzTitle="Tag">
+        <div class="tab-content">
+          <app-donor-tags [donorId]="donorId"></app-donor-tags>
+        </div>
+      </nz-tab>
+
+      <!-- Tab 5: Privacy & Consensi -->
+      <nz-tab nzTitle="Privacy & Consensi">
+        <div class="privacy-section">
+          <!-- Avviso privacy revocata -->
+          <nz-alert *ngIf="!donor.privacyConsent && donor.privacyConsentRevokedDate"
+            nzType="warning"
+            nzMessage="Consenso Privacy Revocato"
+            [nzDescription]="'Il consenso privacy è stato revocato il ' + formatDate(donor.privacyConsentRevokedDate) + '. Newsletter e spedizioni cartacee non possono essere abilitate.'"
+            nzShowIcon
+            class="privacy-alert">
+          </nz-alert>
+
+          <!-- Consenso Privacy -->
+          <div class="consent-item">
+            <div class="consent-icon privacy">
+              <span nz-icon nzType="safety-certificate"></span>
+            </div>
+            <div class="consent-info">
+              <h4>Consenso Privacy</h4>
+              <p>Autorizzazione al trattamento dei dati personali</p>
+              <p class="consent-date" *ngIf="donor.privacyConsent && donor.privacyConsentDate">
+                <span nz-icon nzType="calendar"></span> Concesso il {{ formatDate(donor.privacyConsentDate) }}
+              </p>
+              <p class="consent-date revoked" *ngIf="!donor.privacyConsent && donor.privacyConsentRevokedDate">
+                <span nz-icon nzType="calendar"></span> Revocato il {{ formatDate(donor.privacyConsentRevokedDate) }}
+              </p>
+            </div>
+            <div class="consent-status">
+              <nz-tag *ngIf="donor.privacyConsent" nzColor="green">
+                <span nz-icon nzType="check-circle"></span> Concesso
+              </nz-tag>
+              <nz-tag *ngIf="!donor.privacyConsent" nzColor="red">
+                <span nz-icon nzType="stop"></span> Non concesso
+              </nz-tag>
+            </div>
+            <div class="consent-actions">
+              <button nz-button *ngIf="!donor.privacyConsent" nzType="primary" nzSize="small" (click)="grantPrivacyConsent()">
+                <span nz-icon nzType="check"></span> Concedi
+              </button>
+              <button nz-button *ngIf="donor.privacyConsent" nzDanger nzSize="small" (click)="revokePrivacyConsent()">
+                <span nz-icon nzType="stop"></span> Revoca
+              </button>
+            </div>
+          </div>
+
+          <!-- Consenso Newsletter -->
+          <div class="consent-item" [class.disabled]="!donor.privacyConsent">
+            <div class="consent-icon newsletter">
+              <span nz-icon nzType="mail"></span>
+            </div>
+            <div class="consent-info">
+              <h4>Consenso Newsletter</h4>
+              <p>Autorizzazione all'invio di comunicazioni email</p>
+              <p class="consent-date" *ngIf="donor.newsletterConsent && donor.newsletterConsentDate">
+                <span nz-icon nzType="calendar"></span> Concesso il {{ formatDate(donor.newsletterConsentDate) }}
+              </p>
+            </div>
+            <div class="consent-status">
+              <nz-tag *ngIf="donor.newsletterConsent" nzColor="green">
+                <span nz-icon nzType="check-circle"></span> Concesso
+              </nz-tag>
+              <nz-tag *ngIf="!donor.newsletterConsent" nzColor="red">
+                <span nz-icon nzType="stop"></span> Non concesso
+              </nz-tag>
+            </div>
+            <div class="consent-actions">
+              <button nz-button *ngIf="!donor.newsletterConsent" nzType="primary" nzSize="small" 
+                      (click)="grantNewsletterConsent()"
+                      [disabled]="!donor.privacyConsent"
+                      [nz-tooltip]="!donor.privacyConsent ? 'Richiede consenso privacy' : ''">
+                <span nz-icon nzType="check"></span> Concedi
+              </button>
+              <button nz-button *ngIf="donor.newsletterConsent" nzDanger nzSize="small" (click)="revokeNewsletterConsent()">
+                <span nz-icon nzType="stop"></span> Revoca
+              </button>
+            </div>
+          </div>
+
+          <!-- Consenso Spedizioni Cartacee -->
+          <div class="consent-item" [class.disabled]="!donor.privacyConsent">
+            <div class="consent-icon mail">
+              <span nz-icon nzType="send"></span>
+            </div>
+            <div class="consent-info">
+              <h4>Consenso Spedizioni Cartacee</h4>
+              <p>Autorizzazione all'invio di comunicazioni postali</p>
+              <p class="consent-date" *ngIf="donor.mailConsent && donor.mailConsentDate">
+                <span nz-icon nzType="calendar"></span> Concesso il {{ formatDate(donor.mailConsentDate) }}
+              </p>
+            </div>
+            <div class="consent-status">
+              <nz-tag *ngIf="donor.mailConsent" nzColor="green">
+                <span nz-icon nzType="check-circle"></span> Concesso
+              </nz-tag>
+              <nz-tag *ngIf="!donor.mailConsent" nzColor="red">
+                <span nz-icon nzType="stop"></span> Non concesso
+              </nz-tag>
+            </div>
+            <div class="consent-actions">
+              <button nz-button *ngIf="!donor.mailConsent" nzType="primary" nzSize="small" 
+                      (click)="grantMailConsent()"
+                      [disabled]="!donor.privacyConsent"
+                      [nz-tooltip]="!donor.privacyConsent ? 'Richiede consenso privacy' : ''">
+                <span nz-icon nzType="check"></span> Concedi
+              </button>
+              <button nz-button *ngIf="donor.mailConsent" nzDanger nzSize="small" (click)="revokeMailConsent()">
+                <span nz-icon nzType="stop"></span> Revoca
+              </button>
+            </div>
+          </div>
+        </div>
+      </nz-tab>
+
+      <!-- Tab 6: Statistiche & Stati -->
+      <nz-tab nzTitle="Statistiche & Stati">
+        <div class="tab-content">
+          <h4 class="section-title">
+            <span nz-icon nzType="bar-chart" class="section-icon"></span>
+            Statistiche Donazioni
+          </h4>
+          <nz-descriptions nzBordered [nzColumn]="2">
+            <nz-descriptions-item nzTitle="Prima Donazione" [nzSpan]="1">{{ formatDate(donor.firstDonationDate) }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Importo Prima Donazione" [nzSpan]="1">{{ formatCurrency(donor.firstDonationAmount) }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Ultima Donazione" [nzSpan]="1">{{ formatDate(donor.lastDonationDate) }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Importo Ultima Donazione" [nzSpan]="1">{{ formatCurrency(donor.lastDonationAmount) }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Totale Donazioni" [nzSpan]="1">{{ donor.donationCount || 0 }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Media Donazione" [nzSpan]="1">{{ formatCurrency(donor.averageDonationAmount) }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Totale Donato" [nzSpan]="2">
+              <span class="total-amount">{{ formatCurrency(donor.totalDonated) }}</span>
+            </nz-descriptions-item>
+          </nz-descriptions>
+
+          <nz-divider></nz-divider>
+
+          <h4 class="section-title">
+            <span nz-icon nzType="history" class="section-icon"></span>
+            Storico Stati
+          </h4>
+        <div class="status-history-section">
+          <div class="history-timeline" *ngIf="statusHistory.length > 0">
+            <nz-timeline>
+              <nz-timeline-item *ngFor="let item of statusHistory" [nzColor]="getStatusColor(item.newStatus)">
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="status-change">
+                      <nz-tag [nzColor]="getStatusColor(item.oldStatus)" class="small-tag">
+                        {{ getStatusLabel(item.oldStatus) }}
+                      </nz-tag>
+                      <span nz-icon nzType="arrow-right"></span>
+                      <nz-tag [nzColor]="getStatusColor(item.newStatus)" class="small-tag">
+                        {{ getStatusLabel(item.newStatus) }}
+                      </nz-tag>
+                    </span>
+                    <span class="timeline-date">{{ formatDateTime(item.changedAt) }}</span>
+                  </div>
+                  <div class="timeline-note" *ngIf="item.note">
+                    <span nz-icon nzType="message"></span>
+                    {{ item.note }}
+                  </div>
+                </div>
+              </nz-timeline-item>
+            </nz-timeline>
+          </div>
+          
+          <div class="empty-history" *ngIf="statusHistory.length === 0">
+            <span nz-icon nzType="history" class="empty-icon"></span>
+            <p>Nessun cambio di stato registrato</p>
+          </div>
+        </div>
+        </div>
+      </nz-tab>
+
+      <!-- Tab 7: Donazioni -->
+      <nz-tab nzTitle="Donazioni">
+        <div class="tab-content">
+          <div class="donations-section">
+            <div class="section-header">
+              <h4 class="section-title">
+                <span nz-icon nzType="euro" class="section-icon"></span>
+                Donazioni del Donatore ({{ donationsTotal }})
+              </h4>
+              <button nz-button nzType="primary" [routerLink]="['/donations/new']" [queryParams]="{donorId: donorId}">
+                <span nz-icon nzType="plus"></span>
+                Registra Donazione
+              </button>
+            </div>
+
+            <!-- Tabella Donazioni -->
+            <nz-table 
+              #donationsTable
+              [nzData]="donations"
+              [nzLoading]="donationsLoading"
+              [nzTotal]="donationsTotal"
+              [nzPageSize]="donationsPageSize"
+              [nzPageIndex]="donationsPageIndex"
+              [nzFrontPagination]="false"
+              [nzShowSizeChanger]="true"
+              [nzPageSizeOptions]="[10, 25, 50]"
+              (nzPageIndexChange)="onDonationsPageChange($event)"
+              (nzPageSizeChange)="onDonationsPageSizeChange($event)"
+              nzShowPagination
+              nzSize="middle"
+              class="donations-table">
+              
+              <thead>
+                <tr>
+                  <th>Riferimento</th>
+                  <th>Data</th>
+                  <th>Importo</th>
+                  <th>Canale</th>
+                  <th>Stato</th>
+                  <th>Campagna</th>
+                  <th>Progetti</th>
+                  <th nzAlign="center">Azioni</th>
+                </tr>
+              </thead>
+              
+              <tbody>
+                <tr *ngFor="let donation of donations">
+                  <td>
+                    <span class="donation-reference">{{ donation.reference }}</span>
+                  </td>
+                  <td>
+                    <span class="donation-date">{{ formatDate(donation.donationDate) }}</span>
+                    <span class="donation-credit-date" *ngIf="donation.creditDate">
+                      <br><small class="muted">Accr: {{ formatDate(donation.creditDate) }}</small>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="donation-amount">{{ formatCurrency(donation.totalAmount) }}</span>
+                  </td>
+                  <td>
+                    <nz-tag [nzColor]="'blue'">
+                      {{ getDonationChannelLabel(donation.channel) }}
+                    </nz-tag>
+                  </td>
+                  <td>
+                    <nz-tag [nzColor]="getDonationStatusColor(donation.status)">
+                      {{ getDonationStatusLabel(donation.status) }}
+                    </nz-tag>
+                  </td>
+                  <td>
+                    <span *ngIf="donation.campaignName">{{ donation.campaignName }}</span>
+                    <span *ngIf="!donation.campaignName" class="muted">-</span>
+                  </td>
+                  <td>
+                    <div class="projects-cell">
+                      <nz-tag *ngFor="let projectName of donation.projectNames" [nzColor]="'purple'">
+                        {{ projectName }}
+                      </nz-tag>
+                      <span *ngIf="!donation.projectNames || donation.projectNames.length === 0" class="muted">
+                        Nessun progetto
+                      </span>
+                      <nz-tag *ngIf="!donation.isFullyAllocated" [nzColor]="'orange'" nz-tooltip="Donazione parzialmente allocata">
+                        <span nz-icon nzType="warning"></span>
+                      </nz-tag>
+                    </div>
+                  </td>
+                  <td nzAlign="center">
+                    <div class="action-buttons">
+                      <button nz-button nzType="link" nzSize="small" 
+                              [routerLink]="['/donations', donation.id]"
+                              nz-tooltip="Visualizza dettaglio">
+                        <span nz-icon nzType="eye"></span>
+                      </button>
+                      <button nz-button nzType="link" nzSize="small" 
+                              *ngIf="donation.status === DonationStatusEnum.Pending"
+                              [routerLink]="['/donations/verify', donation.id]"
+                              nz-tooltip="Verifica donazione">
+                        <span nz-icon nzType="check-circle" style="color: #52c41a;"></span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </nz-table>
+
+            <!-- Empty State -->
+            <nz-empty 
+              *ngIf="!donationsLoading && donations.length === 0"
+              nzNotFoundContent="Nessuna donazione registrata"
+              [nzNotFoundImage]="'simple'">
+              <ng-container *nzEmpty>
+                <p>Questo donatore non ha ancora effettuato donazioni.</p>
+                <button nz-button nzType="primary" [routerLink]="['/donations/new']" [queryParams]="{donorId: donorId}">
+                  <span nz-icon nzType="plus"></span>
+                  Registra Prima Donazione
+                </button>
+              </ng-container>
+            </nz-empty>
+          </div>
+        </div>
+      </nz-tab>
+    </nz-tabset>
+  </nz-card>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <nz-spin nzSize="large"></nz-spin>
+</div>
+
+<!-- Edit Modal -->
+<app-donor-form
+  *ngIf="isEditModalVisible"
+  [visible]="isEditModalVisible"
+  [donor]="donor"
+  (visibleChange)="closeEditModal()"
+  (saved)="onDonorUpdated()">
+</app-donor-form>
+
+<!-- Status Modal -->
+<nz-modal
+  [(nzVisible)]="isStatusModalVisible"
+  nzTitle="Cambia Stato Donatore"
+  [nzWidth]="500"
+  [nzFooter]="statusModalFooter"
+  (nzOnCancel)="closeStatusModal()">
+  
+  <ng-container *nzModalContent>
+    <div class="status-selection">
+      <p class="status-hint">Seleziona il nuovo stato per il donatore:</p>
+      <nz-radio-group [(ngModel)]="selectedStatus" class="status-radio-group">
+        <div *ngFor="let option of statusOptions" class="status-option">
+          <label nz-radio [nzValue]="option.value" 
+                 [class.current]="option.value === donor?.status">
+            <nz-tag [nzColor]="option.color">
+              <span nz-icon [nzType]="option.icon"></span>
+              {{ option.label }}
+            </nz-tag>
+            <span *ngIf="option.value === donor?.status" class="current-badge">attuale</span>
+          </label>
+        </div>
+      </nz-radio-group>
+
+      <div class="status-note" *ngIf="selectedStatus !== donor?.status">
+        <label>Nota (opzionale)</label>
+        <textarea nz-input [(ngModel)]="statusNote" 
+                  placeholder="Motivazione del cambio stato..."
+                  rows="2"></textarea>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #statusModalFooter>
+    <button nz-button (click)="closeStatusModal()">Annulla</button>
+    <button nz-button nzType="primary" (click)="changeStatus()" 
+            [disabled]="selectedStatus === donor?.status">
+      <span nz-icon nzType="check"></span>
+      Conferma
+    </button>
+  </ng-template>
+</nz-modal>

@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.MultiTenancy;
 
 namespace DonaRogApp.Domain.Shared.Entities
 {
@@ -9,8 +10,12 @@ namespace DonaRogApp.Domain.Shared.Entities
     /// Shared Entity per taggare donatori con etichette personalizzate
     /// Esempi: "VIP", "ProblemaDonazione", "InternoProgetto"
     /// </summary>
-    public class Tag : AggregateRoot<Guid>
+    public class Tag : AggregateRoot<Guid>, IMultiTenant
     {
+        /// <summary>
+        /// Tenant ID - ogni tenant ha i suoi tag
+        /// </summary>
+        public Guid? TenantId { get; private set; }
         /// <summary>
         /// Codice univoco del tag (slugified)
         /// </summary>

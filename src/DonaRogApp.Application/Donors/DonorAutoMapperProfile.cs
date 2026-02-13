@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Donors.Dtos;
+using System.Linq;
 
 namespace DonaRogApp.Donors
 {
@@ -24,7 +25,32 @@ namespace DonaRogApp.Donors
                     s.BirthDate.HasValue ?
                         ((System.DateTime.UtcNow.Year - s.BirthDate.Value.Year)) :
                         (int?)null
-                ));
+                ))
+                // Primary Contact Info - computed via AfterMap to avoid null propagation issues
+                .ForMember(d => d.PrimaryEmail, opt => opt.Ignore())
+                .ForMember(d => d.PrimaryAddress, opt => opt.Ignore())
+                .ForMember(d => d.PrimaryCity, opt => opt.Ignore())
+                .AfterMap((src, dest) =>
+                {
+                    // Primary Email
+                    if (src.Emails != null && src.Emails.Any())
+                    {
+                        var defaultEmail = src.Emails.FirstOrDefault(e => e.IsDefault);
+                        dest.PrimaryEmail = defaultEmail != null ? defaultEmail.EmailAddress : src.Emails.First().EmailAddress;
+                    }
+
+                    // Primary Address
+                    if (src.Addresses != null && src.Addresses.Any())
+                    {
+                        var defaultAddr = src.Addresses.FirstOrDefault(a => a.IsDefault);
+                        var activeAddr = defaultAddr ?? src.Addresses.FirstOrDefault(a => !a.EndDate.HasValue);
+                        if (activeAddr != null)
+                        {
+                            dest.PrimaryAddress = AddressHelper.FormatAddress(activeAddr);
+                            dest.PrimaryCity = activeAddr.City;
+                        }
+                    }
+                });
 
             // DTO -> Entity (for updates)
             CreateMap<UpdateDonorDto, Donor>()
@@ -75,6 +101,41 @@ namespace DonaRogApp.Donors
                 .ForMember(d => d.StartDate, opt => opt.MapFrom(_ => System.DateTime.UtcNow))
                 .ForMember(d => d.IsDefault, opt => opt.MapFrom(_ => false))
                 .ForMember(d => d.IsVerified, opt => opt.MapFrom(_ => false));
+        }
+    }
+
+    // Helper methods
+    public static class AddressHelper
+    {
+        /// <summary>
+        /// Formatta indirizzo completo: Via/Civico, CAP Città (Prov)
+        /// </summary>
+        public static string? FormatAddress(DonorAddress? address)
+        {
+            if (address == null) return null;
+
+            var parts = new System.Collections.Generic.List<string>();
+
+            // Via e civico
+            if (!string.IsNullOrWhiteSpace(address.Street))
+                parts.Add(address.Street);
+
+            // CAP + Città (Provincia)
+            var cityPart = "";
+            if (!string.IsNullOrWhiteSpace(address.PostalCode))
+                cityPart = address.PostalCode + " ";
+            
+            if (!string.IsNullOrWhiteSpace(address.City))
+            {
+                cityPart += address.City;
+                if (!string.IsNullOrWhiteSpace(address.Province))
+                    cityPart += $" ({address.Province})";
+            }
+
+            if (!string.IsNullOrWhiteSpace(cityPart))
+                parts.Add(cityPart.Trim());
+
+            return parts.Any() ? string.Join(", ", parts) : null;
         }
     }
 

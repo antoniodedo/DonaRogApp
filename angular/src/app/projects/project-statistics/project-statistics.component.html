@@ -1,0 +1,30 @@
+<div class="statistics-container" *ngIf="statistics && !loading">
+  <nz-card nzTitle="Statistiche Generali">
+    <nz-descriptions nzBordered [nzColumn]="2">
+      <nz-descriptions-item nzTitle="Totale Raccolto">
+        {{ statistics.totalAmountRaised | number:'1.2-2' }} EUR
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Numero Donazioni">
+        {{ statistics.totalDonationsCount }}
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Donazione Media">
+        {{ statistics.averageDonation | number:'1.2-2' }} EUR
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="Ultima Donazione">
+        {{ statistics.lastDonationDate ? (statistics.lastDonationDate | date:'dd/MM/yyyy') : '-' }}
+      </nz-descriptions-item>
+    </nz-descriptions>
+  </nz-card>
+
+  <nz-alert
+    *ngIf="statistics.totalDonationsCount === 0"
+    nzType="info"
+    nzMessage="Nessuna donazione ancora registrata per questo progetto"
+    nzShowIcon
+    class="mt-3">
+  </nz-alert>
+</div>
+
+<div class="loading-container" *ngIf="loading">
+  <nz-spin nzSimple></nz-spin>
+</div>

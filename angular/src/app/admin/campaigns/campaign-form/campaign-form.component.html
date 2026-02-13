@@ -1,0 +1,317 @@
+<form nz-form [formGroup]="form" nzLayout="vertical" class="modern-form">
+  
+  <!-- ============================================ -->
+  <!-- SEZIONE 1: INFORMAZIONI GENERALI -->
+  <!-- ============================================ -->
+  <div class="form-section">
+    <h3 class="section-title">
+      <span nz-icon nzType="file-text" nzTheme="outline"></span>
+      Informazioni Generali
+    </h3>
+    
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="14">
+        <nz-form-item>
+          <nz-form-label nzRequired>
+            <span nz-icon nzType="tag" class="label-icon"></span>
+            Nome Campagna
+          </nz-form-label>
+          <nz-form-control nzErrorTip="Inserisci il nome della campagna (es: Natale 2024 - Email Marketing)">
+            <input nz-input formControlName="name" placeholder="Es: Natale 2024 - Email Marketing" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      
+      <div nz-col [nzSpan]="5">
+        <nz-form-item>
+          <nz-form-label nzRequired>
+            <span nz-icon nzType="calendar" class="label-icon"></span>
+            Anno
+          </nz-form-label>
+          <nz-form-control nzErrorTip="Seleziona l'anno">
+            <nz-input-number 
+              formControlName="year" 
+              [nzMin]="2000" 
+              [nzMax]="2100" 
+              [nzDisabled]="isEditMode" 
+              style="width: 100%;">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      
+      <div nz-col [nzSpan]="5">
+        <nz-form-item>
+          <nz-form-label nzRequired>
+            <span nz-icon nzType="barcode" class="label-icon"></span>
+            Codice
+          </nz-form-label>
+          <nz-form-control nzErrorTip="Inserisci codice univoco">
+            <input nz-input formControlName="code" placeholder="NAT24" [disabled]="isEditMode" style="text-transform: uppercase;" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- ============================================ -->
+  <!-- SEZIONE 2: TIPOLOGIA E CANALE -->
+  <!-- ============================================ -->
+  <div class="form-section">
+    <h3 class="section-title">
+      <span nz-icon nzType="appstore" nzTheme="outline"></span>
+      Tipologia e Canale
+    </h3>
+    
+    <div nz-row [nzGutter]="24">
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label nzRequired>
+            <span nz-icon nzType="folder" class="label-icon"></span>
+            Tipo Campagna
+          </nz-form-label>
+          <nz-form-control>
+            <nz-radio-group formControlName="campaignType" [nzDisabled]="isEditMode" class="radio-group-horizontal">
+              <label nz-radio *ngFor="let opt of campaignTypeOptions" [nzValue]="opt.value">{{ opt.key }}</label>
+            </nz-radio-group>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label nzRequired>
+            <span nz-icon nzType="message" class="label-icon"></span>
+            Canale Comunicazione
+          </nz-form-label>
+          <nz-form-control nzErrorTip="Seleziona il canale di comunicazione">
+            <nz-select 
+              formControlName="channel" 
+              [nzDisabled]="isEditMode"
+              nzPlaceHolder="Seleziona il canale"
+              style="width: 100%;">
+              <nz-option *ngFor="let opt of campaignChannelOptions" [nzValue]="opt.value" [nzLabel]="opt.key"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- ============================================ -->
+  <!-- SEZIONE 3: PIANIFICAZIONE -->
+  <!-- ============================================ -->
+  <div class="form-section">
+    <h3 class="section-title">
+      <span nz-icon nzType="schedule" nzTheme="outline"></span>
+      Pianificazione
+    </h3>
+    
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="flag" class="label-icon"></span>
+            Evento Associato
+          </nz-form-label>
+          <nz-form-control nzExtra="Opzionale - collega la campagna ad una ricorrenza specifica">
+            <nz-select 
+              formControlName="recurrenceId" 
+              nzAllowClear 
+              nzPlaceHolder="Seleziona una ricorrenza (opzionale)" 
+              nzShowSearch
+              style="width: 100%;" 
+              [nzDropdownStyle]="{ 'max-height': '400px' }">
+              <nz-option *ngFor="let recurrence of recurrences" [nzValue]="recurrence.id" [nzLabel]="recurrence.name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="project" class="label-icon"></span>
+            Data Ricorrenza
+          </nz-form-label>
+          <nz-form-control nzExtra="Data di svolgimento della ricorrenza">
+            <nz-date-picker 
+              formControlName="recurrenceDate" 
+              nzFormat="dd/MM/yyyy" 
+              nzPlaceHolder="Seleziona data evento"
+              style="width: 100%;">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <div nz-row [nzGutter]="16" style="margin-top: 8px;">
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="export" class="label-icon"></span>
+            Data Estrazione Prevista
+          </nz-form-label>
+          <nz-form-control nzExtra="Quando estrarre i donatori target">
+            <nz-date-picker 
+              formControlName="extractionScheduledDate" 
+              nzFormat="dd/MM/yyyy" 
+              nzPlaceHolder="Seleziona data estrazione"
+              style="width: 100%;">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="rocket" class="label-icon"></span>
+            Data Spedizione Prevista
+          </nz-form-label>
+          <nz-form-control nzExtra="Quando inviare le comunicazioni">
+            <nz-date-picker 
+              formControlName="dispatchScheduledDate" 
+              nzFormat="dd/MM/yyyy" 
+              nzPlaceHolder="Seleziona data spedizione"
+              style="width: 100%;">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- ============================================ -->
+  <!-- SEZIONE 4: BUDGET E TARGET -->
+  <!-- ============================================ -->
+  <div class="form-section">
+    <h3 class="section-title">
+      <span nz-icon nzType="fund" nzTheme="outline"></span>
+      Budget e Target
+    </h3>
+    
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="calculator" class="label-icon"></span>
+            Costo Unitario (€)
+          </nz-form-label>
+          <nz-form-control nzExtra="Costo per donatore">
+            <nz-input-number 
+              formControlName="unitCost" 
+              [nzMin]="0" 
+              [nzStep]="0.1" 
+              [nzFormatter]="formatterEuro"
+              [nzParser]="parserEuro"
+              (ngModelChange)="onUnitCostChange()"
+              nzPlaceHolder="0.00"
+              style="width: 100%;">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label nzRequired>
+            <span nz-icon nzType="team" class="label-icon"></span>
+            Target Donatori
+          </nz-form-label>
+          <nz-form-control nzErrorTip="Numero di donatori da raggiungere">
+            <nz-input-number 
+              formControlName="targetDonorCount" 
+              [nzMin]="0" 
+              [nzStep]="10" 
+              [nzFormatter]="formatterNumber"
+              [nzParser]="parserNumber"
+              (ngModelChange)="onTargetChange()"
+              nzPlaceHolder="0"
+              style="width: 100%;">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label nzRequired>
+            <span nz-icon nzType="euro" class="label-icon"></span>
+            Costo Totale (€)
+          </nz-form-label>
+          <nz-form-control nzErrorTip="Inserisci il costo totale previsto">
+            <nz-input-number 
+              formControlName="totalCost" 
+              [nzMin]="0" 
+              [nzStep]="100" 
+              [nzFormatter]="formatterEuro"
+              [nzParser]="parserEuro"
+              (ngModelChange)="onTotalCostChange()"
+              nzPlaceHolder="0.00"
+              style="width: 100%;">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <!-- Indicatore calcolo automatico -->
+    <div class="cost-calculation-info" *ngIf="showCalculationHint">
+      <span nz-icon nzType="info-circle" nzTheme="outline"></span>
+      <span>{{ calculationHint }}</span>
+    </div>
+  </div>
+
+  <nz-divider></nz-divider>
+
+  <!-- ============================================ -->
+  <!-- SEZIONE 5: NOTE AGGIUNTIVE -->
+  <!-- ============================================ -->
+  <div class="form-section">
+    <h3 class="section-title">
+      <span nz-icon nzType="file-text" nzTheme="outline"></span>
+      Note Aggiuntive
+    </h3>
+    
+    <div nz-row>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label>
+            <span nz-icon nzType="edit" class="label-icon"></span>
+            Descrizione
+          </nz-form-label>
+          <nz-form-control nzExtra="Aggiungi eventuali note o dettagli aggiuntivi sulla campagna">
+            <textarea 
+              nz-input 
+              formControlName="description" 
+              placeholder="Inserisci note, obiettivi specifici o dettagli aggiuntivi sulla campagna..." 
+              [nzAutosize]="{ minRows: 4, maxRows: 8 }">
+            </textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- AZIONI FORM -->
+  <!-- ============================================ -->
+  <div class="form-actions">
+    <button nz-button nzSize="large" type="button" (click)="cancel()" [disabled]="loading">
+      <span nz-icon nzType="close"></span>
+      Annulla
+    </button>
+    <button nz-button nzType="primary" nzSize="large" (click)="save()" [nzLoading]="loading">
+      <span nz-icon nzType="save" *ngIf="!loading"></span>
+      {{ isEditMode ? 'Aggiorna Campagna' : 'Crea Campagna' }}
+    </button>
+  </div>
+</form>

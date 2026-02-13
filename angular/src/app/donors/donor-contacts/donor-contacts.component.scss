@@ -1,0 +1,266 @@
+/* ============================================
+   Donor Contacts - Modern CRM Style
+   ============================================ */
+
+.contacts-container {
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .section-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+
+        span[nz-icon] {
+          font-size: 20px;
+          color: white;
+        }
+      }
+    }
+
+    button {
+      height: 40px;
+      padding: 0 20px;
+    }
+  }
+}
+
+/* ============================================
+   Contacts List
+   ============================================ */
+.contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-normal) var(--ease-out);
+
+  &:hover {
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .contact-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    span[nz-icon] {
+      font-size: 20px;
+      color: #8b5cf6;
+    }
+  }
+
+  .contact-content {
+    flex: 1;
+    min-width: 0;
+
+    .contact-number {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      .default-tag {
+        font-size: 11px;
+        padding: 2px 8px !important;
+
+        span[nz-icon] {
+          margin-right: 4px;
+        }
+      }
+    }
+
+    .contact-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 6px;
+      font-size: 13px;
+
+      .contact-type {
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .contact-status {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+
+        span[nz-icon] {
+          font-size: 14px;
+        }
+
+        .status-verified {
+          color: var(--success);
+        }
+
+        .status-pending {
+          color: var(--warning);
+        }
+      }
+    }
+  }
+
+  .contact-actions {
+    display: flex;
+    gap: 6px;
+
+    .action-btn {
+      width: 38px;
+      height: 38px;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md) !important;
+      transition: all var(--duration-fast) !important;
+      border: 1px solid transparent !important;
+
+      span[nz-icon] {
+        font-size: 17px;
+        transition: transform var(--duration-fast);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+      }
+
+      /* Star - giallo/arancione */
+      &.star {
+        color: var(--warning) !important;
+        &:hover:not(:disabled) {
+          background: var(--warning-light) !important;
+          border-color: rgba(245, 158, 11, 0.2) !important;
+          span[nz-icon] { transform: scale(1.2); }
+        }
+      }
+
+      /* Delete - rosso */
+      &.delete {
+        color: var(--error) !important;
+        &:hover:not(:disabled) {
+          background: var(--error-light) !important;
+          border-color: rgba(239, 68, 68, 0.2) !important;
+          span[nz-icon] { transform: scale(1.2); }
+        }
+      }
+    }
+  }
+}
+
+/* ============================================
+   Empty State
+   ============================================ */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--neutral-50);
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--border-default);
+
+  .empty-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 20px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    span[nz-icon] {
+      font-size: 32px;
+      color: #8b5cf6;
+    }
+  }
+
+  h4 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  p {
+    margin: 0 0 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  button {
+    height: 42px;
+    padding: 0 24px;
+  }
+}
+
+/* ============================================
+   Loading State
+   ============================================ */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+/* ============================================
+   Modal
+   ============================================ */
+.form-intro {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--neutral-50);
+  border-radius: var(--radius-md);
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  button {
+    min-width: 120px;
+    height: 42px;
+  }
+}

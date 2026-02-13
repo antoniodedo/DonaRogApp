@@ -16,7 +16,20 @@ import { environment } from '../environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { APP_ROUTE_PROVIDER } from './route.provider';
-import { NoteModule } from './note/note.module';
+import { IconsProviderModule } from './icons-provider.module';
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { provideNzI18n } from 'ng-zorro-antd/i18n';
+import { it_IT } from 'ng-zorro-antd/i18n';
+import { registerLocaleData } from '@angular/common';
+import it from '@angular/common/locales/it';
+import { FormsModule } from '@angular/forms';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideHttpClient } from '@angular/common/http';
+
+registerLocaleData(it);
 
 @NgModule({
   declarations: [AppComponent],
@@ -28,7 +41,12 @@ import { NoteModule } from './note/note.module';
     CoreModule,
     ThemeLeptonXModule.forRoot(),
     SideMenuLayoutModule.forRoot(),
-    NoteModule,
+    IconsProviderModule,
+    NzLayoutModule,
+    NzMenuModule,
+    NzDropDownModule,
+    NzButtonModule,
+    FormsModule
   ],
   providers: [
     APP_ROUTE_PROVIDER,
@@ -45,6 +63,9 @@ import { NoteModule } from './note/note.module';
     provideAccountConfig(),
     provideTenantManagementConfig(),
     provideAbpThemeShared(),
+    provideNzI18n(it_IT),
+    provideAnimationsAsync(),
+    provideHttpClient(),
   ],
   bootstrap: [AppComponent],
 })

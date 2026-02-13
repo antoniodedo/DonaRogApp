@@ -1,0 +1,268 @@
+.notes-container {
+  padding: 16px 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+
+  .header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      span[nz-icon] {
+        color: #6366f1;
+      }
+    }
+
+    .count-badge {
+      background: #e0e7ff;
+      color: #4f46e5;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+// Table Styles
+.notes-table {
+  ::ng-deep {
+    .ant-table {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+    }
+
+    .ant-table-thead > tr > th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+      font-size: 13px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .ant-table-tbody > tr > td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .ant-table-tbody > tr:hover > td {
+      background: #f9fafb;
+    }
+
+    .ant-table-tbody > tr.important-row {
+      background: linear-gradient(to right, #fffbeb 0%, #fff 60%);
+      
+      &:hover > td {
+        background: linear-gradient(to right, #fef3c7 0%, #f9fafb 60%);
+      }
+    }
+
+    // Pagination
+    .ant-pagination {
+      margin: 16px 0 0;
+      padding: 0 8px;
+    }
+
+    .ant-pagination-item-active {
+      border-color: #6366f1;
+      
+      a {
+        color: #6366f1;
+      }
+    }
+
+    .ant-select-selector {
+      border-radius: 6px !important;
+    }
+  }
+}
+
+.important-cell {
+  text-align: center;
+  
+  .star-icon {
+    color: #f59e0b;
+    font-size: 16px;
+  }
+}
+
+.date-text {
+  font-size: 13px;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.no-category {
+  color: #9ca3af;
+}
+
+.content-cell {
+  .content-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .content-text {
+    flex: 1;
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.5;
+  }
+
+  .private-tag {
+    flex-shrink: 0;
+    font-size: 11px;
+    padding: 0 6px;
+    line-height: 18px;
+  }
+}
+
+.modification-cell {
+  .modification-date {
+    font-size: 12px;
+    color: #6366f1;
+    font-weight: 500;
+  }
+
+  .no-modification {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+}
+
+.actions-cell {
+  .action-buttons {
+    display: flex;
+    gap: 2px;
+
+    button {
+      width: 32px;
+      height: 32px;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px !important;
+
+      span[nz-icon] {
+        font-size: 15px;
+      }
+
+      &.active {
+        color: #f59e0b !important;
+      }
+
+      &:hover:not([disabled]) {
+        background: #f3f4f6;
+      }
+    }
+  }
+}
+
+.pagination-info {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+// Empty State
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px dashed #e5e7eb;
+
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    background: #e0e7ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    span[nz-icon] {
+      font-size: 28px;
+      color: #6366f1;
+    }
+  }
+
+  h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  p {
+    margin: 0 0 20px;
+    font-size: 14px;
+    color: #6b7280;
+  }
+}
+
+// Modal Styles
+.star-checkbox {
+  color: #f59e0b;
+  margin-right: 4px;
+}
+
+::ng-deep {
+  .ant-modal-header {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border-radius: 8px 8px 0 0;
+    padding: 16px 24px;
+    
+    .ant-modal-title {
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+  }
+
+  .ant-modal-close {
+    color: white;
+    &:hover { color: rgba(255, 255, 255, 0.8); }
+  }
+
+  .ant-modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .ant-modal-body {
+    padding: 24px;
+  }
+
+  .ant-modal-footer {
+    padding: 12px 24px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+
+    button.ant-btn-primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none;
+    }
+  }
+}

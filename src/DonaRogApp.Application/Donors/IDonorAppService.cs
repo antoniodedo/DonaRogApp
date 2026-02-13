@@ -1,4 +1,5 @@
-﻿using DonaRogApp.Donors.Dtos;
+using DonaRogApp.Donors.Dtos;
+using DonaRogApp.Donors.Dto;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,11 +14,11 @@ namespace DonaRogApp.Donors
     /// </summary>
     public interface IDonorAppService :
         ICrudAppService<
-            DonorDto,
+            Dtos.DonorDto,
             Guid,
-            PagedAndSortedResultRequestDto,
-            CreateDonorDto,
-            UpdateDonorDto>
+            Dto.GetDonorsInput,
+            Dtos.CreateDonorDto,
+            Dtos.UpdateDonorDto>
     {
         // ======================================================================
         // EMAIL MANAGEMENT
@@ -47,6 +48,23 @@ namespace DonaRogApp.Donors
         Task RevokePrivacyConsentAsync(Guid donorId);
         Task GrantNewsletterConsentAsync(Guid donorId);
         Task RevokeNewsletterConsentAsync(Guid donorId);
+        Task GrantMailConsentAsync(Guid donorId);
+        Task RevokeMailConsentAsync(Guid donorId);
         Task AnonymizeAsync(Guid donorId);
+
+        // ======================================================================
+        // STATUS MANAGEMENT
+        // ======================================================================
+
+        Task ChangeStatusAsync(Guid donorId, int status, string? note = null);
+        Task<List<DonorStatusHistoryDto>> GetStatusHistoryAsync(Guid donorId);
+
+        // ======================================================================
+        // TAG MANAGEMENT
+        // ======================================================================
+
+        Task<List<DonorTagDto>> GetTagsAsync(Guid donorId);
+        Task AddTagAsync(Guid donorId, AssignTagDto input);
+        Task DeleteTagAsync(Guid donorId, Guid tagId);
     }
 }

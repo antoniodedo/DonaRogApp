@@ -1,0 +1,250 @@
+<div class="addresses-container">
+  <div class="section-header">
+    <h3>
+      <span class="section-icon">
+        <span nz-icon nzType="environment"></span>
+      </span>
+      Indirizzi
+    </h3>
+    <button nz-button nzType="primary" (click)="openAddModal()">
+      <span nz-icon nzType="plus"></span>
+      Aggiungi
+    </button>
+  </div>
+
+  <!-- Address List -->
+  <div class="addresses-list" *ngIf="!loading && addresses.length > 0">
+    <div class="address-item" *ngFor="let address of addresses" [class.inactive]="!address.isActive">
+      <div class="address-icon" [class.inactive]="!address.isActive">
+        <span nz-icon nzType="environment"></span>
+      </div>
+      <div class="address-content">
+        <div class="address-text">
+          {{ formatAddress(address) }}
+          <nz-tag *ngIf="address.isDefault && address.isActive" nzColor="blue" class="default-tag">
+            <span nz-icon nzType="star" nzTheme="fill"></span> Principale
+          </nz-tag>
+          <nz-tag *ngIf="!address.isActive" nzColor="default" class="inactive-tag">
+            <span nz-icon nzType="history"></span> Storico
+          </nz-tag>
+        </div>
+        <div class="address-meta">
+          <span class="address-type">
+            <span nz-icon nzType="tag"></span>
+            {{ getAddressTypeLabel(address.type) }}
+          </span>
+          <span class="address-date" *ngIf="address.startDate">
+            <span nz-icon nzType="calendar"></span>
+            Dal {{ formatDate(address.startDate) }}
+          </span>
+          <span class="address-date end-date" *ngIf="address.endDate">
+            <span nz-icon nzType="calendar"></span>
+            Al {{ formatDate(address.endDate) }}
+          </span>
+        </div>
+      </div>
+      <div class="address-actions" *ngIf="address.isActive">
+        <button class="action-btn star" nz-button nzType="link" nzSize="small" 
+                (click)="setDefault(address)" 
+                [disabled]="address.isDefault"
+                nz-tooltip="Imposta come principale">
+          <span nz-icon nzType="star" [nzTheme]="address.isDefault ? 'fill' : 'outline'"></span>
+        </button>
+        <button class="action-btn delete" nz-button nzType="link" nzSize="small"
+                nz-popconfirm nzPopconfirmTitle="Eliminare questo indirizzo?"
+                nzOkText="Elimina" nzCancelText="Annulla"
+                (nzOnConfirm)="endAddress(address)"
+                nz-tooltip="Elimina">
+          <span nz-icon nzType="delete"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && addresses.length === 0">
+    <div class="empty-icon">
+      <span nz-icon nzType="environment"></span>
+    </div>
+    <h4>Nessun indirizzo registrato</h4>
+    <p>Aggiungi un indirizzo per questo donatore</p>
+    <button nz-button nzType="primary" (click)="openAddModal()">
+      <span nz-icon nzType="plus"></span>
+      Aggiungi Indirizzo
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <nz-spin nzSimple></nz-spin>
+  </div>
+</div>
+
+<!-- Modal Aggiungi Indirizzo -->
+<nz-modal
+  [(nzVisible)]="isAddModalVisible"
+  nzTitle="Aggiungi Indirizzo"
+  [nzWidth]="580"
+  [nzFooter]="addFooter"
+  (nzOnCancel)="closeAddModal()"
+  nzCentered>
+  
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="addForm" nzLayout="vertical">
+      <div class="form-intro">
+        <p>Cerca un indirizzo oppure compila manualmente i campi.</p>
+      </div>
+
+      <!-- Ricerca indirizzo con autocomplete -->
+      <div nz-row [nzGutter]="12">
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label>
+              <span nz-icon nzType="global"></span>
+              Paese
+            </nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="selectedCountryCode" 
+                         [ngModelOptions]="{standalone: true}"
+                         (ngModelChange)="onCountryChange()"
+                         nzPlaceHolder="Seleziona paese">
+                <nz-option *ngFor="let c of countries" [nzValue]="c.code" [nzLabel]="c.label"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="16">
+          <nz-form-item>
+            <nz-form-label>
+              <span nz-icon nzType="search"></span>
+              Cerca Indirizzo
+            </nz-form-label>
+            <nz-form-control>
+              <nz-input-group [nzSuffix]="searchSuffix">
+                <input nz-input 
+                       placeholder="Digita via, città o CAP..." 
+                       (input)="onAddressSearch($any($event.target).value)"
+                       [nzAutocomplete]="auto" />
+              </nz-input-group>
+              <ng-template #searchSuffix>
+                <span *ngIf="searchLoading" nz-icon nzType="loading"></span>
+                <span *ngIf="!searchLoading" nz-icon nzType="environment" style="color: var(--brand-500);"></span>
+              </ng-template>
+              <nz-autocomplete #auto [nzBackfill]="false">
+                <nz-auto-option *ngFor="let suggestion of addressSuggestions" 
+                                [nzValue]="suggestion.displayName"
+                                (click)="selectAddress(suggestion)">
+                  <div class="suggestion-item">
+                    <span nz-icon nzType="environment" class="suggestion-icon"></span>
+                    <div class="suggestion-text">
+                      <span class="suggestion-main">{{ suggestion.street || suggestion.city }}</span>
+                      <span class="suggestion-detail">
+                        {{ suggestion.city }}<span *ngIf="suggestion.province">, {{ suggestion.province }}</span> 
+                        {{ suggestion.postalCode }} - {{ suggestion.country }}
+                      </span>
+                    </div>
+                  </div>
+                </nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-divider nzText="Dettagli Indirizzo" nzOrientation="left"></nz-divider>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Via / Indirizzo</nz-form-label>
+        <nz-form-control nzErrorTip="Inserisci l'indirizzo">
+          <nz-input-group [nzPrefix]="streetIcon">
+            <input nz-input formControlName="street" placeholder="Via Roma, 1" />
+          </nz-input-group>
+          <ng-template #streetIcon>
+            <span nz-icon nzType="home" style="color: var(--text-muted);"></span>
+          </ng-template>
+        </nz-form-control>
+      </nz-form-item>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="14">
+          <nz-form-item>
+            <nz-form-label nzRequired>Città</nz-form-label>
+            <nz-form-control nzErrorTip="Inserisci la città">
+              <input nz-input formControlName="city" placeholder="Roma" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="10">
+          <nz-form-item>
+            <nz-form-label>Provincia</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="province" placeholder="RM" maxlength="2" style="text-transform: uppercase" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label nzRequired>CAP</nz-form-label>
+            <nz-form-control nzErrorTip="Inserisci il CAP">
+              <input nz-input formControlName="postalCode" placeholder="00100" maxlength="5" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="16">
+          <nz-form-item>
+            <nz-form-label>Regione</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="region" placeholder="Lazio" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Paese</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="country" placeholder="Italia" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Tipologia</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="type" nzPlaceHolder="Seleziona tipo">
+                <nz-option [nzValue]="AddressType.Home" nzLabel="Residenza"></nz-option>
+                <nz-option [nzValue]="AddressType.Work" nzLabel="Lavoro"></nz-option>
+                <nz-option [nzValue]="AddressType.Billing" nzLabel="Fatturazione"></nz-option>
+                <nz-option [nzValue]="AddressType.Shipping" nzLabel="Spedizione"></nz-option>
+                <nz-option [nzValue]="AddressType.Temporary" nzLabel="Temporaneo"></nz-option>
+                <nz-option [nzValue]="AddressType.Other" nzLabel="Altro"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label>Note</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="notes" placeholder="Eventuali note sull'indirizzo..." rows="2"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+
+  <ng-template #addFooter>
+    <div class="modal-footer">
+      <button nz-button (click)="closeAddModal()">Annulla</button>
+      <button nz-button nzType="primary" (click)="addAddress()" [nzLoading]="saving">
+        <span nz-icon nzType="plus"></span>
+        Aggiungi Indirizzo
+      </button>
+    </div>
+  </ng-template>
+</nz-modal>

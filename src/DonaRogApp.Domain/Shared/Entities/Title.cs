@@ -1,8 +1,9 @@
-﻿using DonaRogApp.Enums.Donors;
+using DonaRogApp.Enums.Donors;
 using System;
 using System.Collections.Generic;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.MultiTenancy;
 
 namespace DonaRogApp.Domain.Shared.Entities
 {
@@ -11,8 +12,12 @@ namespace DonaRogApp.Domain.Shared.Entities
     /// Shared Entity usata in multiple Bounded Contexts
     /// Esempi: Sig., Sig.ra, Dott., Ing., Prof., Avv., etc.
     /// </summary>
-    public class Title : AggregateRoot<Guid>
+    public class Title : AggregateRoot<Guid>, IMultiTenant
     {
+        /// <summary>
+        /// Tenant ID - ogni tenant ha i suoi titoli
+        /// </summary>
+        public Guid? TenantId { get; private set; }
         /// <summary>
         /// Codice univoco del titolo (es: "MR", "DR", "PROF")
         /// </summary>
@@ -42,6 +47,11 @@ namespace DonaRogApp.Domain.Shared.Entities
         /// Indica se il titolo è attivo
         /// </summary>
         public bool IsActive { get; private set; }
+
+        /// <summary>
+        /// Indica se è il titolo predefinito per il genere associato
+        /// </summary>
+        public bool IsDefault { get; private set; }
 
         /// <summary>
         /// Note interne
@@ -98,6 +108,45 @@ namespace DonaRogApp.Domain.Shared.Entities
         /// </summary>
         public void UpdateNotes(string? notes)
         {
+            Notes = notes;
+        }
+
+        /// <summary>
+        /// Imposta come predefinito per il genere
+        /// </summary>
+        public void SetAsDefault()
+        {
+            IsDefault = true;
+        }
+
+        /// <summary>
+        /// Rimuove lo stato di predefinito
+        /// </summary>
+        public void RemoveDefault()
+        {
+            IsDefault = false;
+        }
+
+        /// <summary>
+        /// Aggiorna i dati del titolo
+        /// </summary>
+        public void Update(
+            string code,
+            string name,
+            string abbreviation,
+            Gender? associatedGender,
+            int displayOrder,
+            string? notes = null)
+        {
+            Check.NotNullOrWhiteSpace(code, nameof(code));
+            Check.NotNullOrWhiteSpace(name, nameof(name));
+            Check.NotNullOrWhiteSpace(abbreviation, nameof(abbreviation));
+
+            Code = code.ToUpper();
+            Name = name;
+            Abbreviation = abbreviation;
+            AssociatedGender = associatedGender;
+            DisplayOrder = displayOrder;
             Notes = notes;
         }
     }

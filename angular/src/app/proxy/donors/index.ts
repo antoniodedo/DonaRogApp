@@ -1,5 +1,5 @@
 import * as Dto from './dto';
-export * from './donor-title.service';
+import * as Dtos from './dtos';
 export * from './donor.service';
-export * from './email.service';
-export { Dto };
+export * from './models';
+export { Dto, Dtos };

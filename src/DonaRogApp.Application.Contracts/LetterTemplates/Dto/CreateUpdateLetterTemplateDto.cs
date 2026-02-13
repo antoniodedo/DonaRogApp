@@ -1,22 +1,55 @@
-﻿using DonaRogApp.Donors;
+using DonaRogApp.Enums.Communications;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Volo.Abp.Application.Dtos;
 
 namespace DonaRogApp.LetterTemplates.Dto
 {
-    public class CreateUpdateLetterTemplateDto : EntityDto<Guid>
+    /// <summary>
+    /// DTO for creating or updating a Letter Template
+    /// </summary>
+    public class CreateUpdateLetterTemplateDto
     {
-        [MaxLength(128)]
-        public string? Name { get; set; }
-        public string Content { get; set; }
+        [Required]
+        [MaxLength(256)]
+        public string Name { get; set; } = null!;
+        
+        [MaxLength(1000)]
         public string? Description { get; set; }
-
+        
+        [Required]
+        public string Content { get; set; } = null!;
+        
+        // Categorization
+        [Required]
+        public TemplateCategory Category { get; set; }
+        
+        [Required]
+        [MaxLength(5)]
+        public string Language { get; set; } = "it";
+        
+        public CommunicationType? CommunicationType { get; set; }
+        
+        // Selection Criteria
+        public Guid? ProjectId { get; set; }
+        public Guid? RecurrenceId { get; set; }
+        public decimal? MinAmount { get; set; }
+        public decimal? MaxAmount { get; set; }
+        public bool IsForNewDonor { get; set; }
+        public bool IsPlural { get; set; }
+        
+        // Status
         public bool IsActive { get; set; }
+        public bool IsDefault { get; set; }
+        
+        // Multi-recipient
+        [MaxLength(500)]
+        public string? CcEmails { get; set; }
+        
+        [MaxLength(500)]
+        public string? BccEmails { get; set; }
+        
+        // Categorization Advanced
+        [MaxLength(500)]
+        public string? Tags { get; set; }
     }
 }

@@ -1,0 +1,682 @@
+/* ============================================
+   Letter Template Form - Modern CRM Style
+   ============================================ */
+
+// Hero Header (style from donation-verify)
+.hero-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(20, 184, 166, 0.25);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .back-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-out);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    span[nz-icon] {
+      font-size: 18px;
+      color: white;
+      transition: transform var(--duration-fast);
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateX(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+      span[nz-icon] {
+        transform: translateX(-2px);
+      }
+    }
+
+    &:active {
+      transform: translateX(-1px);
+    }
+  }
+
+  .template-icon {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+
+    span[nz-icon] {
+      font-size: 24px;
+      color: white;
+    }
+  }
+
+  .hero-text {
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.3px;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+
+      span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+  }
+}
+
+// Page Container (style from donation-verify)
+.template-form-page {
+  background: var(--surface-ground);
+  min-height: 100vh;
+  padding: 12px;
+}
+
+.form-content {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+// Loading Container
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  gap: 20px;
+  padding: 40px;
+  background: var(--surface-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+
+  ::ng-deep .ant-spin-dot-item {
+    background-color: var(--brand-500);
+  }
+}
+
+// Form container animation
+form {
+  animation: formFadeIn 0.4s ease-out;
+}
+
+@keyframes formFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Main form container with two columns
+.form-container-two-columns {
+  display: grid;
+  grid-template-columns: 550px 1fr;
+  gap: 12px;
+  position: relative;
+
+  // Add subtle background pattern
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 30%, rgba(20, 184, 166, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(20, 184, 166, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+// Left column - Configuration
+.left-column {
+  overflow-y: auto;
+  padding-right: 10px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+    border-radius: var(--radius-full);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--neutral-300);
+    border-radius: var(--radius-full);
+    transition: background var(--duration-fast);
+
+    &:hover {
+      background: var(--neutral-400);
+    }
+  }
+}
+
+// Right column - Editor
+.right-column {
+  overflow-y: auto;
+  padding-right: 10px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+    border-radius: var(--radius-full);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--neutral-300);
+    border-radius: var(--radius-full);
+    transition: background var(--duration-fast);
+
+    &:hover {
+      background: var(--neutral-400);
+    }
+  }
+
+  .editor-section {
+    .section-body {
+      padding: 12px 16px;
+    }
+
+    nz-form-item {
+      margin-bottom: 0;
+    }
+
+    editor {
+      display: block;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-default);
+      transition: all var(--duration-normal) var(--ease-out);
+
+      &:hover {
+        border-color: var(--brand-300);
+      }
+
+      &:focus-within {
+        border-color: var(--brand-400);
+        box-shadow: 0 0 0 3px var(--brand-100);
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1400px) {
+  .form-container-two-columns {
+    grid-template-columns: 480px 1fr;
+  }
+}
+
+@media (max-width: 1200px) {
+  .form-container-two-columns {
+    grid-template-columns: 420px 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .form-container-two-columns {
+    grid-template-columns: 1fr;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .left-column,
+  .right-column {
+    overflow-y: visible;
+  }
+
+  .two-columns-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+
+    &::after {
+      display: none;
+    }
+  }
+
+  .hero-header {
+    padding: 12px 16px;
+
+    .hero-text h1 {
+      font-size: 18px;
+    }
+
+    .hero-meta {
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .template-form-page {
+    padding: 12px 8px;
+  }
+
+  .form-section ::ng-deep .ant-card-body {
+    padding: 16px;
+  }
+
+  .checkboxes-inline {
+    flex-direction: column;
+    gap: 12px;
+
+    label {
+      width: 100%;
+    }
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+      min-width: auto;
+    }
+  }
+}
+
+// Form Section (restyled come donation-verify)
+.form-section {
+  margin-bottom: 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-normal) var(--ease-out);
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-default);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(to right, var(--brand-50), var(--brand-100));
+    border-bottom: 2px solid var(--brand-200);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--brand-800);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+
+    span[nz-icon] {
+      font-size: 16px;
+      color: var(--brand-600);
+    }
+  }
+
+  .section-body {
+    padding: 16px;
+    background: var(--surface-card);
+  }
+}
+
+// Two columns layout inside card
+.two-columns-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  position: relative;
+
+  // Vertical divider between columns
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      var(--border-default) 10%,
+      var(--border-default) 90%,
+      transparent 100%
+    );
+    transform: translateX(-50%);
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+// Checkboxes inline (dentro le colonne) - Modern Design
+.checkboxes-inline {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 44px;
+
+  label {
+    position: relative;
+    margin: 0;
+    padding: 11px 18px 11px 44px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--neutral-50), var(--surface-card));
+    border: 2px solid var(--border-default);
+    transition: all var(--duration-normal) var(--ease-out);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &:hover {
+      background: linear-gradient(135deg, var(--brand-50), var(--brand-100));
+      border-color: var(--brand-400);
+      color: var(--brand-700);
+      box-shadow: 0 2px 8px rgba(20, 184, 166, 0.15);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    ::ng-deep {
+      .ant-checkbox {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .ant-checkbox-inner {
+        width: 20px;
+        height: 20px;
+        border-width: 2px;
+        border-radius: 6px;
+        border-color: var(--border-strong);
+        transition: all var(--duration-normal) var(--ease-out);
+      }
+
+      .ant-checkbox-checked .ant-checkbox-inner {
+        background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+        border-color: var(--brand-500);
+        box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15);
+
+        &::after {
+          border-color: white;
+          border-width: 2px;
+        }
+      }
+
+      .ant-checkbox:hover .ant-checkbox-inner {
+        border-color: var(--brand-500);
+        transform: scale(1.1);
+      }
+
+      .ant-checkbox-wrapper {
+        display: contents;
+      }
+
+      .ant-checkbox + span {
+        padding-left: 0;
+      }
+    }
+
+    // Checked state styling
+    &:has(.ant-checkbox-checked) {
+      background: linear-gradient(135deg, var(--brand-50), var(--brand-100));
+      border-color: var(--brand-500);
+      color: var(--brand-700);
+      box-shadow: 0 2px 8px rgba(20, 184, 166, 0.2);
+    }
+  }
+}
+
+// Form Actions (style from donation-verify)
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-top: 10px;
+  background: var(--surface-card);
+  border-top: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+
+  button {
+    min-width: 140px;
+    height: 42px;
+    font-weight: 600;
+    transition: all var(--duration-normal) var(--ease-out);
+
+    span[nz-icon] {
+      margin-right: 8px;
+    }
+
+    &[nzType="primary"] {
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+
+      &:hover {
+        box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4);
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+// Form Items
+nz-form-item {
+  margin-bottom: 10px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+::ng-deep .ant-form-item-label {
+  padding-bottom: 6px;
+  line-height: 1.5;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+
+  > label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 13px;
+    letter-spacing: 0.2px;
+    line-height: 1.5;
+
+    &.ant-form-item-required::before {
+      color: var(--error);
+      margin-right: 6px;
+    }
+  }
+}
+
+// Helper text & info boxes
+small {
+  color: var(--text-muted);
+  font-size: 12px;
+  display: block;
+  margin-top: 8px;
+  line-height: 1.5;
+
+  span[nz-icon] {
+    margin-right: 6px;
+    color: var(--brand-500);
+  }
+}
+
+// Info box for editor help
+.editor-section small {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, var(--brand-50), var(--brand-100));
+  border-left: 3px solid var(--brand-500);
+  border-radius: var(--radius-md);
+  color: var(--brand-800);
+  font-weight: 500;
+  margin-top: 12px;
+  transition: all var(--duration-normal) var(--ease-out);
+  box-shadow: 0 2px 6px rgba(20, 184, 166, 0.1);
+
+  &:hover {
+    background: linear-gradient(135deg, var(--brand-100), var(--brand-200));
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.15);
+    transform: translateY(-1px);
+  }
+
+  span[nz-icon] {
+    font-size: 16px;
+    color: var(--brand-600);
+    margin-right: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+// Input focus styles & enhancements
+::ng-deep {
+  .ant-input,
+  .ant-select-selector,
+  .ant-input-number,
+  .ant-picker {
+    transition: all var(--duration-normal) var(--ease-out) !important;
+  }
+
+  .ant-input:focus,
+  .ant-input-focused,
+  .ant-select-focused .ant-select-selector,
+  .ant-input-number-focused,
+  .ant-picker-focused {
+    border-color: var(--brand-400) !important;
+    box-shadow: 0 0 0 3px var(--brand-100) !important;
+  }
+
+  .ant-input:hover:not(:disabled):not(:focus),
+  .ant-select:not(.ant-select-disabled):hover .ant-select-selector,
+  .ant-input-number:hover:not(.ant-input-number-disabled),
+  .ant-picker:hover:not(.ant-picker-disabled) {
+    border-color: var(--brand-300) !important;
+  }
+
+  // Placeholder styling
+  .ant-input::placeholder,
+  .ant-select-selection-placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.7;
+  }
+
+  // Input number controls
+  .ant-input-number-handler-wrap {
+    background: var(--neutral-50);
+    border-left: 1px solid var(--border-default);
+  }
+
+  .ant-input-number-handler {
+    border-color: var(--border-subtle);
+
+    &:hover {
+      color: var(--brand-600);
+    }
+  }
+
+  // Select dropdown arrow
+  .ant-select-arrow {
+    color: var(--text-muted);
+    transition: color var(--duration-fast);
+  }
+
+  .ant-select:not(.ant-select-disabled):hover .ant-select-arrow {
+    color: var(--brand-600);
+  }
+
+  // Textarea
+  textarea.ant-input {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.6;
+  }
+}

@@ -1,0 +1,96 @@
+<div class="donation-form-container">
+  <nz-card [nzTitle]="isEditMode ? 'Modifica Donazione' : 'Registra Nuova Donazione'">
+    <form nz-form [formGroup]="form" (ngSubmit)="submit()">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzRequired>Donatore</nz-form-label>
+        <nz-form-control [nzSpan]="14" nzErrorTip="Seleziona un donatore">
+          <input nz-input formControlName="donorId" placeholder="ID Donatore" />
+          <!-- TODO: Replace with autocomplete donor selector -->
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzRequired>Canale</nz-form-label>
+        <nz-form-control [nzSpan]="14" nzErrorTip="Seleziona un canale">
+          <nz-select formControlName="channel" nzPlaceHolder="Seleziona canale">
+            <nz-option
+              *ngFor="let opt of channelOptions"
+              [nzValue]="opt.value"
+              [nzLabel]="opt.label">
+            </nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzRequired>Importo</nz-form-label>
+        <nz-form-control [nzSpan]="14" nzErrorTip="Inserisci importo valido">
+          <nz-input-number
+            formControlName="totalAmount"
+            [nzMin]="0"
+            [nzStep]="10"
+            [nzFormatter]="'€'"
+            style="width: 100%;">
+          </nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzRequired>Data Versamento</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <nz-date-picker formControlName="donationDate" style="width: 100%;"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Data Accredito</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <nz-date-picker formControlName="creditDate" style="width: 100%;"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Note</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <textarea
+            nz-input
+            formControlName="notes"
+            [nzAutosize]="{ minRows: 3, maxRows: 6 }"
+            placeholder="Note pubbliche">
+          </textarea>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Note Interne</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <textarea
+            nz-input
+            formControlName="internalNotes"
+            [nzAutosize]="{ minRows: 3, maxRows: 6 }"
+            placeholder="Note operative interne">
+          </textarea>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control [nzOffset]="6" [nzSpan]="14">
+          <button
+            nz-button
+            nzType="primary"
+            [nzLoading]="loading"
+            [disabled]="form.invalid">
+            Salva
+          </button>
+          <button
+            nz-button
+            nzType="default"
+            (click)="cancel()"
+            style="margin-left: 8px;">
+            Annulla
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </nz-card>
+</div>

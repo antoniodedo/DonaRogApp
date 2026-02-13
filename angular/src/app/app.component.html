@@ -1,0 +1,170 @@
+<nz-layout class="app-layout">
+  <nz-sider class="menu-sidebar"
+    nzCollapsible
+    nzWidth="260px"
+    nzBreakpoint="md"
+    [(nzCollapsed)]="isCollapsed"
+    [nzTrigger]="null">
+    
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <a routerLink="/">
+        <div class="logo-icon">
+          <span nz-icon nzType="heart" nzTheme="fill"></span>
+        </div>
+        <h1 *ngIf="!isCollapsed">Dona<span>Rog</span></h1>
+      </a>
+    </div>
+
+    <!-- Navigation - Solo se autenticato -->
+    <ng-container *ngIf="isAuthenticated">
+      
+      <!-- Menu per utenti TENANT -->
+      <ng-container *ngIf="isTenantUser">
+        <div class="nav-section" *ngIf="!isCollapsed">GESTIONE</div>
+        <ul nz-menu nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+          <li nz-menu-item nzMatchRouter routerLink="/donors">
+            <span nz-icon nzType="heart" nzTheme="outline"></span>
+            <span>Donatori</span>
+          </li>
+          <li nz-menu-item nzMatchRouter routerLink="/donations">
+            <span nz-icon nzType="euro" nzTheme="outline"></span>
+            <span>Donazioni</span>
+          </li>
+          <li nz-menu-item nzMatchRouter routerLink="/campaigns">
+            <span nz-icon nzType="mail" nzTheme="outline"></span>
+            <span>Campagne</span>
+          </li>
+          <li nz-menu-item nzMatchRouter routerLink="/welcome">
+            <span nz-icon nzType="dashboard"></span>
+            <span>Dashboard</span>
+          </li>
+        </ul>
+
+        <!-- Admin Menu Tenant - Solo con permessi -->
+        <ng-container *ngIf="showAdminMenu">
+          <div class="nav-section" *ngIf="!isCollapsed">AMMINISTRAZIONE</div>
+          <ul nz-menu nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+            <li nz-menu-item nzMatchRouter routerLink="/admin/recurrences">
+              <span nz-icon nzType="calendar" nzTheme="outline"></span>
+              <span>Ricorrenze</span>
+            </li>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/projects">
+              <span nz-icon nzType="project" nzTheme="outline"></span>
+              <span>Progetti</span>
+            </li>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/users" *ngIf="canManageUsers">
+              <span nz-icon nzType="team"></span>
+              <span>Utenti</span>
+            </li>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/roles" *ngIf="canManageRoles">
+              <span nz-icon nzType="safety-certificate"></span>
+              <span>Ruoli</span>
+            </li>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/titles">
+              <span nz-icon nzType="idcard"></span>
+              <span>Titoli</span>
+            </li>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/tags">
+              <span nz-icon nzType="tags"></span>
+              <span>Tag</span>
+            </li>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/letter-templates">
+              <span nz-icon nzType="file-text"></span>
+              <span>Template</span>
+            </li>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/bank-accounts">
+              <span nz-icon nzType="bank"></span>
+              <span>Conti Correnti</span>
+            </li>
+          </ul>
+        </ng-container>
+      </ng-container>
+
+      <!-- Menu per utenti HOST (Super Admin) -->
+      <ng-container *ngIf="isHostUser">
+        <div class="nav-section" *ngIf="!isCollapsed">GESTIONE HOST</div>
+        <ul nz-menu nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+          <li nz-menu-item nzMatchRouter routerLink="/admin/tenants" *ngIf="canManageTenants">
+            <span nz-icon nzType="apartment"></span>
+            <span>Tenant</span>
+          </li>
+          <li nz-menu-item nzMatchRouter routerLink="/admin/users" *ngIf="canManageUsers">
+            <span nz-icon nzType="team"></span>
+            <span>Utenti Globali</span>
+          </li>
+          <li nz-menu-item nzMatchRouter routerLink="/admin/roles" *ngIf="canManageRoles">
+            <span nz-icon nzType="safety-certificate"></span>
+            <span>Ruoli Globali</span>
+          </li>
+        </ul>
+      </ng-container>
+    </ng-container>
+    
+    <!-- Menu non autenticato -->
+    <div class="login-prompt" *ngIf="!isAuthenticated && !isCollapsed">
+      <div class="login-prompt-icon">
+        <span nz-icon nzType="lock" nzTheme="outline"></span>
+      </div>
+      <p>Accedi per visualizzare il menu</p>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer" *ngIf="!isCollapsed">
+      <div class="app-version">v1.0.0</div>
+    </div>
+  </nz-sider>
+
+  <nz-layout>
+    <nz-header>
+      <div class="app-header">
+        <div class="header-trigger" (click)="isCollapsed = !isCollapsed">
+          <span class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></span>
+        </div>
+        
+        <div class="header-spacer"></div>
+        
+        <div class="header-actions">
+          <div class="header-btn" nz-tooltip="Impostazioni">
+            <span nz-icon nzType="setting"></span>
+          </div>
+        </div>
+
+        <div class="header-user" *ngIf="isAuthenticated" nz-dropdown [nzDropdownMenu]="userMenu" nzTrigger="click">
+          <div class="user-avatar">
+            <span nz-icon nzType="user"></span>
+          </div>
+          <span class="user-name">{{ currentUserName }}</span>
+          <span nz-icon nzType="down" class="dropdown-arrow"></span>
+        </div>
+        
+        <nz-dropdown-menu #userMenu="nzDropdownMenu">
+          <ul nz-menu class="user-dropdown">
+            <li nz-menu-item disabled>
+              <span nz-icon nzType="user"></span>
+              <span>{{ currentUserName }}</span>
+            </li>
+            <li nz-menu-divider></li>
+            <li nz-menu-item (click)="logout()" class="logout-item">
+              <span nz-icon nzType="logout"></span>
+              <span>Esci</span>
+            </li>
+          </ul>
+        </nz-dropdown-menu>
+        
+        <div class="header-login" *ngIf="!isAuthenticated">
+          <button nz-button nzType="primary" (click)="login()">
+            <span nz-icon nzType="login"></span>
+            Accedi
+          </button>
+        </div>
+      </div>
+    </nz-header>
+
+    <nz-content>
+      <div class="inner-content">
+        <router-outlet></router-outlet>
+      </div>
+    </nz-content>
+  </nz-layout>
+</nz-layout>

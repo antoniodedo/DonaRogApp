@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Domain.Donors.Entities;
+using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Domain.Donors.Events;
 using DonaRogApp.Enums.Communications;
 using DonaRogApp.Enums.Donors;
@@ -27,12 +27,32 @@ namespace DonaRogApp.Domain.Donors.Entities
             if (PrivacyConsent)
             {
                 PrivacyConsent = false;
+                PrivacyConsentRevokedDate = DateTime.UtcNow;
+                
+                // Revoca anche newsletter e spedizioni cartacee
+                if (NewsletterConsent)
+                {
+                    NewsletterConsent = false;
+                    AddLocalEvent(new DonorNewsletterConsentRevokedEvent(this.Id));
+                }
+                if (MailConsent)
+                {
+                    MailConsent = false;
+                }
+                
                 AddLocalEvent(new DonorPrivacyConsentRevokedEvent(this.Id));
             }
         }
 
         public void GrantNewsletterConsent()
         {
+            // Non si può abilitare newsletter se privacy è revocata
+            if (!PrivacyConsent)
+            {
+                throw new BusinessException(DonorErrorCodes.CannotGrantConsentWithoutPrivacy)
+                    .WithData("consentType", "Newsletter");
+            }
+            
             if (!NewsletterConsent)
             {
                 NewsletterConsent = true;
@@ -53,8 +73,29 @@ namespace DonaRogApp.Domain.Donors.Entities
         public void GrantPhoneConsent() => PhoneConsent = true;
         public void RevokePhoneConsent() => PhoneConsent = false;
 
-        public void GrantMailConsent() => MailConsent = true;
-        public void RevokeMailConsent() => MailConsent = false;
+        public void GrantMailConsent()
+        {
+            // Non si può abilitare mail se privacy è revocata
+            if (!PrivacyConsent)
+            {
+                throw new BusinessException(DonorErrorCodes.CannotGrantConsentWithoutPrivacy)
+                    .WithData("consentType", "Spedizioni Cartacee");
+            }
+            
+            if (!MailConsent)
+            {
+                MailConsent = true;
+                MailConsentDate = DateTime.UtcNow;
+            }
+        }
+        
+        public void RevokeMailConsent()
+        {
+            if (MailConsent)
+            {
+                MailConsent = false;
+            }
+        }
 
         public void GrantProfilingConsent() => ProfilingConsent = true;
         public void RevokeProfilingConsent() => ProfilingConsent = false;

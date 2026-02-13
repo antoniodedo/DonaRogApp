@@ -1,0 +1,32 @@
+<nz-table
+  [nzData]="donors"
+  [nzLoading]="loading"
+  [nzTotal]="total"
+  [nzPageSize]="pageSize"
+  [nzPageIndex]="pageIndex"
+  [nzFrontPagination]="false"
+  (nzPageIndexChange)="onPageChange($event)">
+  <thead>
+    <tr>
+      <th>Nome Donatore</th>
+      <th>Email</th>
+      <th>Città</th>
+      <th>Data Estrazione</th>
+      <th>Importo Donazione</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let donor of donors">
+      <td>{{ donor.donorName }}</td>
+      <td>{{ donor.donorEmail || '-' }}</td>
+      <td>{{ donor.donorCity || '-' }}</td>
+      <td>{{ donor.extractedAt | date:'dd/MM/yyyy' }}</td>
+      <td>
+        <strong *ngIf="donor.donationAmount" style="color: #3f8600;">
+          {{ donor.donationAmount | currency:'EUR' }}
+        </strong>
+        <span *ngIf="!donor.donationAmount">-</span>
+      </td>
+    </tr>
+  </tbody>
+</nz-table>

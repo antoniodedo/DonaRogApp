@@ -1,0 +1,129 @@
+<div class="contacts-container">
+  <div class="section-header">
+    <h3>
+      <span class="section-icon">
+        <span nz-icon nzType="phone"></span>
+      </span>
+      Contatti Telefonici
+    </h3>
+    <button nz-button nzType="primary" (click)="openAddModal()">
+      <span nz-icon nzType="plus"></span>
+      Aggiungi
+    </button>
+  </div>
+
+  <!-- Contacts List -->
+  <div class="contacts-list" *ngIf="!loading && contacts.length > 0">
+    <div class="contact-item" *ngFor="let contact of contacts">
+      <div class="contact-icon">
+        <span nz-icon nzType="phone"></span>
+      </div>
+      <div class="contact-content">
+        <div class="contact-number">
+          {{ contact.phoneNumber }}
+          <nz-tag *ngIf="contact.isDefault" nzColor="blue" class="default-tag">
+            <span nz-icon nzType="star" nzTheme="fill"></span> Principale
+          </nz-tag>
+        </div>
+        <div class="contact-meta">
+          <span class="contact-type">{{ getContactTypeLabel(contact.type) }}</span>
+          <span class="contact-status">
+            <span *ngIf="contact.isVerified" class="status-verified">
+              <span nz-icon nzType="check-circle"></span> Verificato
+            </span>
+            <span *ngIf="!contact.isVerified" class="status-pending">
+              <span nz-icon nzType="clock-circle"></span> Da verificare
+            </span>
+          </span>
+        </div>
+      </div>
+      <div class="contact-actions">
+        <button class="action-btn star" nz-button nzType="link" nzSize="small" 
+                (click)="setDefault(contact)" 
+                [disabled]="contact.isDefault"
+                nz-tooltip="Imposta come principale">
+          <span nz-icon nzType="star" [nzTheme]="contact.isDefault ? 'fill' : 'outline'"></span>
+        </button>
+        <button class="action-btn delete" nz-button nzType="link" nzSize="small"
+                nz-popconfirm nzPopconfirmTitle="Rimuovere questo contatto?"
+                nzOkText="Elimina" nzCancelText="Annulla"
+                (nzOnConfirm)="removeContact(contact)"
+                nz-tooltip="Elimina">
+          <span nz-icon nzType="delete"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && contacts.length === 0">
+    <div class="empty-icon">
+      <span nz-icon nzType="phone"></span>
+    </div>
+    <h4>Nessun contatto registrato</h4>
+    <p>Aggiungi un numero di telefono per contattare questo donatore</p>
+    <button nz-button nzType="primary" (click)="openAddModal()">
+      <span nz-icon nzType="plus"></span>
+      Aggiungi Contatto
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <nz-spin nzSimple></nz-spin>
+  </div>
+</div>
+
+<!-- Modal Aggiungi Contatto -->
+<nz-modal
+  [(nzVisible)]="isAddModalVisible"
+  nzTitle="Aggiungi Contatto"
+  [nzWidth]="480"
+  [nzFooter]="addFooter"
+  (nzOnCancel)="closeAddModal()"
+  nzCentered>
+  
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="addForm" nzLayout="vertical">
+      <div class="form-intro">
+        <p>Inserisci i dettagli del numero di telefono da aggiungere al donatore.</p>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Numero di Telefono</nz-form-label>
+        <nz-form-control nzErrorTip="Inserisci un numero di telefono">
+          <nz-input-group [nzPrefix]="phoneIcon">
+            <input nz-input formControlName="phoneNumber" placeholder="+39 333 1234567" type="tel" />
+          </nz-input-group>
+          <ng-template #phoneIcon>
+            <span nz-icon nzType="phone" style="color: var(--text-muted);"></span>
+          </ng-template>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Tipo di Contatto</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="type" nzPlaceHolder="Seleziona tipologia">
+            <nz-option [nzValue]="ContactType.Mobile" nzLabel="Cellulare"></nz-option>
+            <nz-option [nzValue]="ContactType.HomeLandline" nzLabel="Fisso Casa"></nz-option>
+            <nz-option [nzValue]="ContactType.WorkLandline" nzLabel="Fisso Lavoro"></nz-option>
+            <nz-option [nzValue]="ContactType.WhatsApp" nzLabel="WhatsApp"></nz-option>
+            <nz-option [nzValue]="ContactType.Fax" nzLabel="Fax"></nz-option>
+            <nz-option [nzValue]="ContactType.Other" nzLabel="Altro"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+
+  <ng-template #addFooter>
+    <div class="modal-footer">
+      <button nz-button (click)="closeAddModal()">Annulla</button>
+      <button nz-button nzType="primary" (click)="addContact()" [nzLoading]="saving">
+        <span nz-icon nzType="plus"></span>
+        Aggiungi Contatto
+      </button>
+    </div>
+  </ng-template>
+</nz-modal>

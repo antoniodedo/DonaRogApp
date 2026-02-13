@@ -1,0 +1,266 @@
+<div class="recurrences-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="calendar" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>Ricorrenze</h1>
+        <p>Gestisci ricorrenze annuali con periodo di validità</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openCreateModal()" nz-tooltip="Nuova Ricorrenza">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="calendar"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total }}</span>
+        <span class="stat-label">Ricorrenze Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveRecurrencesCount() }}</span>
+        <span class="stat-label">Attive</span>
+      </div>
+    </div>
+    <div class="stat-card stat-inactive">
+      <div class="stat-icon">
+        <span nz-icon nzType="pause-circle"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getInactiveRecurrencesCount() }}</span>
+        <span class="stat-label">Disattivate</span>
+      </div>
+    </div>
+    <div class="stat-card stat-with-date">
+      <div class="stat-icon">
+        <span nz-icon nzType="clock-circle"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getRecurrencesWithDateCount() }}</span>
+        <span class="stat-label">Con Data Fissa</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <div class="toolbar">
+      <div class="search-box">
+        <nz-input-group [nzPrefix]="prefixIcon" [nzSuffix]="suffixIcon">
+          <input nz-input placeholder="Cerca per nome o codice..." 
+                 [(ngModel)]="searchText" 
+                 (ngModelChange)="onSearch()" />
+        </nz-input-group>
+        <ng-template #prefixIcon>
+          <span nz-icon nzType="search"></span>
+        </ng-template>
+        <ng-template #suffixIcon>
+          <span nz-icon nzType="close-circle" 
+                *ngIf="searchText" 
+                (click)="clearSearch()" 
+                style="cursor: pointer; color: #bfbfbf;"></span>
+        </ng-template>
+      </div>
+      <div class="toolbar-actions">
+        <button nz-button nzType="default" (click)="openAdvancedSearch()" 
+                class="filter-btn"
+                [class.active]="hasActiveFilters()">
+          <nz-badge [nzCount]="getActiveFiltersCount()" [nzShowZero]="false" nzSize="small">
+            <span nz-icon nzType="filter" [nzTheme]="hasActiveFilters() ? 'fill' : 'outline'"></span>
+          </nz-badge>
+          <span class="btn-text">Filtri</span>
+        </button>
+        <button nz-button nzType="default" (click)="loadRecurrences()" nz-tooltip="Aggiorna lista">
+          <span nz-icon nzType="reload"></span>
+        </button>
+      </div>
+    </div>
+
+    <nz-table
+      #recurrencesTable
+      [nzData]="recurrences"
+      [nzLoading]="loading"
+      [nzTotal]="total"
+      [nzPageSize]="pageSize"
+      [nzPageIndex]="pageIndex"
+      [nzFrontPagination]="false"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 20, 50, 100]"
+      (nzPageIndexChange)="onPageChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)">
+      <thead>
+        <tr>
+          <th nzWidth="100px">Codice</th>
+          <th>Nome</th>
+          <th nzWidth="100px">Attivo</th>
+          <th nzWidth="130px">Data Ricorrenza</th>
+          <th nzWidth="150px">Range Validità</th>
+          <th nzWidth="180px" nzAlign="center">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let recurrence of recurrences; let i = index" class="recurrence-row" [style.animation-delay.ms]="i * 40">
+          <td>
+            <code class="code-badge">{{ recurrence.code || '-' }}</code>
+          </td>
+          <td>
+            <strong class="recurrence-name">{{ recurrence.name }}</strong>
+          </td>
+          <td>
+            <nz-tag class="status-tag" [nzColor]="recurrence.isActive ? 'success' : 'default'">
+              <span class="status-dot"></span>
+              {{ recurrence.isActive ? 'Attivo' : 'Disattivo' }}
+            </nz-tag>
+          </td>
+          <td>
+            <span *ngIf="recurrence.recurrenceDay && recurrence.recurrenceMonth">
+              {{ recurrence.recurrenceDay }}/{{ recurrence.recurrenceMonth }}
+            </span>
+            <span *ngIf="!recurrence.recurrenceDay || !recurrence.recurrenceMonth" class="empty-cell">-</span>
+          </td>
+          <td>
+            <span *ngIf="recurrence.recurrenceDay && recurrence.recurrenceMonth">
+              <small style="color: var(--text-secondary);">
+                -{{ recurrence.daysBeforeRecurrence }}d / +{{ recurrence.daysAfterRecurrence }}d
+              </small>
+            </span>
+            <span *ngIf="!recurrence.recurrenceDay || !recurrence.recurrenceMonth" class="empty-cell">N/A</span>
+          </td>
+          <td nzAlign="center">
+            <div class="actions-cell">
+              <button nz-button nzType="text" class="action-btn edit" 
+                      (click)="openEditModal(recurrence)" 
+                      nz-tooltip="Modifica">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              
+              <!-- Toggle Active/Inactive -->
+              <button *ngIf="recurrence.isActive" 
+                      nz-button nzType="text" class="action-btn deactivate" 
+                      (click)="deactivateRecurrence(recurrence.id)" 
+                      nz-tooltip="Disattiva">
+                <span nz-icon nzType="pause-circle"></span>
+              </button>
+              
+              <button *ngIf="!recurrence.isActive" 
+                      nz-button nzType="text" class="action-btn activate" 
+                      (click)="reactivateRecurrence(recurrence.id)" 
+                      nz-tooltip="Riattiva">
+                <span nz-icon nzType="play-circle"></span>
+              </button>
+              
+              <button nz-button nzType="text" class="action-btn delete"
+                      nz-popconfirm
+                      nzPopconfirmTitle="Sei sicuro di voler eliminare questa ricorrenza?"
+                      (nzOnConfirm)="deleteRecurrence(recurrence.id)"
+                      nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && recurrences.length === 0" class="empty-state">
+      <div class="empty-illustration">
+        <div class="empty-icon">
+          <span nz-icon nzType="calendar" nzTheme="outline"></span>
+        </div>
+        <div class="empty-circles">
+          <div class="circle c1"></div>
+          <div class="circle c2"></div>
+          <div class="circle c3"></div>
+        </div>
+      </div>
+      <h3>Nessuna ricorrenza trovata</h3>
+      <p>Non ci sono ricorrenze che corrispondono ai criteri di ricerca</p>
+      <button nz-button nzType="primary" nzSize="large" (click)="openCreateModal()">
+        <span nz-icon nzType="plus"></span>
+        Crea la tua prima ricorrenza
+      </button>
+    </div>
+  </nz-card>
+</div>
+
+<!-- Advanced Search Drawer -->
+<nz-drawer
+  [nzVisible]="isAdvancedSearchVisible"
+  nzPlacement="right"
+  nzTitle="Filtri Avanzati"
+  [nzWidth]="400"
+  [nzFooter]="drawerFooter"
+  (nzOnClose)="closeAdvancedSearch()">
+  <ng-container *nzDrawerContent>
+    <div class="advanced-search-content">
+      <form nz-form [formGroup]="filterForm" nzLayout="vertical">
+        <h4>
+          <span nz-icon nzType="filter"></span>
+          Stato
+        </h4>
+        
+        <div class="filter-section">
+          <label>
+            <span nz-icon nzType="check-circle"></span>
+            Stato Attivazione
+          </label>
+          <nz-select formControlName="isActive" nzAllowClear nzPlaceHolder="Tutti">
+            <nz-option [nzValue]="true" nzLabel="Solo Attive"></nz-option>
+            <nz-option [nzValue]="false" nzLabel="Solo Disattivate"></nz-option>
+          </nz-select>
+        </div>
+      </form>
+    </div>
+  </ng-container>
+  
+  <ng-template #drawerFooter>
+    <div class="drawer-footer">
+      <button nz-button nzBlock (click)="resetFilters()">
+        <span nz-icon nzType="reload"></span>
+        Reset
+      </button>
+      <button nz-button nzType="primary" nzBlock (click)="applyFilters()">
+        <span nz-icon nzType="search"></span>
+        Applica
+      </button>
+    </div>
+  </ng-template>
+</nz-drawer>
+
+<!-- Modal for Create/Edit -->
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  [nzTitle]="modalTitle"
+  [nzFooter]="null"
+  [nzWidth]="800"
+  (nzOnCancel)="handleModalClose(false)">
+  <ng-container *nzModalContent>
+    <app-recurrence-form
+      [recurrenceId]="selectedRecurrence?.id"
+      (onSave)="handleModalClose(true)"
+      (onCancel)="handleModalClose(false)">
+    </app-recurrence-form>
+  </ng-container>
+</nz-modal>

@@ -1,0 +1,132 @@
+<div class="demo-container">
+  <nz-alert
+    nzType="info"
+    nzMessage="Demo Flussi Esterni"
+    nzDescription="Questa pagina simula l'arrivo di donazioni da microservizi esterni (PayPal, Bollettini Telematici, ecc.). Le donazioni create qui avranno stato 'Pending' e dovranno essere verificate."
+    nzShowIcon>
+  </nz-alert>
+
+  <nz-divider></nz-divider>
+
+  <nz-card nzTitle="Simula Invio Donazione Esterna">
+    <form nz-form [formGroup]="form">
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>External ID</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="externalId" placeholder="ID univoco dal microservizio" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>Canale</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="channel">
+                <nz-option
+                  *ngFor="let opt of channelOptions"
+                  [nzValue]="opt.value"
+                  [nzLabel]="opt.label">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label nzRequired>Importo</nz-form-label>
+            <nz-form-control>
+              <nz-input-number
+                formControlName="amount"
+                [nzMin]="0"
+                [nzStep]="10"
+                style="width: 100%;">
+              </nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label nzRequired>Data Versamento</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker formControlName="donationDate" style="width: 100%;"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label>Data Accredito</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker formControlName="creditDate" style="width: 100%;"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Donatore ID</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="donorId" placeholder="ID donatore esistente" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Note</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="notes" [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control>
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="large"
+            [nzLoading]="loading"
+            (click)="simulateSend()">
+            <span nz-icon nzType="thunderbolt"></span>
+            Simula Invio
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </nz-card>
+
+  <nz-divider></nz-divider>
+
+  <!-- Pending Donations Created -->
+  <nz-card nzTitle="Donazioni Pending Create dalla Demo">
+    <nz-table [nzData]="pendingDonations" [nzShowPagination]="false" nzSize="small">
+      <thead>
+        <tr>
+          <th>Riferimento</th>
+          <th>External ID</th>
+          <th>Canale</th>
+          <th>Importo</th>
+          <th>Data</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let donation of pendingDonations">
+          <td>{{ donation.reference }}</td>
+          <td>{{ donation.reference }}</td>
+          <td>{{ donation.channel }}</td>
+          <td>{{ donation.totalAmount | currency: 'EUR' }}</td>
+          <td>{{ donation.donationDate | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <a [routerLink]="['/donations/verify', donation.id]">Verifica</a>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-card>
+</div>

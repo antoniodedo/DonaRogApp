@@ -1,0 +1,276 @@
+<div class="title-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="idcard" nzTheme="outline"></span>
+        <div class="hero-icon-ring"></div>
+      </div>
+      <div class="hero-text">
+        <h1>Gestione Titoli</h1>
+        <p>Configura i titoli di cortesia (Sig., Dott., Prof., ecc.)</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="openCreateForm()" nz-tooltip="Nuovo Titolo">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats" *ngIf="data">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="idcard"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ data.items.length }}</span>
+        <span class="stat-label">Titoli Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ (data.items | filter:'isActive':true).length }}</span>
+        <span class="stat-label">Titoli Attivi</span>
+      </div>
+    </div>
+    <div class="stat-card stat-donors">
+      <div class="stat-icon">
+        <span nz-icon nzType="team"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ data.totalDonors }}</span>
+        <span class="stat-label">Donatori Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-warning" *ngIf="data.donorsWithoutTitle > 0">
+      <div class="stat-icon">
+        <span nz-icon nzType="warning"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ data.donorsWithoutTitle }}</span>
+        <span class="stat-label">Senza Titolo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- List Card -->
+  <nz-card class="list-card">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <label nz-checkbox [(ngModel)]="showInactive" (ngModelChange)="filterTitles()">
+          Mostra disattivati
+        </label>
+      </div>
+      <div class="toolbar-legend">
+        <span class="legend-item">
+          <span nz-icon nzType="star" nzTheme="fill" class="star-icon"></span>
+          Predefinito per genere
+        </span>
+      </div>
+      <div class="toolbar-actions">
+        <button nz-button nzType="default" (click)="loadData()" nz-tooltip="Aggiorna lista">
+          <span nz-icon nzType="reload"></span>
+        </button>
+      </div>
+    </div>
+
+    <nz-table 
+      #titleTable 
+      [nzData]="titles" 
+      [nzLoading]="loading"
+      [nzPageSize]="20"
+      nzShowSizeChanger
+      [nzNoResult]="emptyTemplate">
+      <thead>
+        <tr>
+          <th nzWidth="140px">Abbreviazione</th>
+          <th>Nome Completo</th>
+          <th nzWidth="100px" nzAlign="center">Genere</th>
+          <th nzWidth="110px" nzAlign="center">Donatori</th>
+          <th nzWidth="90px" nzAlign="center">Ordine</th>
+          <th nzWidth="100px" nzAlign="center">Stato</th>
+          <th nzWidth="160px" nzAlign="center">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let title of titleTable.data; let i = index" 
+            class="title-row" 
+            [class.inactive]="!title.isActive"
+            [style.animation-delay]="i * 30 + 'ms'">
+          <td>
+            <div class="abbreviation-cell">
+              <span class="abbreviation">{{ title.abbreviation }}</span>
+              <span nz-icon nzType="star" nzTheme="fill" *ngIf="title.isDefault" 
+                    class="star-icon" 
+                    nz-tooltip="Predefinito per {{ getGenderFullLabel(title.associatedGender) }}">
+              </span>
+            </div>
+          </td>
+          <td>
+            <span class="title-name">{{ title.name }}</span>
+            <span class="title-code">({{ title.code }})</span>
+          </td>
+          <td nzAlign="center">
+            <nz-tag [nzColor]="getGenderColor(title.associatedGender)" class="gender-tag">
+              {{ getGenderLabel(title.associatedGender) }}
+            </nz-tag>
+          </td>
+          <td nzAlign="center">
+            <span class="donor-count" [class.has-donors]="title.donorCount > 0">
+              {{ title.donorCount }}
+            </span>
+          </td>
+          <td nzAlign="center">
+            <span class="order-badge">{{ title.displayOrder }}</span>
+          </td>
+          <td nzAlign="center">
+            <nz-tag [nzColor]="title.isActive ? 'green' : 'red'" class="status-tag">
+              <span class="status-dot"></span>
+              {{ title.isActive ? 'Attivo' : 'Disattivo' }}
+            </nz-tag>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="action-btn edit" nz-button nzType="link" nzSize="small" 
+                      (click)="openEditForm(title)" nz-tooltip="Modifica">
+                <span nz-icon nzType="edit"></span>
+              </button>
+              
+              <button class="action-btn star" nz-button nzType="link" nzSize="small" 
+                      *ngIf="title.isActive && !title.isDefault && title.associatedGender !== undefined && title.associatedGender !== null"
+                      (click)="setAsDefault(title)" 
+                      nz-tooltip="Imposta come predefinito">
+                <span nz-icon nzType="star" nzTheme="outline"></span>
+              </button>
+              
+              <button class="action-btn star-active" nz-button nzType="link" nzSize="small" 
+                      *ngIf="title.isDefault"
+                      (click)="removeDefault(title)" 
+                      nz-tooltip="Rimuovi predefinito">
+                <span nz-icon nzType="star" nzTheme="fill"></span>
+              </button>
+              
+              <button class="action-btn delete" nz-button nzType="link" nzSize="small"
+                      *ngIf="title.isActive"
+                      (click)="openDeleteModal(title)" 
+                      nz-tooltip="Disattiva">
+                <span nz-icon nzType="stop"></span>
+              </button>
+              
+              <button class="action-btn reactivate" nz-button nzType="link" nzSize="small" 
+                      *ngIf="!title.isActive"
+                      (click)="reactivate(title)" 
+                      nz-tooltip="Riattiva">
+                <span nz-icon nzType="redo"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-illustration">
+          <div class="empty-icon">
+            <span nz-icon nzType="idcard" nzTheme="outline"></span>
+          </div>
+          <div class="empty-circles">
+            <div class="circle c1"></div>
+            <div class="circle c2"></div>
+            <div class="circle c3"></div>
+          </div>
+        </div>
+        <h3>Nessun titolo trovato</h3>
+        <p>Inizia a configurare i titoli di cortesia</p>
+        <button nz-button nzType="primary" (click)="openCreateForm()">
+          <span nz-icon nzType="plus"></span>
+          Aggiungi il primo titolo
+        </button>
+      </div>
+    </ng-template>
+  </nz-card>
+</div>
+
+<!-- Form Modal -->
+<app-title-form 
+  [visible]="isFormVisible"
+  [title]="editingTitle"
+  (visibleChange)="isFormVisible = $event"
+  (saved)="onFormSaved()">
+</app-title-form>
+
+<!-- Delete Confirmation Modal -->
+<nz-modal
+  [(nzVisible)]="isDeleteModalVisible"
+  nzTitle="Conferma Disattivazione"
+  [nzWidth]="550"
+  [nzOkText]="'Disattiva'"
+  [nzOkDanger]="true"
+  nzCancelText="Annulla"
+  (nzOnOk)="confirmDelete()"
+  (nzOnCancel)="closeDeleteModal()">
+  
+  <ng-container *nzModalContent>
+    <div class="delete-preview" *ngIf="deletePreview">
+      <nz-alert 
+        *ngIf="deletePreview.totalAffectedDonors > 0"
+        nzType="warning"
+        [nzMessage]="deletePreview.totalAffectedDonors + ' donatori utilizzano questo titolo'"
+        nzShowIcon>
+      </nz-alert>
+      
+      <nz-alert 
+        *ngIf="deletePreview.totalAffectedDonors === 0"
+        nzType="info"
+        nzMessage="Nessun donatore utilizza questo titolo"
+        nzShowIcon>
+      </nz-alert>
+
+      <div class="affected-details" *ngIf="deletePreview.totalAffectedDonors > 0">
+        <h4>Dettaglio per genere:</h4>
+        <ul>
+          <li *ngFor="let g of deletePreview.affectedByGender">
+            <strong>{{ getGenderFullLabel(g.gender) }}:</strong> {{ g.count }} donatori
+            <span *ngIf="g.defaultTitleName" class="replacement-text"> → {{ g.defaultTitleName }}</span>
+            <span *ngIf="!g.defaultTitleName" class="warning-text"> → Resteranno senza titolo</span>
+          </li>
+        </ul>
+
+        <div class="replacement-options">
+          <h4>Cosa fare con i donatori?</h4>
+          <nz-radio-group [(ngModel)]="useDefaultReplacement">
+            <label nz-radio [nzValue]="true">
+              Usa il titolo predefinito per genere (se disponibile)
+            </label>
+            <label nz-radio [nzValue]="false">
+              Scegli un titolo sostitutivo
+            </label>
+          </nz-radio-group>
+
+          <nz-select 
+            *ngIf="!useDefaultReplacement"
+            [(ngModel)]="selectedReplacementTitleId"
+            nzPlaceHolder="Seleziona titolo sostitutivo..."
+            class="replacement-select">
+            <nz-option 
+              *ngFor="let alt of deletePreview.alternativeTitles" 
+              [nzValue]="alt.id" 
+              [nzLabel]="alt.abbreviation + ' - ' + alt.name">
+            </nz-option>
+          </nz-select>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</nz-modal>

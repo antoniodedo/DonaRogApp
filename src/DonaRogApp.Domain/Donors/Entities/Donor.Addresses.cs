@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Domain.Donors.Entities;
+using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Domain.Donors.Events;
 using DonaRogApp.Enums.Shared;
 using System;
@@ -24,6 +24,8 @@ namespace DonaRogApp.Domain.Donors.Entities
 
         /// <summary>
         /// Aggiunge un nuovo indirizzo al donatore
+        /// Business rule: se il tipo è Residenza (Home) e ne esiste già uno attivo,
+        /// quello esistente viene terminato e il nuovo diventa predefinito
         /// </summary>
         public void AddAddress(
             string street,
@@ -40,6 +42,24 @@ namespace DonaRogApp.Domain.Donors.Entities
             Check.NotNullOrWhiteSpace(postalCode, nameof(postalCode));
             Check.NotNullOrWhiteSpace(country, nameof(country));
 
+            // Business rule: se è un indirizzo di Residenza e ne esiste già uno attivo,
+            // termina quello esistente
+            if (addressType == AddressType.Home)
+            {
+                var existingHome = Addresses.FirstOrDefault(a => 
+                    a.Type == AddressType.Home && a.IsActive() && !a.IsDeleted);
+                
+                if (existingHome != null)
+                {
+                    existingHome.End(DateTime.UtcNow);
+                    // Rimuovi il default dall'indirizzo terminato se lo era
+                    if (existingHome.IsDefault)
+                    {
+                        existingHome.RemoveDefault();
+                    }
+                }
+            }
+
             // Usa factory method di DonorAddress
             var donorAddress = DonorAddress.Create(
                 donorId: this.Id,
@@ -55,9 +75,14 @@ namespace DonaRogApp.Domain.Donors.Entities
                 notes: notes
             );
 
-            // Se è il primo indirizzo attivo, impostalo come default
-            if (!Addresses.Any(a => a.IsActive()))
+            // Se è il primo indirizzo attivo OPPURE è un nuovo indirizzo di Residenza, impostalo come default
+            if (!Addresses.Any(a => a.IsActive()) || addressType == AddressType.Home)
             {
+                // Rimuovi default da tutti gli altri indirizzi attivi
+                foreach (var a in Addresses.Where(a => a.IsActive() && a.IsDefault))
+                {
+                    a.RemoveDefault();
+                }
                 donorAddress.SetAsDefault();
             }
 

@@ -30,7 +30,7 @@
             </span>
             <span *ngIf="donation">
               <span nz-icon nzType="euro"></span>
-              {{ donation.totalAmount | currency:'EUR':'symbol':'1.0-0' }}
+              {{ (mode === 'edit' ? createTotalAmount : donation.totalAmount) | currency:'EUR':'symbol':'1.0-0' }}
             </span>
           </div>
         </div>
@@ -42,14 +42,14 @@
         <div nz-col [nzSpan]="14">
         
         <!-- Barra Navigazione -->
-        <div class="navigation-header" *ngIf="mode !== 'create'">
+        <div class="navigation-header">
           <div class="nav-left">
-            <button nz-button nzSize="small" (click)="isFilterDrawerVisible = true" *ngIf="mode !== 'view'">
+            <button nz-button nzSize="small" (click)="isFilterDrawerVisible = true" *ngIf="mode === 'verify'">
               <span nz-icon nzType="filter"></span>
               Filtri
             </button>
           </div>
-          <div class="nav-center" *ngIf="mode !== 'view'">
+          <div class="nav-center" *ngIf="mode === 'verify'">
             <button nz-button nzSize="small" nzType="text" [disabled]="!canGoPrevious" (click)="goToFirst()" title="Primo">
               <span nz-icon nzType="fast-backward"></span>
             </button>
@@ -66,6 +66,7 @@
           </div>
           <div class="action-controls">
             <div class="status-badge"
+                 *ngIf="mode !== 'create'"
                  [class.pending]="currentStatus === 1"
                  [class.verified]="currentStatus === 2"
                  [class.rejected]="currentStatus === 3"
@@ -88,15 +89,19 @@
                 Modifica
               </button>
             </ng-container>
-            <!-- Edit/Verify Mode Actions -->
-            <ng-container *ngIf="mode !== 'view'">
+            <!-- Create/Edit/Verify Mode Actions -->
+            <ng-container *ngIf="mode === 'create' || mode === 'edit' || mode === 'verify'">
               <button nz-button [nzLoading]="loading" (click)="confirm()" class="btn-confirm">
                 <span nz-icon nzType="check"></span>
-                Conferma
+                {{ mode === 'create' ? 'Salva' : 'Conferma' }}
               </button>
-              <button nz-button [nzLoading]="loading" (click)="suspend()" class="btn-suspend">
+              <button nz-button [nzLoading]="loading" (click)="suspend()" class="btn-suspend" *ngIf="mode === 'verify'">
                 <span nz-icon nzType="pause"></span>
                 Sospendi
+              </button>
+              <button nz-button (click)="cancel()" *ngIf="mode === 'create'">
+                <span nz-icon nzType="close"></span>
+                Annulla
               </button>
             </ng-container>
           </div>
@@ -106,52 +111,305 @@
         <nz-card class="detail-box" [nzBodyStyle]="{'padding': '8px'}">
           <div nz-row [nzGutter]="8">
             
-            <!-- Sub-colonna: Immagine Bollettino (65%) -->
+            <!-- Sub-colonna: Documenti (65%) -->
             <div nz-col [nzSpan]="16">
-              <div class="document-image-box">
-            <!-- Immagine documento (esempio o caricata) - cliccabile per zoom -->
-            <div class="document-image-container" (click)="openImageZoom()">
-              <img [src]="scannedDocumentUrl || exampleDocumentUrl"
-                   [alt]="scannedDocumentUrl ? 'Documento scansionato' : 'Documento di esempio'"
-                   class="document-image"
-                   [class.example-document]="!scannedDocumentUrl"
-                   title="Clicca per ingrandire" />
-              
-              <!-- Icona zoom in angolo -->
-              <div class="zoom-icon">
-                <span nz-icon nzType="zoom-in" nzTheme="outline"></span>
+              <!-- Header sezione documenti -->
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; margin-bottom: 8px; background: linear-gradient(135deg, var(--brand-50), white); border-radius: var(--radius-md); border: 1px solid var(--brand-200);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span nz-icon nzType="file-image" nzTheme="outline" style="font-size: 18px; color: var(--brand-600);"></span>
+                  <strong style="font-size: 13px; color: var(--brand-800); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Documenti Allegati</strong>
+                  <span *ngIf="documents.length > 0" style="background: var(--brand-500); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">{{ documents.length }}</span>
+                </div>
+                <button *ngIf="mode !== 'view' && documents.length > 0" 
+                        nz-button 
+                        nzType="primary" 
+                        nzSize="small"
+                        nz-tooltip="Carica un nuovo documento"
+                        (click)="showUploadModal()"
+                        style="box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);">
+                  <span nz-icon nzType="plus"></span>
+                  Aggiungi
+                </button>
               </div>
-            </div>
-          </div>
+
+              <div class="document-image-box">
+                
+                <!-- Caricamento documenti -->
+                <div *ngIf="isLoadingDocuments" style="text-align: center; padding: 60px;">
+                  <span nz-icon nzType="loading" nzTheme="outline" style="font-size: 48px; color: var(--brand-500);"></span>
+                  <p style="margin-top: 16px; color: var(--text-secondary); font-weight: 500;">Caricamento documenti...</p>
+                </div>
+
+                <!-- Nessun documento disponibile -->
+                <div *ngIf="!isLoadingDocuments && documents.length === 0" class="empty-documents-state">
+                  <span nz-icon nzType="file-image" nzTheme="outline"></span>
+                  <div class="empty-title">Nessun documento caricato</div>
+                  <div class="empty-hint">Aggiungi ricevute, scansioni o documenti correlati a questa donazione</div>
+                  <button *ngIf="mode !== 'view'" nz-button nzType="primary" (click)="showUploadModal()">
+                    <span nz-icon nzType="upload"></span>
+                    Carica Primo Documento
+                  </button>
+                </div>
+
+                <!-- Documenti caricati -->
+                <div *ngIf="!isLoadingDocuments && documents.length > 0" class="document-main-preview">
+                  <!-- Primo documento in preview grande -->
+                  <div class="document-image-container" (click)="openDocumentPreview(documents[0], 0)" style="position: relative;">
+                    
+                    <!-- Badge tipo documento -->
+                    <div class="document-type-badge" 
+                         [class.text-document]="documents[0].isTextDocument"
+                         [class.image-document]="!documents[0].isTextDocument && documents[0].mimeType?.startsWith('image/')"
+                         [class.pdf-document]="!documents[0].isTextDocument && documents[0].mimeType === 'application/pdf'"
+                         [nz-tooltip]="getDocumentTypeBadgeTooltip(documents[0])">
+                      <span nz-icon 
+                            [nzType]="documents[0].isTextDocument ? 'file-text' : (documents[0].mimeType?.startsWith('image/') ? 'picture' : 'file-pdf')" 
+                            nzTheme="outline"></span>
+                      <span>{{ documents[0].isTextDocument ? 'Testo' : (documents[0].mimeType?.startsWith('image/') ? 'Immagine' : 'PDF') }}</span>
+                    </div>
+
+                    <!-- Badge flusso esterno (se applicabile) -->
+                    <div *ngIf="documents[0].isFromExternalFlow" 
+                         class="document-type-badge external-flow" 
+                         style="top: 48px; left: 8px;"
+                         nz-tooltip="Documento importato automaticamente da sistema esterno">
+                      <span nz-icon nzType="cloud-download" nzTheme="outline"></span>
+                      <span>Flusso Esterno</span>
+                    </div>
+
+                    <!-- Documento testuale (senza file fisico) -->
+                    <div *ngIf="documents[0].isTextDocument" class="text-document-content">
+                      <div class="text-document-header">
+                        <span nz-icon nzType="file-text" nzTheme="outline"></span>
+                        <strong>Descrizione bonifico</strong>
+                      </div>
+                      <div class="text-content">{{ documents[0].textContent }}</div>
+                      <div *ngIf="documents[0].notes" class="text-notes">
+                        <div class="notes-label">Note</div>
+                        <div class="notes-text">{{ documents[0].notes }}</div>
+                      </div>
+                    </div>
+
+                    <!-- Documento con file (immagine) -->
+                    <img *ngIf="!documents[0].isTextDocument && documents[0].mimeType?.startsWith('image/')"
+                         [src]="'https://localhost:44318/api/donations/' + documents[0].donationId + '/documents/' + documents[0].id"
+                         [alt]="documents[0].fileName"
+                         class="document-image"
+                         [nz-tooltip]="'Clicca per ingrandire: ' + documents[0].fileName" />
+                    
+                    <!-- Documento con file (PDF) -->
+                    <div *ngIf="!documents[0].isTextDocument && documents[0].mimeType === 'application/pdf'"
+                         class="pdf-document-placeholder"
+                         [nz-tooltip]="'Clicca per aprire: ' + documents[0].fileName">
+                      <div class="pdf-content">
+                        <div class="pdf-icon-wrapper">
+                          <span nz-icon nzType="file-pdf" nzTheme="outline"></span>
+                        </div>
+                        <div class="pdf-filename">{{ documents[0].fileName }}</div>
+                        <div class="pdf-hint">Clicca per aprire il documento</div>
+                      </div>
+                    </div>
+                    
+                    <!-- Pulsante eliminazione documento principale (solo se non da flusso esterno) -->
+                    <button *ngIf="mode !== 'view' && !documents[0].isFromExternalFlow"
+                            nz-button nzType="text" nzDanger
+                            class="document-delete-btn"
+                            nz-tooltip="Elimina documento"
+                            (click)="$event.stopPropagation(); deleteDocument(documents[0])">
+                      <span nz-icon nzType="delete" nzTheme="outline"></span>
+                      Elimina
+                    </button>
+
+                    <!-- Icona zoom in angolo (solo per documenti con file) -->
+                    <div *ngIf="!documents[0].isTextDocument" class="zoom-icon">
+                      <span nz-icon nzType="zoom-in" nzTheme="outline"></span>
+                      Ingrandisci
+                    </div>
+                  </div>
+
+                  <!-- Altri documenti in miniatura -->
+                  <div *ngIf="documents.length > 1" class="thumbnails-grid">
+                    <div *ngFor="let doc of documents.slice(1); let i = index" 
+                         class="document-thumbnail"
+                         (click)="openDocumentPreview(doc, i + 1)"
+                         [nz-tooltip]="getDocumentTooltip(doc)"
+                         style="position: relative; width: 85px; height: 85px; border: 2px solid var(--border-default); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; box-shadow: var(--shadow-sm);">
+                      
+                      <!-- Mini badge tipo documento -->
+                      <div class="thumbnail-badge">
+                        <span nz-icon 
+                              [nzType]="doc.isTextDocument ? 'file-text' : (doc.mimeType?.startsWith('image/') ? 'picture' : 'file-pdf')" 
+                              nzTheme="outline"></span>
+                      </div>
+
+                      <!-- Thumbnail documento testuale -->
+                      <div *ngIf="doc.isTextDocument"
+                           style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #dbeafe, #93c5fd);">
+                        <span nz-icon nzType="file-text" nzTheme="outline" style="font-size: 40px; color: #1e40af;"></span>
+                      </div>
+
+                      <!-- Thumbnail immagine -->
+                      <img *ngIf="!doc.isTextDocument && doc.mimeType?.startsWith('image/')"
+                           [src]="'https://localhost:44318/api/donations/' + doc.donationId + '/documents/' + doc.id"
+                           [alt]="doc.fileName"
+                           style="width: 100%; height: 100%; object-fit: cover;" />
+                      
+                      <!-- Thumbnail PDF -->
+                      <div *ngIf="!doc.isTextDocument && doc.mimeType === 'application/pdf'"
+                           style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #fee2e2, #fca5a5);">
+                        <span nz-icon nzType="file-pdf" nzTheme="outline" style="font-size: 40px; color: #991b1b;"></span>
+                      </div>
+
+                      <!-- Indicatore flusso esterno -->
+                      <div *ngIf="doc.isFromExternalFlow" class="external-badge">
+                        EXT
+                      </div>
+
+                      <button *ngIf="mode !== 'view' && !doc.isFromExternalFlow"
+                              nz-button nzType="text" nzDanger nzSize="small"
+                              class="delete-thumbnail-btn"
+                              nz-tooltip="Elimina documento"
+                              (click)="$event.stopPropagation(); deleteDocument(doc)">
+                        <span nz-icon nzType="close" nzTheme="outline"></span>
+                      </button>
+                    </div>
+
+                    <!-- Pulsante per aggiungere altro documento -->
+                    <div *ngIf="mode !== 'view'"
+                         class="add-document-btn"
+                         (click)="showUploadModal()"
+                         nz-tooltip="Carica un altro documento">
+                      <span nz-icon nzType="plus" nzTheme="outline"></span>
+                    </div>
+                  </div>
+
+                  <!-- Pulsante carica documento se c'è solo un documento -->
+                  <div *ngIf="documents.length === 1 && mode !== 'view'" style="margin-top: 12px;">
+                    <button nz-button nzType="dashed" nzBlock (click)="showUploadModal()">
+                      <span nz-icon nzType="upload"></span>
+                      Carica Altro Documento
+                    </button>
+                  </div>
+                </div>
+
+              </div>
             </div>
 
             <!-- Sub-colonna: Dati Editabili (35%) -->
             <div nz-col [nzSpan]="8">
               <div class="data-panel">
+                
+                <!-- Alert: Donazione da flusso esterno non modificabile -->
+                <nz-alert 
+                  *ngIf="mode === 'edit' && (donation?.isFromExternalFlow || donation?.externalId)"
+                  nzType="info"
+                  nzMessage="Donazione da Flusso Esterno"
+                  nzDescription="Importo, canale e date non possono essere modificati perché provengono da un sistema esterno."
+                  nzShowIcon
+                  nzCloseable
+                  style="margin-bottom: 12px;">
+                </nz-alert>
+                
                 <form nz-form [formGroup]="verifyForm">
                   
-                  <!-- Data -->
+                  <!-- Canale (editable in create mode and edit mode if manual) -->
+                  <div class="field-item field-item-inline">
+                    <label>
+                      <span nz-icon nzType="swap"></span>
+                      Canale
+                    </label>
+                    <div class="field-value">
+                      <nz-select 
+                        *ngIf="mode === 'create' || (mode === 'edit' && !donation?.externalId)"
+                        [(ngModel)]="createChannel"
+                        [ngModelOptions]="ngModelOptions"
+                        nzPlaceHolder="Seleziona canale"
+                        nzSize="small"
+                        style="width: 100%;"
+                        [nzOptionOverflowSize]="20">
+                        <nz-option [nzValue]="1" nzLabel="Bonifico"></nz-option>
+                        <nz-option [nzValue]="2" nzLabel="Bollettino"></nz-option>
+                        <nz-option [nzValue]="3" nzLabel="Boll. Telematico"></nz-option>
+                        <nz-option [nzValue]="4" nzLabel="Carta Credito"></nz-option>
+                        <nz-option [nzValue]="5" nzLabel="RID/SDD"></nz-option>
+                        <nz-option [nzValue]="6" nzLabel="Contanti"></nz-option>
+                        <nz-option [nzValue]="7" nzLabel="Assegno"></nz-option>
+                        <nz-option [nzValue]="8" nzLabel="PayPal"></nz-option>
+                        <nz-option [nzValue]="9" nzLabel="Stripe"></nz-option>
+                        <nz-option [nzValue]="10" nzLabel="Lasciti"></nz-option>
+                        <nz-option [nzValue]="99" nzLabel="Altro"></nz-option>
+                      </nz-select>
+                      <div class="channel-display" *ngIf="mode === 'verify' || mode === 'view' || (mode === 'edit' && donation?.externalId)">
+                        <div class="channel-value">{{ getChannelLabel(createChannel) }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Data (editable in create mode and edit mode if manual) -->
                   <div class="field-item field-item-inline">
                     <label>
                       <span nz-icon nzType="calendar"></span>
                       Data Donazione
                     </label>
                     <div class="field-value">
-                      <div class="date-display">
+                      <nz-date-picker 
+                        *ngIf="mode === 'create' || (mode === 'edit' && !donation?.externalId)"
+                        [(ngModel)]="createDonationDate"
+                        [ngModelOptions]="ngModelOptions"
+                        nzFormat="dd/MM/yyyy"
+                        nzSize="small"
+                        style="width: 100%;">
+                      </nz-date-picker>
+                      <div class="date-display" *ngIf="mode === 'verify' || mode === 'view' || (mode === 'edit' && donation?.externalId)">
                         <div class="date-value">{{ createDonationDate | date:'dd/MM/yyyy' }}</div>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Importo -->
+                  <!-- Importo (editable in create mode and edit mode if manual) -->
                   <div class="field-item field-item-inline">
                     <label>
                       <span nz-icon nzType="euro"></span>
                       Importo
                     </label>
                     <div class="field-value">
-                      <div class="amount-display">
+                      <nz-input-number
+                        *ngIf="mode === 'create' || (mode === 'edit' && !donation?.externalId)"
+                        [ngModel]="createTotalAmount"
+                        (ngModelChange)="onTotalAmountChange($event)"
+                        [ngModelOptions]="ngModelOptions"
+                        [nzMin]="0.01"
+                        [nzStep]="10"
+                        [nzFormatter]="formatterEuro"
+                        [nzParser]="parserEuro"
+                        nzSize="small"
+                        style="width: 100%;">
+                      </nz-input-number>
+                      <div class="amount-display" *ngIf="mode === 'verify' || mode === 'view' || (mode === 'edit' && donation?.externalId)">
                         <div class="amount-value">{{ createTotalAmount | currency:'EUR':'symbol':'1.0-0' }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Data Accredito (optional, editable in create mode and edit mode if manual) -->
+                  <div class="field-item field-item-inline" *ngIf="mode === 'create' || mode === 'edit'">
+                    <label>
+                      <span nz-icon nzType="check-circle"></span>
+                      Data Accredito
+                    </label>
+                    <div class="field-value">
+                      <nz-date-picker 
+                        *ngIf="mode === 'create' || (mode === 'edit' && !donation?.externalId)"
+                        [(ngModel)]="createCreditDate"
+                        [ngModelOptions]="ngModelOptions"
+                        nzFormat="dd/MM/yyyy"
+                        nzSize="small"
+                        nzPlaceHolder="Opzionale"
+                        nzAllowClear
+                        style="width: 100%;">
+                      </nz-date-picker>
+                      <div class="date-display" *ngIf="mode === 'edit' && donation?.externalId">
+                        <div class="date-value">{{ createCreditDate ? (createCreditDate | date:'dd/MM/yyyy') : '-' }}</div>
                       </div>
                     </div>
                   </div>
@@ -191,15 +449,88 @@
                         <span nz-icon nzType="plus-circle" nzTheme="outline"></span>
                       </button>
                     </label>
+                    <!-- Allocation Progress Indicator -->
+                    <div *ngIf="mode !== 'view' && (projectAllocations.length > 0 || getTotalAllocated() > 0)" 
+                         style="margin: 4px 0 8px 0; font-size: 11px; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;"
+                         [style.background]="getRemainingAmount() === 0 ? '#f6ffed' : getRemainingAmount() > 0 ? '#fff7e6' : '#fff1f0'"
+                         [style.border]="getRemainingAmount() === 0 ? '1px solid #b7eb8f' : getRemainingAmount() > 0 ? '1px solid #ffd591' : '1px solid #ffccc7'">
+                      <span [style.color]="getRemainingAmount() === 0 ? '#52c41a' : getRemainingAmount() > 0 ? '#faad14' : '#ff4d4f'">
+                        <span nz-icon [nzType]="getRemainingAmount() === 0 ? 'check-circle' : getRemainingAmount() > 0 ? 'warning' : 'close-circle'" nzTheme="fill"></span>
+                        Allocato: {{ getTotalAllocated() | currency:'EUR':'symbol':'1.0-0' }} / {{ createTotalAmount | currency:'EUR':'symbol':'1.0-0' }}
+                        <span *ngIf="getRemainingAmount() !== 0"> - Rimanente: {{ getRemainingAmount() | currency:'EUR':'symbol':'1.0-0' }}</span>
+                      </span>
+                      <button *ngIf="getRemainingAmount() !== 0 && projectAllocations.length > 0" 
+                              nz-button 
+                              nzType="link" 
+                              nzSize="small"
+                              (click)="recalculateAllocationsProportionally()"
+                              style="font-size: 11px; height: 20px; padding: 0 4px;">
+                        <span nz-icon nzType="calculator"></span>
+                        Ricalcola
+                      </button>
+                    </div>
                     <div *ngIf="projectAllocations.length > 0" class="projects-list">
-                      <div *ngFor="let pa of projectAllocations" class="project-item">
-                        <span class="project-name">{{ pa.projectName }}</span>
-                        <span class="project-amount">{{ pa.allocatedAmount | currency:'EUR':'symbol':'1.0-0' }}</span>
-                        <div class="project-remove" *ngIf="mode !== 'view'">
-                          <button nz-button nzType="link" nzDanger nzSize="small" (click)="removeProjectAllocation(pa.projectId)">
-                            <span nz-icon nzType="close"></span>
-                          </button>
+                      <div *ngFor="let pa of projectAllocations; trackBy: trackByProjectId" class="project-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 0;">
+                        <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
+                          <span class="project-name">{{ pa.projectName }}</span>
+                          <span style="font-size: 10px; color: #999;">
+                            {{ (pa.allocatedAmount / createTotalAmount * 100).toFixed(1) }}% del totale
+                          </span>
                         </div>
+                        
+                        <!-- Edit mode - Amount or Percentage -->
+                        <ng-container *ngIf="mode !== 'view'">
+                          <!-- Toggle button between € and % -->
+                          <button nz-button 
+                                  nzType="default" 
+                                  nzSize="small"
+                                  (click)="toggleProjectEditMode(pa.projectId)"
+                                  style="flex-shrink: 0; width: 32px; padding: 0;">
+                            <span nz-icon [nzType]="pa.editMode === 'percentage' ? 'euro' : 'percentage'"></span>
+                          </button>
+                          
+                          <!-- Amount input -->
+                          <nz-input-number
+                            *ngIf="!pa.editMode || pa.editMode === 'amount'"
+                            [ngModel]="pa.allocatedAmount"
+                            (ngModelChange)="updateProjectAllocation(pa.projectId, $event)"
+                            [ngModelOptions]="ngModelOptions"
+                            [nzMin]="0.01"
+                            [nzStep]="10"
+                            [nzFormatter]="formatterEuro"
+                            [nzParser]="parserEuro"
+                            nzSize="small"
+                            style="width: 120px;">
+                          </nz-input-number>
+                          
+                          <!-- Percentage input -->
+                          <nz-input-number
+                            *ngIf="pa.editMode === 'percentage'"
+                            [ngModel]="pa.editPercentage || (pa.allocatedAmount / createTotalAmount * 100)"
+                            (ngModelChange)="updateProjectAllocationByPercentage(pa.projectId, $event)"
+                            [ngModelOptions]="ngModelOptions"
+                            [nzMin]="0.1"
+                            [nzMax]="100"
+                            [nzStep]="5"
+                            nzPrecision="1"
+                            nzSize="small"
+                            style="width: 120px;">
+                          </nz-input-number>
+                        </ng-container>
+                        
+                        <!-- View mode -->
+                        <span class="project-amount" *ngIf="mode === 'view'">{{ pa.allocatedAmount | currency:'EUR':'symbol':'1.0-0' }}</span>
+                        
+                        <!-- Remove button -->
+                        <button *ngIf="mode !== 'view'" 
+                                nz-button 
+                                nzType="link" 
+                                nzDanger 
+                                nzSize="small" 
+                                (click)="removeProjectAllocation(pa.projectId)"
+                                style="flex-shrink: 0;">
+                          <span nz-icon nzType="close"></span>
+                        </button>
                       </div>
                     </div>
                     <div *ngIf="projectAllocations.length === 0" class="empty-state">
@@ -264,6 +595,28 @@
                       </div>
                     </div>
                     
+                    <!-- Duplicate Letter Alert -->
+                    <div *ngIf="verifyForm.get('donorId')?.value && (mode === 'verify' || mode === 'create')" style="margin-top: 12px;">
+                      <div *ngIf="isCheckingDuplicates" style="padding: 12px; background: #f5f5f5; border-radius: 8px; text-align: center;">
+                        <span nz-icon nzType="loading" nzSpin></span> Controllo duplicati...
+                      </div>
+                      
+                      <nz-alert
+                        *ngIf="!isCheckingDuplicates && duplicateAlert && duplicateAlert.alertLevel !== AlertLevel.None"
+                        [nzType]="getAlertTypeClass()"
+                        [nzMessage]="duplicateAlert.message"
+                        [nzDescription]="duplicateAlert.detailMessage"
+                        nzShowIcon
+                        nzCloseable
+                        style="margin-bottom: 12px;">
+                        <div *ngIf="duplicateAlert.recentCommunications.length > 0" style="margin-top: 8px;">
+                          <button nz-button nzType="link" nzSize="small" (click)="showCommunicationHistory()">
+                            <span nz-icon nzType="history"></span> Vedi storico comunicazioni
+                          </button>
+                        </div>
+                      </nz-alert>
+                    </div>
+                    
                     <!-- Search Prompt (when no donor) -->
                     <div *ngIf="!verifyForm.get('donorId')?.value && mode !== 'view'" class="donor-search-prompt" (click)="showDonorSearch()">
                       <span nz-icon nzType="user-add"></span>
@@ -275,6 +628,59 @@
                     <div *ngIf="!verifyForm.get('donorId')?.value && mode === 'view'" class="empty-state">
                       <span nz-icon nzType="user" style="font-size: 16px; color: var(--text-tertiary);"></span>
                       <span style="font-size: 11px; color: var(--text-tertiary);">Nessun donatore associato</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Thank You Options (only in verify/create mode) -->
+                  <div class="field-item" *ngIf="(mode === 'verify' || mode === 'create') && verifyForm.get('donorId')?.value" style="margin-top: 16px;">
+                    <label>
+                      <span nz-icon nzType="mail"></span>
+                      Ringraziamento
+                    </label>
+                    
+                    <div style="padding: 12px; background: #fafafa; border-radius: 8px; border: 1px solid #e0e0e0;">
+                      <!-- Create Thank You Checkbox -->
+                      <div style="margin-bottom: 12px;">
+                        <label nz-checkbox [(ngModel)]="createThankYou" [ngModelOptions]="ngModelOptions" [nzIndeterminate]="createThankYou === null">
+                          Crea ringraziamento
+                        </label>
+                        <div style="font-size: 11px; color: #999; margin-top: 4px;">
+                          <span *ngIf="createThankYou === null">✨ Auto (valuta regole)</span>
+                          <span *ngIf="createThankYou === true">✓ Sì, crea ringraziamento</span>
+                          <span *ngIf="createThankYou === false">✗ No, non creare</span>
+                        </div>
+                      </div>
+                      
+                      <!-- Thank You Channel (if enabled) -->
+                      <div *ngIf="createThankYou !== false" style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 12px; font-weight: 500;">Canale</label>
+                        <nz-radio-group [(ngModel)]="thankYouChannel" [ngModelOptions]="ngModelOptions" nzSize="small">
+                          <label nz-radio [nzValue]="null">Auto</label>
+                          <label nz-radio [nzValue]="PreferredThankYouChannel.Letter">Lettera</label>
+                          <label nz-radio [nzValue]="PreferredThankYouChannel.Email">Email</label>
+                        </nz-radio-group>
+                      </div>
+                      
+                      <!-- Print Immediately (if letter) -->
+                      <div *ngIf="createThankYou !== false && (thankYouChannel === PreferredThankYouChannel.Letter || thankYouChannel === null)" style="margin-bottom: 12px;">
+                        <label nz-checkbox [(ngModel)]="printImmediately" [ngModelOptions]="ngModelOptions">
+                          Stampa immediatamente
+                        </label>
+                        <div style="font-size: 11px; color: #999; margin-top: 4px;">
+                          Se non selezionato, la lettera sarà aggiunta al batch
+                        </div>
+                      </div>
+                      
+                      <!-- No Thank You Reason (if disabled) -->
+                      <div *ngIf="createThankYou === false" style="margin-top: 8px;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 12px; font-weight: 500;">Motivo (opzionale)</label>
+                        <textarea nz-input 
+                                  [(ngModel)]="noThankYouReason" 
+                                  [ngModelOptions]="ngModelOptions"
+                                  placeholder="Perché non creare un ringraziamento?"
+                                  [nzAutosize]="{ minRows: 2, maxRows: 3 }">
+                        </textarea>
+                      </div>
                     </div>
                   </div>
 
@@ -634,12 +1040,29 @@
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label nzRequired>Importo Allocato</nz-form-label>
+        <nz-form-label nzRequired>Modalità Allocazione</nz-form-label>
+        <nz-form-control>
+          <nz-radio-group [(ngModel)]="allocationMode" [ngModelOptions]="ngModelOptions" (ngModelChange)="onAllocationModeChange()">
+            <label nz-radio nzValue="amount">
+              <span nz-icon nzType="euro"></span>
+              Importo fisso
+            </label>
+            <label nz-radio nzValue="percentage">
+              <span nz-icon nzType="percentage"></span>
+              Percentuale
+            </label>
+          </nz-radio-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item *ngIf="allocationMode === 'amount'">
+        <nz-form-label nzRequired>Importo (€)</nz-form-label>
         <nz-form-control>
           <nz-input-number
-            [(ngModel)]="newProjectAmount"
+            [ngModel]="newProjectAmount"
+            (ngModelChange)="onAmountChange($event)"
             [ngModelOptions]="ngModelOptions"
-            [nzMin]="0"
+            [nzMin]="0.01"
             [nzMax]="getRemainingAmount()"
             [nzStep]="10"
             [nzFormatter]="formatterEuro"
@@ -648,6 +1071,33 @@
           </nz-input-number>
           <div style="font-size: 11px; color: #999; margin-top: 4px;">
             Disponibile: {{ getRemainingAmount() | currency:'EUR':'symbol':'1.0-0' }}
+            <span *ngIf="newProjectAmount > 0" style="color: #1890ff; margin-left: 8px;">
+              ({{ newProjectPercentage.toFixed(1) }}% del totale)
+            </span>
+          </div>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item *ngIf="allocationMode === 'percentage'">
+        <nz-form-label nzRequired>Percentuale (%)</nz-form-label>
+        <nz-form-control>
+          <nz-input-number
+            [ngModel]="newProjectPercentage"
+            (ngModelChange)="onPercentageChange($event)"
+            [ngModelOptions]="ngModelOptions"
+            [nzMin]="0.1"
+            [nzMax]="100"
+            [nzStep]="5"
+            nzPrecision="1"
+            style="width: 100%;">
+          </nz-input-number>
+          <div style="font-size: 11px; color: #999; margin-top: 4px;">
+            <span *ngIf="newProjectPercentage > 0" style="color: #1890ff;">
+              = {{ newProjectAmount | currency:'EUR':'symbol':'1.2-2' }}
+            </span>
+            <span *ngIf="newProjectPercentage <= 0">
+              Inserisci una percentuale (1-100%)
+            </span>
           </div>
         </nz-form-control>
       </nz-form-item>

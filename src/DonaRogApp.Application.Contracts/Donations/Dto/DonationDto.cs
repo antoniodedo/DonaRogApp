@@ -49,5 +49,9 @@ namespace DonaRogApp.Application.Contracts.Donations.Dto
         public decimal TotalAllocatedAmount { get; set; }
         public decimal UnallocatedAmount { get; set; }
         public bool IsFullyAllocated { get; set; }
+        
+        // Edit permissions
+        public bool IsFromExternalFlow { get; set; }
+        public bool CanEditCoreData { get; set; }
     }
 }

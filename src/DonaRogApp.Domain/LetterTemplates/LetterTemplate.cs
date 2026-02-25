@@ -42,8 +42,39 @@ namespace DonaRogApp.LetterTemplates
 
         /// <summary>
         /// HTML content with placeholders (e.g., {{DonorName}}, {{DonationAmount}})
+        /// For Html templates: edited inline in WYSIWYG editor
+        /// For Docx templates: result of DOCX→HTML conversion
         /// </summary>
         public string Content { get; set; } = null!;
+
+        // ======================================================================
+        // TEMPLATE FORMAT & FILE UPLOAD
+        // ======================================================================
+        /// <summary>
+        /// Template format type (Html editor or Docx upload)
+        /// </summary>
+        public TemplateType TemplateType { get; set; }
+
+        /// <summary>
+        /// Path to uploaded template file (for Docx type)
+        /// Null for Html type (content is in Content field)
+        /// </summary>
+        public string? TemplateFilePath { get; set; }
+
+        /// <summary>
+        /// Original filename of uploaded template
+        /// </summary>
+        public string? TemplateFileName { get; set; }
+
+        /// <summary>
+        /// File size in bytes
+        /// </summary>
+        public long? TemplateFileSizeBytes { get; set; }
+
+        /// <summary>
+        /// When template file was uploaded
+        /// </summary>
+        public DateTime? TemplateFileUploadedAt { get; set; }
 
         // ======================================================================
         // CATEGORIZATION
@@ -62,6 +93,11 @@ namespace DonaRogApp.LetterTemplates
         /// Communication type (Email, Letter, null = both)
         /// </summary>
         public CommunicationType? CommunicationType { get; set; }
+
+        /// <summary>
+        /// Email subject line (for email templates only)
+        /// </summary>
+        public string? EmailSubject { get; set; }
 
         // ======================================================================
         // SELECTION CRITERIA (for automatic template matching)
@@ -277,6 +313,67 @@ namespace DonaRogApp.LetterTemplates
             if (IsPlural) score += 3;
 
             return score;
+        }
+
+        // ======================================================================
+        // BUSINESS METHODS - Template File Upload
+        // ======================================================================
+        /// <summary>
+        /// Set template file information after upload (for Docx type)
+        /// </summary>
+        public void SetTemplateFile(
+            string filePath,
+            string fileName,
+            long fileSizeBytes,
+            string htmlContent)
+        {
+            if (TemplateType != TemplateType.Docx)
+            {
+                throw new BusinessException("DonaRog:CanOnlySetFileForDocxTemplates")
+                    .WithData("templateId", Id)
+                    .WithData("templateType", TemplateType);
+            }
+
+            TemplateFilePath = Check.NotNullOrWhiteSpace(filePath, nameof(filePath));
+            TemplateFileName = Check.NotNullOrWhiteSpace(fileName, nameof(fileName));
+            TemplateFileSizeBytes = fileSizeBytes;
+            TemplateFileUploadedAt = DateTime.UtcNow;
+            
+            // Store converted HTML content
+            Content = Check.NotNullOrWhiteSpace(htmlContent, nameof(htmlContent));
+        }
+
+        /// <summary>
+        /// Update HTML content (for Html type or after Docx conversion)
+        /// </summary>
+        public void UpdateContent(string content)
+        {
+            Content = Check.NotNullOrWhiteSpace(content, nameof(content));
+        }
+
+        /// <summary>
+        /// Update template type
+        /// </summary>
+        public void UpdateTemplateType(TemplateType templateType)
+        {
+            TemplateType = templateType;
+            
+            // Clear file info if switching to Html
+            if (templateType == TemplateType.Html)
+            {
+                TemplateFilePath = null;
+                TemplateFileName = null;
+                TemplateFileSizeBytes = null;
+                TemplateFileUploadedAt = null;
+            }
+        }
+
+        /// <summary>
+        /// Update email subject (for email templates)
+        /// </summary>
+        public void UpdateEmailSubject(string? subject)
+        {
+            EmailSubject = subject;
         }
 
         // ======================================================================

@@ -32,10 +32,31 @@ function configureRoutes() {
         layout: eLayoutType.application,
       },
       {
-        path: 'letter-templates',
+        path: '/letter-templates',
         name: 'Templates',
         iconClass: 'fas fa-file-alt',
         order: 4,
+        layout: eLayoutType.application,
+      },
+      {
+        path: '/donations',
+        name: 'Donazioni',
+        iconClass: 'fas fa-hand-holding-heart',
+        order: 5,
+        layout: eLayoutType.application,
+      },
+      {
+        path: '/communications/print-batches',
+        name: 'Batch Stampa',
+        iconClass: 'fas fa-print',
+        order: 6,
+        layout: eLayoutType.application,
+      },
+      {
+        path: '/communications/thank-you-rules',
+        name: 'Regole Ringraziamenti',
+        iconClass: 'fas fa-robot',
+        order: 7,
         layout: eLayoutType.application,
       }
   ]);

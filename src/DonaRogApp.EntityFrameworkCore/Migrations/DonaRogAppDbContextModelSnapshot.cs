@@ -335,6 +335,272 @@ namespace DonaRogApp.Migrations
                     b.ToTable("App_CampaignDonors", (string)null);
                 });
 
+            modelBuilder.Entity("DonaRogApp.Domain.Communications.Entities.PrintBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BatchNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CampaignIds")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<DateTime?>("DownloadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DownloadedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("FilterJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("GeneratedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("GeneratedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("GenerationStartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<decimal?>("MaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("PdfFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("PdfFileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("PrintedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("PrintedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ProjectIds")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReadyAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Region")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantId");
+
+                    b.Property<decimal>("TotalDonationAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalLetters")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchNumber")
+                        .IsUnique();
+
+                    b.HasIndex("GeneratedAt");
+
+                    b.HasIndex("PrintedAt");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("Status", "GeneratedAt");
+
+                    b.ToTable("App_PrintBatches", (string)null);
+                });
+
+            modelBuilder.Entity("DonaRogApp.Domain.Communications.Entities.ThankYouRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CampaignId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<bool>("CreateThankYou")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("DonorCategory")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool?>("IsFirstDonation")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<decimal?>("MaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("SubjectType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SuggestedChannel")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("SuggestedTemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("IsActive", "Priority");
+
+                    b.ToTable("App_ThankYouRules", (string)null);
+                });
+
             modelBuilder.Entity("DonaRogApp.Domain.Donations.Entities.Donation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -492,6 +758,68 @@ namespace DonaRogApp.Migrations
                     b.ToTable("App_Donations", (string)null);
                 });
 
+            modelBuilder.Entity("DonaRogApp.Domain.Donations.Entities.DonationDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<int>("DocumentType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("DonationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FileExtension")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsFromExternalFlow")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("StoragePath")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("TextContent")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentType");
+
+                    b.HasIndex("DonationId");
+
+                    b.HasIndex("IsFromExternalFlow");
+
+                    b.HasIndex("DonationId", "CreationTime");
+
+                    b.ToTable("App_DonationDocuments", (string)null);
+                });
+
             modelBuilder.Entity("DonaRogApp.Domain.Donations.Entities.DonationProject", b =>
                 {
                     b.Property<Guid>("DonationId")
@@ -587,6 +915,9 @@ namespace DonaRogApp.Migrations
                     b.Property<bool>("IsOpened")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsPrinted")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("datetime2")
                         .HasColumnName("LastModificationTime");
@@ -605,6 +936,12 @@ namespace DonaRogApp.Migrations
                     b.Property<DateTime?>("OpenedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("PrintBatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("PrintedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Recipient")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -615,6 +952,9 @@ namespace DonaRogApp.Migrations
 
                     b.Property<DateTime>("SentDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<string>("Subject")
                         .IsRequired()
@@ -636,6 +976,12 @@ namespace DonaRogApp.Migrations
                     b.HasIndex("IsDelivered");
 
                     b.HasIndex("IsFailed");
+
+                    b.HasIndex("IsPrinted");
+
+                    b.HasIndex("PrintBatchId");
+
+                    b.HasIndex("Status");
 
                     b.HasIndex("Type");
 
@@ -815,6 +1161,9 @@ namespace DonaRogApp.Migrations
                         .HasMaxLength(5)
                         .HasColumnType("nvarchar(5)")
                         .HasDefaultValue("IT");
+
+                    b.Property<int?>("PreferredThankYouChannel")
+                        .HasColumnType("int");
 
                     b.Property<bool>("PrivacyConsent")
                         .HasColumnType("bit");
@@ -2056,6 +2405,9 @@ namespace DonaRogApp.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<string>("EmailSubject")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ExtraProperties")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -2122,6 +2474,21 @@ namespace DonaRogApp.Migrations
                     b.Property<string>("Tags")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TemplateFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TemplateFilePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("TemplateFileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("TemplateFileUploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TemplateType")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("uniqueidentifier")
@@ -4188,6 +4555,15 @@ namespace DonaRogApp.Migrations
                     b.Navigation("ThankYouTemplate");
                 });
 
+            modelBuilder.Entity("DonaRogApp.Domain.Donations.Entities.DonationDocument", b =>
+                {
+                    b.HasOne("DonaRogApp.Domain.Donations.Entities.Donation", null)
+                        .WithMany("Documents")
+                        .HasForeignKey("DonationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DonaRogApp.Domain.Donations.Entities.DonationProject", b =>
                 {
                     b.HasOne("DonaRogApp.Domain.Donations.Entities.Donation", "Donation")
@@ -4215,7 +4591,14 @@ namespace DonaRogApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DonaRogApp.Domain.Communications.Entities.PrintBatch", "PrintBatch")
+                        .WithMany("Communications")
+                        .HasForeignKey("PrintBatchId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Donor");
+
+                    b.Navigation("PrintBatch");
                 });
 
             modelBuilder.Entity("DonaRogApp.Domain.Donors.Entities.Donor", b =>
@@ -4637,8 +5020,15 @@ namespace DonaRogApp.Migrations
                     b.Navigation("CampaignDonors");
                 });
 
+            modelBuilder.Entity("DonaRogApp.Domain.Communications.Entities.PrintBatch", b =>
+                {
+                    b.Navigation("Communications");
+                });
+
             modelBuilder.Entity("DonaRogApp.Domain.Donations.Entities.Donation", b =>
                 {
+                    b.Navigation("Documents");
+
                     b.Navigation("Projects");
                 });
 

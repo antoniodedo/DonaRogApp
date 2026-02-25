@@ -133,5 +133,83 @@ namespace DonaRogApp.Domain.Donations.Entities
                 InternalNotes = internalNotes;
             }
         }
+
+        /// <summary>
+        /// Update core donation data (ONLY for manually registered donations)
+        /// Cannot update external donations to preserve data integrity
+        /// </summary>
+        public void UpdateCoreData(
+            DonationChannel channel,
+            decimal totalAmount,
+            DateTime donationDate,
+            DateTime? creditDate = null)
+        {
+            // Business Rule: Cannot modify core data for donations from external flows
+            if (!string.IsNullOrWhiteSpace(ExternalId))
+            {
+                throw new BusinessException("DonaRog:CannotUpdateExternalDonationCoreData")
+                    .WithData("donationId", Id)
+                    .WithData("externalId", ExternalId);
+            }
+
+            // Business Rule: Can only update verified donations
+            if (Status != DonationStatus.Verified)
+            {
+                throw new BusinessException("DonaRog:CanOnlyUpdateVerifiedDonations")
+                    .WithData("donationId", Id)
+                    .WithData("currentStatus", Status);
+            }
+
+            Channel = channel;
+            TotalAmount = Check.Positive(totalAmount, nameof(totalAmount));
+            DonationDate = donationDate;
+            CreditDate = creditDate;
+
+            VerifyInvariants();
+        }
+
+        /// <summary>
+        /// Update donation metadata (campaign, bank account, notes)
+        /// Can be done for both manual and external donations
+        /// </summary>
+        public void UpdateMetadata(
+            Guid? campaignId = null,
+            Guid? bankAccountId = null,
+            Guid? thankYouTemplateId = null,
+            string? notes = null,
+            string? internalNotes = null)
+        {
+            // Business Rule: Can only update verified donations
+            if (Status != DonationStatus.Verified)
+            {
+                throw new BusinessException("DonaRog:CanOnlyUpdateVerifiedDonations")
+                    .WithData("donationId", Id)
+                    .WithData("currentStatus", Status);
+            }
+
+            CampaignId = campaignId;
+            BankAccountId = bankAccountId;
+            ThankYouTemplateId = thankYouTemplateId;
+
+            if (!string.IsNullOrWhiteSpace(notes))
+            {
+                Notes = notes;
+            }
+
+            if (!string.IsNullOrWhiteSpace(internalNotes))
+            {
+                InternalNotes = internalNotes;
+            }
+        }
+
+        /// <summary>
+        /// Check if donation is from external flow
+        /// </summary>
+        public bool IsFromExternalFlow() => !string.IsNullOrWhiteSpace(ExternalId);
+
+        /// <summary>
+        /// Check if donation can be edited (core data)
+        /// </summary>
+        public bool CanEditCoreData() => IsVerified() && !IsFromExternalFlow();
     }
 }

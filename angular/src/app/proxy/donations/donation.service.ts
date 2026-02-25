@@ -1,14 +1,19 @@
 import type { PagedResultDto } from '@abp/ng.core';
 import { RestService, Rest } from '@abp/ng.core';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import type {
   CreateDonationDto,
+  CreateTextDocumentDto,
   DonationDto,
+  DonationDocumentDto,
   DonationListDto,
   DonationStatisticsDto,
   ExternalDonationDto,
   GetDonationsInput,
   RejectDonationDto,
+  UpdateDonationDto,
+  UploadDonationDocumentDto,
   VerifyDonationDto,
 } from './models';
 
@@ -59,6 +64,16 @@ export class DonationService {
       {
         method: 'POST',
         url: '/api/app/donation',
+        body: input,
+      },
+      { apiName: this.apiName, ...config }
+    );
+
+  update = (id: string, input: UpdateDonationDto, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, DonationDto>(
+      {
+        method: 'PUT',
+        url: `/api/app/donation/${id}`,
         body: input,
       },
       { apiName: this.apiName, ...config }
@@ -135,6 +150,62 @@ export class DonationService {
           fromDate: filter.fromDate,
           toDate: filter.toDate,
         },
+      },
+      { apiName: this.apiName, ...config }
+    );
+
+  getDocuments = (donationId: string, config?: Partial<Rest.Config>): Observable<DonationDocumentDto[]> =>
+    this.restService.request<any, DonationDocumentDto[]>(
+      {
+        method: 'GET',
+        url: `/api/donations/${donationId}/documents`,
+      },
+      { apiName: this.apiName, ...config }
+    );
+
+  uploadDocument = (donationId: string, file: File, documentType: number, notes?: string, config?: Partial<Rest.Config>): Observable<DonationDocumentDto> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('documentType', documentType.toString());
+    if (notes) {
+      formData.append('notes', notes);
+    }
+    
+    return this.restService.request<any, DonationDocumentDto>(
+      {
+        method: 'POST',
+        url: `/api/donations/${donationId}/documents`,
+        body: formData,
+      },
+      { apiName: this.apiName, ...config }
+    );
+  };
+
+  downloadDocument = (donationId: string, documentId: string, config?: Partial<Rest.Config>): Observable<Blob> =>
+    this.restService.request<any, Blob>(
+      {
+        method: 'GET',
+        url: `/api/donations/${donationId}/documents/${documentId}`,
+        responseType: 'blob' as any,
+      },
+      { apiName: this.apiName, ...config }
+    );
+
+  deleteDocument = (donationId: string, documentId: string, config?: Partial<Rest.Config>): Observable<void> =>
+    this.restService.request<any, void>(
+      {
+        method: 'DELETE',
+        url: `/api/donations/${donationId}/documents/${documentId}`,
+      },
+      { apiName: this.apiName, ...config }
+    );
+
+  createTextDocument = (donationId: string, input: CreateTextDocumentDto, config?: Partial<Rest.Config>): Observable<DonationDocumentDto> =>
+    this.restService.request<any, DonationDocumentDto>(
+      {
+        method: 'POST',
+        url: `/api/donations/${donationId}/documents/text`,
+        body: input,
       },
       { apiName: this.apiName, ...config }
     );

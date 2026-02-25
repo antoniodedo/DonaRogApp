@@ -26,17 +26,33 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { EditorModule, TINYMCE_SCRIPT_SRC } from '@tinymce/tinymce-angular';
 import { DonationService } from '../../proxy/donations/donation.service';
-import { DonationDto, RejectionReason, DonationChannel, DonationStatus } from '../../proxy/donations/models';
+import { 
+  DonationDto, 
+  RejectionReason, 
+  DonationChannel, 
+  DonationStatus,
+  DonationDocumentDto,
+  DonationDocumentType,
+  UploadDonationDocumentDto
+} from '../../proxy/donations/models';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { UploadDocumentModalComponent } from './upload-document-modal.component';
 import { DonorService } from '../../proxy/donors/donor.service';
 import { CampaignService } from '../../proxy/application/campaigns/campaign.service';
 import { ProjectService } from '../../proxy/application/projects/project.service';
 import { LetterTemplateService } from '../../proxy/letter-templates/letter-template.service';
 import { BankAccountService } from '../../proxy/bank-accounts/bank-account.service';
 import { NoteService } from '../../proxy/notes/note.service';
+import { CommunicationService } from '../../proxy/communications/communication.service';
+import { 
+  AlertLevel, 
+  DuplicateCheckResultDto, 
+  PreferredThankYouChannel 
+} from '../../proxy/communications/models';
 import { debounceTime } from 'rxjs';
 
 @Component({
@@ -73,7 +89,8 @@ import { debounceTime } from 'rxjs';
     NzDatePickerModule,
     NzEmptyModule,
     NzDrawerModule,
-    EditorModule
+    EditorModule,
+    NzRadioModule
   ],
   providers: [
     { provide: TINYMCE_SCRIPT_SRC, useValue: 'tinymce/tinymce.min.js' }
@@ -113,20 +130,61 @@ export class DonationDetailComponent implements OnInit {
   
   // CREATE mode fields
   createChannel: DonationChannel = DonationChannel.BankTransfer;
-  createTotalAmount: number = 50;
+  private _createTotalAmount: number = 50;
+  private _isLoadingData: boolean = false; // Flag to prevent auto-recalc during data load
   createDonationDate: Date = new Date();
   createCreditDate?: Date;
   currentStatus: DonationStatus = DonationStatus.Pending;
   
-  // Computed property for scanned document
-  get scannedDocumentUrl(): string | null {
-    // In futuro, questo sarà caricato dal backend
-    // Per ora ritorna null, mostrando il placeholder
-    return null;
+  get createTotalAmount(): number {
+    return this._createTotalAmount;
   }
-
-  // Example document URL
-  exampleDocumentUrl: string = 'assets/bollettino-esempio.png';
+  
+  set createTotalAmount(value: number) {
+    this._createTotalAmount = value;
+  }
+  
+  onTotalAmountChange(newValue: number): void {
+    const oldValue = Number(this._createTotalAmount);
+    const numericNewValue = Number(newValue);
+    
+    console.log('=== onTotalAmountChange triggered ===');
+    console.log('oldValue:', oldValue, 'type:', typeof oldValue);
+    console.log('newValue:', numericNewValue, 'type:', typeof numericNewValue);
+    console.log('_isLoadingData:', this._isLoadingData);
+    console.log('projectAllocations.length:', this.projectAllocations.length);
+    
+    this.createTotalAmount = numericNewValue;
+    
+    // Only trigger recalc popup if user is manually changing (not during data load)
+    const shouldShowPopup = !this._isLoadingData && 
+                           this.projectAllocations.length > 0 && 
+                           oldValue !== numericNewValue && 
+                           oldValue > 0 && 
+                           numericNewValue > 0;
+    
+    console.log('shouldShowPopup:', shouldShowPopup);
+    
+    if (shouldShowPopup) {
+      console.log('Showing recalc modal...');
+      this.modal.confirm({
+        nzTitle: 'Ricalcolare allocazioni?',
+        nzContent: `L'importo totale è cambiato da ${oldValue.toFixed(2)}€ a ${numericNewValue.toFixed(2)}€. Vuoi ricalcolare le allocazioni ai progetti in modo proporzionale?`,
+        nzOkText: 'Sì, ricalcola',
+        nzCancelText: 'No, le modifico manualmente',
+        nzOnOk: () => {
+          this.recalculateAllocationsProportionally();
+        }
+      });
+    }
+  }
+  
+  // Documents
+  documents: DonationDocumentDto[] = [];
+  isLoadingDocuments = false;
+  selectedDocumentForPreview: DonationDocumentDto | null = null;
+  currentDocumentIndex = 0;
+  documentPreviewModalRef: any = null;
 
   // Slider marks
   sliderMarks: { [key: number]: string } = {
@@ -135,10 +193,19 @@ export class DonationDetailComponent implements OnInit {
   };
   
   // Project allocations
-  projectAllocations: Array<{projectId: string; projectName?: string; allocatedAmount: number; editing?: boolean}> = [];
+  projectAllocations: Array<{
+    projectId: string; 
+    projectName?: string; 
+    allocatedAmount: number; 
+    editing?: boolean;
+    editMode?: 'amount' | 'percentage';
+    editPercentage?: number;
+  }> = [];
   availableProjects: any[] = [];
   newProjectId: string | null = null;
   newProjectAmount: number = 0;
+  newProjectPercentage: number = 0;
+  allocationMode: 'amount' | 'percentage' = 'amount';
   
   // ngModel standalone option
   ngModelOptions = { standalone: true };
@@ -186,6 +253,16 @@ export class DonationDetailComponent implements OnInit {
   isCampaignModalVisible = false;
   isProjectModalVisible = false;
   isFilterDrawerVisible = false;
+  
+  // Thank You & Alert System
+  duplicateAlert: DuplicateCheckResultDto | null = null;
+  isCheckingDuplicates = false;
+  AlertLevel = AlertLevel;
+  PreferredThankYouChannel = PreferredThankYouChannel;
+  createThankYou: boolean | null = null; // null = auto (evaluate rules)
+  thankYouChannel: PreferredThankYouChannel | null = null;
+  printImmediately = false;
+  noThankYouReason: string = '';
 
   // Navigation between filtered donations
   filteredDonationIds: string[] = [];
@@ -211,6 +288,7 @@ export class DonationDetailComponent implements OnInit {
     private letterTemplateService: LetterTemplateService,
     private bankAccountService: BankAccountService,
     private noteService: NoteService,
+    private communicationService: CommunicationService,
     private router: Router,
     private route: ActivatedRoute,
     private message: NzMessageService,
@@ -244,6 +322,14 @@ export class DonationDetailComponent implements OnInit {
         // No ID = CREATE mode
         this.mode = 'create';
         this.resetFormData();
+        
+        // Check for donorId in query params (coming from donor detail page)
+        this.route.queryParams.subscribe(queryParams => {
+          if (queryParams['donorId']) {
+            this.verifyForm.patchValue({ donorId: queryParams['donorId'] });
+            this.loadDonorDetails(queryParams['donorId']);
+          }
+        });
       } else {
         // Reset data before loading new donation
         this.resetFormData();
@@ -380,6 +466,11 @@ export class DonationDetailComponent implements OnInit {
         this.selectedDonor = donor;
         this.donorSearchControl.setValue(donor.fullName || '', { emitEvent: false });
         
+        // Check for duplicate letters
+        if (this.mode === 'verify' || this.mode === 'create') {
+          this.checkDuplicateLetters(donorId);
+        }
+        
         // Load donor's donations and notes
         this.loadDonorDonations(donorId);
         this.loadDonorNotes(donorId);
@@ -403,6 +494,8 @@ export class DonationDetailComponent implements OnInit {
     if (!this.donationId) return;
     
     this.loading = true;
+    this._isLoadingData = true; // Prevent auto-recalc modal during data load
+    
     this.donationService.get(this.donationId).subscribe({
       next: (donation) => {
         this.donation = donation;
@@ -470,10 +563,15 @@ export class DonationDetailComponent implements OnInit {
           });
         }
 
+        // Load documents
+        this.loadDocuments();
+
         this.loading = false;
+        this._isLoadingData = false; // Re-enable auto-recalc modal
       },
       error: () => {
         this.loading = false;
+        this._isLoadingData = false;
         this.message.error('Errore caricamento donazione');
       },
     });
@@ -512,13 +610,108 @@ export class DonationDetailComponent implements OnInit {
   removeProjectAllocation(projectId: string): void {
     this.projectAllocations = this.projectAllocations.filter(pa => pa.projectId !== projectId);
   }
+  
+  updateProjectAllocation(projectId: string, newAmount: number): void {
+    const allocation = this.projectAllocations.find(pa => pa.projectId === projectId);
+    if (allocation) {
+      allocation.allocatedAmount = newAmount;
+      // Update percentage automatically
+      if (this.createTotalAmount > 0) {
+        allocation.editPercentage = (newAmount / this.createTotalAmount) * 100;
+      }
+      console.log(`Updated ${allocation.projectName} to ${newAmount}€`);
+    }
+  }
+  
+  updateProjectAllocationByPercentage(projectId: string, newPercentage: number): void {
+    const allocation = this.projectAllocations.find(pa => pa.projectId === projectId);
+    if (allocation) {
+      allocation.editPercentage = newPercentage;
+      allocation.allocatedAmount = (this.createTotalAmount * newPercentage) / 100;
+      console.log(`Updated ${allocation.projectName} to ${newPercentage}% (${allocation.allocatedAmount}€)`);
+    }
+  }
+  
+  toggleProjectEditMode(projectId: string): void {
+    const allocation = this.projectAllocations.find(pa => pa.projectId === projectId);
+    if (allocation) {
+      allocation.editMode = allocation.editMode === 'percentage' ? 'amount' : 'percentage';
+      // Initialize percentage if not set
+      if (!allocation.editPercentage && this.createTotalAmount > 0) {
+        allocation.editPercentage = (allocation.allocatedAmount / this.createTotalAmount) * 100;
+      }
+    }
+  }
+  
+  recalculateAllocationsProportionally(): void {
+    console.log('=== RECALCULATE START ===');
+    console.log('projectAllocations before:', JSON.parse(JSON.stringify(this.projectAllocations)));
+    
+    if (this.projectAllocations.length === 0) {
+      console.log('No allocations to recalculate');
+      return;
+    }
+    
+    const currentTotal = this.getTotalAllocated();
+    console.log('currentTotal:', currentTotal);
+    
+    if (currentTotal === 0) {
+      console.log('Current total is 0, cannot recalculate');
+      return;
+    }
+    
+    const targetTotal = this.createTotalAmount;
+    console.log('targetTotal:', targetTotal);
+    
+    // Calculate proportions and redistribute
+    let remainingToAllocate = targetTotal;
+    const proportionalAllocations: number[] = [];
+    
+    // Calculate proportional amounts (with rounding)
+    this.projectAllocations.forEach((pa, index) => {
+      const proportion = pa.allocatedAmount / currentTotal;
+      console.log(`${pa.projectName}: proportion=${proportion.toFixed(4)}`);
+      
+      if (index === this.projectAllocations.length - 1) {
+        // Last item gets the remainder to avoid rounding errors
+        proportionalAllocations.push(remainingToAllocate);
+      } else {
+        const proportionalAmount = Math.round(targetTotal * proportion * 100) / 100;
+        proportionalAllocations.push(proportionalAmount);
+        remainingToAllocate -= proportionalAmount;
+      }
+    });
+    
+    console.log('proportionalAllocations:', proportionalAllocations);
+    
+    // Apply new amounts - create new array to trigger Angular change detection
+    this.projectAllocations = this.projectAllocations.map((pa, index) => {
+      const oldAmount = pa.allocatedAmount;
+      const newAmount = proportionalAllocations[index];
+      console.log(`${pa.projectName}: ${oldAmount}€ → ${newAmount}€`);
+      return {
+        ...pa,
+        allocatedAmount: newAmount
+      };
+    });
+    
+    console.log('projectAllocations after:', JSON.parse(JSON.stringify(this.projectAllocations)));
+    console.log('new total:', this.getTotalAllocated());
+    console.log('=== RECALCULATE END ===');
+    
+    this.message.success(`Allocazioni ricalcolate: ${this.getTotalAllocated().toFixed(2)} €`);
+  }
+  
+  trackByProjectId(index: number, item: any): string {
+    return item.projectId;
+  }
 
   getTotalAllocated(): number {
     return this.projectAllocations.reduce((sum, pa) => sum + pa.allocatedAmount, 0);
   }
 
   getRemainingAmount(): number {
-    const totalAmount = this.mode === 'create' ? this.createTotalAmount : (this.donation?.totalAmount || 0);
+    const totalAmount = (this.mode === 'create' || this.mode === 'edit') ? this.createTotalAmount : (this.donation?.totalAmount || 0);
     return totalAmount - this.getTotalAllocated();
   }
 
@@ -660,25 +853,74 @@ export class DonationDetailComponent implements OnInit {
       return;
     }
 
-    if (this.projectAllocations.length === 0) {
-      this.message.warning('Alloca la donazione ad almeno un progetto');
-      return;
+    // Validate required fields for create mode
+    if (this.mode === 'create') {
+      if (!this.verifyForm.get('donorId')?.value) {
+        this.message.warning('Seleziona un donatore');
+        return;
+      }
+      
+      if (!this.createChannel) {
+        this.message.warning('Seleziona un canale di donazione');
+        return;
+      }
+      
+      if (!this.createTotalAmount || this.createTotalAmount <= 0) {
+        this.message.warning('Inserisci un importo valido');
+        return;
+      }
+      
+      if (!this.createDonationDate) {
+        this.message.warning('Inserisci la data della donazione');
+        return;
+      }
     }
 
-    const remaining = this.getRemainingAmount();
-    if (remaining !== 0) {
-      this.message.warning(`Importo rimanente da allocare: ${remaining.toFixed(2)} EUR`);
-      return;
+    // Validate allocations only if there are some
+    if (this.projectAllocations.length > 0) {
+      const remaining = this.getRemainingAmount();
+      
+      if (remaining > 0) {
+        this.message.warning(`Hai allocato ${this.getTotalAllocated().toFixed(2)} € ma il totale è ${this.createTotalAmount} €. Rimanente: ${remaining.toFixed(2)} €`);
+        this.loading = false;
+        return;
+      }
+      
+      if (remaining < 0) {
+        this.message.error(`Hai allocato troppo! Totale donazione: ${this.createTotalAmount} €, Allocato: ${this.getTotalAllocated().toFixed(2)} €. Clicca "Ricalcola" o riduci manualmente di ${Math.abs(remaining).toFixed(2)} €`);
+        this.loading = false;
+        return;
+      }
     }
 
     this.loading = true;
-    const dto = {
-      ...this.verifyForm.value,
-      projectAllocations: this.projectAllocations.map(pa => ({
-        projectId: pa.projectId,
-        allocatedAmount: pa.allocatedAmount
-      }))
-    };
+    
+    try {
+      // DEBUG: Dump complete state before sending
+      console.log('=== PRE-SUBMIT STATE ===');
+      console.log('Mode:', this.mode);
+      console.log('createTotalAmount:', this.createTotalAmount);
+      console.log('projectAllocations RAW:', this.projectAllocations);
+      
+      // Force recalculate totals to ensure they're fresh
+      const actualTotalAllocated = this.projectAllocations.reduce((sum, pa) => sum + (Number(pa.allocatedAmount) || 0), 0);
+      console.log('Actual total allocated (fresh):', actualTotalAllocated);
+      console.log('Remaining:', this.createTotalAmount - actualTotalAllocated);
+      
+      const dto = {
+        ...this.verifyForm.value,
+        projectAllocations: this.projectAllocations.map(pa => ({
+          projectId: pa.projectId,
+          allocatedAmount: Number(pa.allocatedAmount) // Ensure it's a number
+        })),
+        // Thank You Options
+        createThankYou: this.createThankYou,
+        thankYouChannel: this.thankYouChannel,
+        noThankYouReason: this.noThankYouReason || undefined,
+        printImmediately: this.printImmediately
+      };
+
+      console.log('DTO base:', dto);
 
     if (this.mode === 'create') {
       // CREATE mode - create new donation
@@ -691,6 +933,8 @@ export class DonationDetailComponent implements OnInit {
         status: DonationStatus.Verified, // Create as verified
       };
       
+      console.log('CreateDto:', createDto);
+      
       this.donationService.create(createDto).subscribe({
         next: (created) => {
           this.message.success('Donazione creata con successo');
@@ -701,20 +945,80 @@ export class DonationDetailComponent implements OnInit {
           this.message.error('Errore creazione donazione');
         },
       });
+    } else if (this.mode === 'edit') {
+      // EDIT mode - use update endpoint
+      // Validate edit-specific fields
+      if (!this.createChannel) {
+        this.message.warning('Seleziona un canale di donazione');
+        this.loading = false;
+        return;
+      }
+      
+      if (!this.createTotalAmount || this.createTotalAmount <= 0) {
+        this.message.warning('Inserisci un importo valido');
+        this.loading = false;
+        return;
+      }
+      
+      if (!this.createDonationDate) {
+        this.message.warning('Inserisci la data della donazione');
+        this.loading = false;
+        return;
+      }
+      
+      const updateDto = {
+        ...dto,
+        channel: this.createChannel,
+        totalAmount: this.createTotalAmount,
+        donationDate: this.createDonationDate instanceof Date ? this.createDonationDate.toISOString() : new Date(this.createDonationDate).toISOString(),
+        creditDate: this.createCreditDate ? (this.createCreditDate instanceof Date ? this.createCreditDate.toISOString() : new Date(this.createCreditDate).toISOString()) : undefined,
+      };
+      
+      console.log('=== UPDATE DEBUG ===');
+      console.log('createTotalAmount:', this.createTotalAmount);
+      console.log('projectAllocations:', JSON.parse(JSON.stringify(this.projectAllocations)));
+      console.log('totalAllocated:', this.getTotalAllocated());
+      console.log('UpdateDto:', JSON.parse(JSON.stringify(updateDto)));
+      console.log('UpdateDto.totalAmount:', updateDto.totalAmount);
+      console.log('UpdateDto.projectAllocations:', JSON.parse(JSON.stringify(updateDto.projectAllocations)));
+      
+      const dtoTotal = updateDto.projectAllocations?.reduce((sum: number, pa: any) => sum + (pa.allocatedAmount || 0), 0) || 0;
+      console.log('DTO Total Allocated:', dtoTotal);
+      console.log('Difference:', updateDto.totalAmount - dtoTotal);
+      
+      this.donationService.update(this.donationId!, updateDto).subscribe({
+        next: () => {
+          this.message.success('Donazione aggiornata con successo');
+          this.router.navigate(['/donations', this.donationId]);
+        },
+        error: (err) => {
+          this.loading = false;
+          
+          // Check if error is about external donation
+          if (err.error?.error?.code === 'DonaRog:CannotUpdateExternalDonationCoreData') {
+            this.message.error('Impossibile modificare importo/canale/date di una donazione da flusso esterno');
+          } else {
+            this.message.error('Errore aggiornamento donazione');
+          }
+        },
+      });
     } else {
-      // VERIFY or EDIT mode - use verify endpoint
+      // VERIFY mode - use verify endpoint
       this.donationService.verify(this.donationId!, dto).subscribe({
         next: () => {
-          const successMsg = this.mode === 'verify' ? 'Donazione verificata con successo' : 'Donazione aggiornata con successo';
-          this.message.success(successMsg);
+          this.message.success('Donazione verificata con successo');
           this.router.navigate(['/donations', this.donationId]);
         },
         error: () => {
           this.loading = false;
-          const errorMsg = this.mode === 'verify' ? 'Errore verifica donazione' : 'Errore aggiornamento donazione';
-          this.message.error(errorMsg);
+          this.message.error('Errore verifica donazione');
         },
       });
+    }
+    } catch (error) {
+      console.error('Error building DTO:', error);
+      this.loading = false;
+      this.message.error('Errore nella preparazione dei dati: ' + (error as Error).message);
     }
   }
 
@@ -889,44 +1193,336 @@ export class DonationDetailComponent implements OnInit {
     return num.toFixed(2);
   }
 
-  // Open image zoom modal
-  openImageZoom(): void {
-    const imageUrl = this.scannedDocumentUrl || this.exampleDocumentUrl;
-    const isExample = !this.scannedDocumentUrl;
+  // ======================================================================
+  // DOCUMENT MANAGEMENT
+  // ======================================================================
+  
+  async loadDocuments(): Promise<void> {
+    if (!this.donation?.id) return;
     
-    this.modal.create({
-      nzTitle: isExample ? 'Documento di Esempio' : 'Documento Scansionato',
-      nzContent: `
-        <div style="
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          background: #f5f5f5; 
-          width: 100%;
-          height: calc(90vh - 110px);
-          overflow: hidden;">
-          <img src="${imageUrl}" 
-               alt="Documento" 
-               style="
-                 width: 100%; 
-                 height: 100%; 
-                 object-fit: contain;
-                 border: 1px solid #d9d9d9;
-                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
-        </div>
-      `,
-      nzWidth: '95vw',
-      nzStyle: { 
-        top: '20px'
-      },
-      nzBodyStyle: {
-        padding: '0',
-        overflow: 'hidden'
-      },
-      nzFooter: null,
+    this.isLoadingDocuments = true;
+    try {
+      this.documents = await this.donationService.getDocuments(this.donation.id).toPromise() || [];
+    } catch (error) {
+      console.error('Error loading documents:', error);
+      this.message.error('Errore nel caricamento dei documenti');
+    } finally {
+      this.isLoadingDocuments = false;
+    }
+  }
+
+  async uploadDocument(file: File, documentType: DonationDocumentType, notes?: string): Promise<void> {
+    console.log('uploadDocument called with:', { file, documentType, notes, donationId: this.donation?.id });
+    
+    if (!this.donation?.id) {
+      console.error('No donation ID available');
+      return;
+    }
+    
+    if (!file) {
+      console.error('No file provided');
+      this.message.error('Nessun file selezionato');
+      return;
+    }
+    
+    try {
+      console.log('Calling donationService.uploadDocument...');
+      const uploaded = await this.donationService.uploadDocument(
+        this.donation.id, 
+        file, 
+        documentType, 
+        notes
+      ).toPromise();
+      
+      console.log('Upload response:', uploaded);
+      
+      if (uploaded) {
+        this.documents.push(uploaded);
+        this.message.success('Documento caricato con successo');
+      }
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      this.message.error('Errore nel caricamento del documento');
+      throw error;
+    }
+  }
+
+  openDocumentPreview(doc: DonationDocumentDto, index: number = 0): void {
+    this.selectedDocumentForPreview = doc;
+    this.currentDocumentIndex = index;
+
+    // Close existing modal if any
+    if (this.documentPreviewModalRef) {
+      this.documentPreviewModalRef.close();
+    }
+
+    // Handle text-only documents
+    if (doc.isTextDocument) {
+      this.documentPreviewModalRef = this.modal.create({
+        nzTitle: this.getModalTitle(doc, index),
+        nzContent: `
+          <div style="padding: 20px;">
+            <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); padding: 24px; border-radius: 12px; border: 2px solid #0ea5e9; box-shadow: inset 0 2px 8px rgba(14, 165, 233, 0.1);">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid rgba(14, 165, 233, 0.2);">
+                <span style="font-size: 32px;">💳</span>
+                <strong style="color: #0c4a6e; font-size: 16px;">Descrizione bonifico</strong>
+              </div>
+              <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid rgba(14, 165, 233, 0.2); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <p style="white-space: pre-wrap; color: #0c4a6e; line-height: 2; margin: 0; font-size: 14px;">${doc.textContent || ''}</p>
+              </div>
+            </div>
+            ${doc.notes ? `
+              <div style="margin-top: 16px; padding: 16px 20px; background: linear-gradient(135deg, #fff7ed, #ffedd5); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <span style="font-size: 18px;">📝</span>
+                  <strong style="color: #92400e; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Note</strong>
+                </div>
+                <p style="margin: 0; color: #78350f; font-size: 13px; line-height: 1.6;">${doc.notes}</p>
+              </div>
+            ` : ''}
+          </div>
+        `,
+        nzWidth: '700px',
+        nzFooter: this.getModalFooter(doc, index),
+        nzClosable: true,
+        nzMaskClosable: false
+      });
+      return;
+    }
+
+    // Handle file-based documents (images, PDFs)
+    const isPdf = doc.mimeType === 'application/pdf';
+    const downloadUrl = `https://localhost:44318/api/donations/${doc.donationId}/documents/${doc.id}`;
+
+    this.documentPreviewModalRef = this.modal.create({
+      nzTitle: this.getModalTitle(doc, index),
+      nzContent: isPdf
+        ? `<div style="position: relative; height: 75vh; background: #525252; border-radius: 8px; overflow: hidden;">
+             <iframe src="${downloadUrl}" style="width: 100%; height: 100%; border: none;"></iframe>
+           </div>`
+        : `<div style="display: flex; justify-content: center; align-items: center; background: #000; border-radius: 8px; padding: 20px; min-height: 60vh;">
+             <img src="${downloadUrl}" alt="${doc.fileName}" style="max-width: 100%; max-height: 75vh; height: auto; border-radius: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);" />
+           </div>`,
+      nzWidth: '95%',
+      nzFooter: this.getModalFooter(doc, index),
       nzClosable: true,
-      nzMaskClosable: true
+      nzMaskClosable: false,
+      nzBodyStyle: { padding: '24px', background: '#f5f5f5' }
     });
+  }
+
+  getModalTitle(doc: DonationDocumentDto, index: number): string {
+    const docType = doc.isTextDocument ? '📄 Testo' : (doc.mimeType?.startsWith('image/') ? '🖼️ Immagine' : '📑 PDF');
+    const fileName = doc.isTextDocument ? 'Descrizione bonifico' : doc.fileName;
+    const counter = `<span style="display: inline-block; background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-left: 12px;">${index + 1} / ${this.documents.length}</span>`;
+    return `${docType} ${fileName} ${counter}`;
+  }
+
+  getModalFooter(doc: DonationDocumentDto, index: number): any[] {
+    const footer: any[] = [];
+
+    // Navigation section (left side)
+    const hasNavigation = this.documents.length > 1;
+    if (hasNavigation) {
+      // Previous button
+      footer.push({
+        label: '◀ Precedente',
+        disabled: index === 0,
+        onClick: () => {
+          this.navigateToPreviousDocument();
+          return false;
+        },
+        show: true,
+        type: 'default'
+      });
+
+      // Next button
+      footer.push({
+        label: 'Successivo ▶',
+        disabled: index >= this.documents.length - 1,
+        onClick: () => {
+          this.navigateToNextDocument();
+          return false;
+        },
+        show: true,
+        type: 'default'
+      });
+    }
+
+    // Download button (only for file-based documents)
+    if (!doc.isTextDocument) {
+      footer.push({
+        label: '⬇️ Scarica',
+        type: 'primary',
+        onClick: () => {
+          this.downloadDocument(doc);
+          return false;
+        }
+      });
+    }
+
+    // Delete button (only if not from external flow and not in view mode)
+    if (this.mode !== 'view' && !doc.isFromExternalFlow) {
+      footer.push({
+        label: '🗑️ Elimina',
+        danger: true,
+        onClick: () => {
+          this.deleteDocument(doc);
+          return true; // Will close after confirmation
+        }
+      });
+    }
+
+    // Close button
+    footer.push({
+      label: 'Chiudi',
+      onClick: () => {
+        this.documentPreviewModalRef = null;
+        return true;
+      }
+    });
+
+    return footer;
+  }
+
+  navigateToPreviousDocument(): void {
+    if (this.currentDocumentIndex > 0) {
+      const prevIndex = this.currentDocumentIndex - 1;
+      const prevDoc = this.documents[prevIndex];
+      this.openDocumentPreview(prevDoc, prevIndex);
+    }
+  }
+
+  navigateToNextDocument(): void {
+    if (this.currentDocumentIndex < this.documents.length - 1) {
+      const nextIndex = this.currentDocumentIndex + 1;
+      const nextDoc = this.documents[nextIndex];
+      this.openDocumentPreview(nextDoc, nextIndex);
+    }
+  }
+
+  downloadDocument(doc: DonationDocumentDto): void {
+    if (!this.donation?.id) return;
+
+    // Text documents cannot be downloaded
+    if (doc.isTextDocument) {
+      this.message.info('I documenti testuali non possono essere scaricati');
+      return;
+    }
+
+    this.donationService.downloadDocument(this.donation.id, doc.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.fileName || 'document';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error downloading document:', error);
+        this.message.error('Errore nel download del documento');
+      }
+    });
+  }
+
+  async deleteDocument(doc: DonationDocumentDto): Promise<void> {
+    if (!this.donation?.id) return;
+
+    const documentName = doc.isTextDocument 
+      ? 'documento testuale' 
+      : doc.fileName || 'documento';
+
+    this.modal.confirm({
+      nzTitle: 'Conferma eliminazione',
+      nzContent: `Sei sicuro di voler eliminare ${doc.isTextDocument ? 'questo' : 'il documento'} "${documentName}"?`,
+      nzOkText: 'Elimina',
+      nzOkDanger: true,
+      nzCancelText: 'Annulla',
+      nzOnOk: async () => {
+        try {
+          await this.donationService.deleteDocument(this.donation!.id, doc.id).toPromise();
+          this.documents = this.documents.filter(d => d.id !== doc.id);
+          this.message.success('Documento eliminato con successo');
+          
+          // Close preview modal if it was the document being previewed
+          if (this.selectedDocumentForPreview?.id === doc.id && this.documentPreviewModalRef) {
+            this.documentPreviewModalRef.close();
+            this.documentPreviewModalRef = null;
+          }
+        } catch (error) {
+          console.error('Error deleting document:', error);
+          this.message.error('Errore nell\'eliminazione del documento');
+        }
+      }
+    });
+  }
+
+  getDocumentTooltip(doc: DonationDocumentDto): string {
+    if (doc.isTextDocument) {
+      return `Documento testuale${doc.isFromExternalFlow ? ' (flusso esterno)' : ''}\nClicca per visualizzare`;
+    }
+    
+    const type = doc.mimeType?.startsWith('image/') ? 'Immagine' : 'PDF';
+    const source = doc.isFromExternalFlow ? ' (flusso esterno)' : '';
+    return `${type}: ${doc.fileName}${source}\nClicca per visualizzare`;
+  }
+
+  getDocumentTypeBadgeTooltip(doc: DonationDocumentDto): string {
+    const typeLabels: { [key: number]: string } = {
+      0: 'Ricevuta Bonifico',
+      1: 'Ricevuta Postale',
+      2: 'Ricevuta PayPal',
+      3: 'Immagine Assegno',
+      4: 'Ricevuta Contanti',
+      99: 'Altro'
+    };
+    
+    const typeLabel = typeLabels[doc.documentType] || 'Documento';
+    const formatLabel = doc.isTextDocument ? 'Testo' : (doc.mimeType?.startsWith('image/') ? 'Immagine' : 'PDF');
+    
+    return `${typeLabel}\nFormato: ${formatLabel}`;
+  }
+
+  showUploadModal(): void {
+    console.log('showUploadModal called');
+    
+    const modalRef = this.modal.create({
+      nzTitle: 'Carica Documento',
+      nzContent: UploadDocumentModalComponent,
+      nzWidth: '500px',
+      nzOkText: 'Carica',
+      nzCancelText: 'Annulla',
+      nzOnOk: async (component) => {
+        console.log('Modal OK clicked');
+        const result = component.getResult();
+        
+        console.log('Modal result:', result);
+        
+        if (!result) {
+          console.log('No result from modal');
+          return false;
+        }
+
+        try {
+          await this.uploadDocument(result.file, result.documentType, result.notes);
+          console.log('Upload completed successfully');
+          return true;
+        } catch (error) {
+          console.error('Upload failed:', error);
+          return false;
+        }
+      }
+    });
+  }
+
+  // Open image zoom modal (deprecated - use openDocumentPreview)
+  openImageZoom(): void {
+    if (this.documents.length > 0) {
+      this.openDocumentPreview(this.documents[0], 0);
+    } else {
+      this.message.info('Nessun documento disponibile');
+    }
   }
 
   // Show donor search modal
@@ -973,6 +1569,27 @@ export class DonationDetailComponent implements OnInit {
     this.isProjectModalVisible = true;
     this.newProjectId = null;
     this.newProjectAmount = 0;
+    this.newProjectPercentage = 0;
+    this.allocationMode = 'amount';
+  }
+  
+  onAllocationModeChange(): void {
+    this.newProjectAmount = 0;
+    this.newProjectPercentage = 0;
+  }
+  
+  onPercentageChange(percentage: number): void {
+    this.newProjectPercentage = percentage;
+    if (percentage > 0 && percentage <= 100) {
+      this.newProjectAmount = (this.createTotalAmount * percentage) / 100;
+    }
+  }
+  
+  onAmountChange(amount: number): void {
+    this.newProjectAmount = amount;
+    if (amount > 0 && this.createTotalAmount > 0) {
+      this.newProjectPercentage = (amount / this.createTotalAmount) * 100;
+    }
   }
 
   // Handle project modal cancel
@@ -984,21 +1601,42 @@ export class DonationDetailComponent implements OnInit {
 
   // Handle project modal OK
   handleProjectOk(): void {
-    if (!this.newProjectId || this.newProjectAmount <= 0) {
-      this.message.warning('Seleziona un progetto e inserisci un importo valido');
+    if (!this.newProjectId) {
+      this.message.warning('Seleziona un progetto');
       return;
+    }
+    
+    // Calculate amount based on mode
+    let finalAmount: number;
+    if (this.allocationMode === 'percentage') {
+      if (this.newProjectPercentage <= 0 || this.newProjectPercentage > 100) {
+        this.message.warning('Inserisci una percentuale valida (1-100%)');
+        return;
+      }
+      finalAmount = (this.createTotalAmount * this.newProjectPercentage) / 100;
+    } else {
+      if (this.newProjectAmount <= 0) {
+        this.message.warning('Inserisci un importo valido');
+        return;
+      }
+      finalAmount = this.newProjectAmount;
     }
 
     const remaining = this.getRemainingAmount();
-    if (this.newProjectAmount > remaining) {
-      this.message.warning(`L'importo massimo disponibile è ${remaining.toFixed(2)} €`);
+    if (finalAmount > remaining) {
+      this.message.error(`Importo massimo disponibile: ${remaining.toFixed(2)} € (Totale: ${this.createTotalAmount} €, Già allocato: ${this.getTotalAllocated().toFixed(2)} €)`);
       return;
     }
+    
+    // Set the calculated amount
+    this.newProjectAmount = finalAmount;
 
     this.addProjectAllocation();
     this.isProjectModalVisible = false;
     this.newProjectId = null;
     this.newProjectAmount = 0;
+    this.newProjectPercentage = 0;
+    this.allocationMode = 'amount';
   }
 
   // Navigation between filtered donations
@@ -1182,5 +1820,87 @@ export class DonationDetailComponent implements OnInit {
 
   printDonation(): void {
     window.print();
+  }
+  
+  // ========================================================================
+  // THANK YOU & DUPLICATE CHECK METHODS
+  // ========================================================================
+  
+  checkDuplicateLetters(donorId: string): void {
+    this.isCheckingDuplicates = true;
+    this.duplicateAlert = null;
+    
+    this.communicationService.checkDuplicateLetters({
+      donorId: donorId,
+      checkLastDays: 30,
+      errorThresholdDays: 7,
+      warningThresholdDays: 15
+    }).subscribe({
+      next: (result) => {
+        this.isCheckingDuplicates = false;
+        if (result.alertLevel !== AlertLevel.None) {
+          this.duplicateAlert = result;
+        }
+      },
+      error: () => {
+        this.isCheckingDuplicates = false;
+        console.error('Error checking duplicates');
+      }
+    });
+  }
+  
+  getAlertTypeClass(): string {
+    if (!this.duplicateAlert) return '';
+    switch (this.duplicateAlert.alertLevel) {
+      case AlertLevel.Error: return 'error';
+      case AlertLevel.Warning: return 'warning';
+      case AlertLevel.Info: return 'info';
+      default: return '';
+    }
+  }
+  
+  getAlertIcon(): string {
+    if (!this.duplicateAlert) return '';
+    switch (this.duplicateAlert.alertLevel) {
+      case AlertLevel.Error: return 'exclamation-circle';
+      case AlertLevel.Warning: return 'warning';
+      case AlertLevel.Info: return 'info-circle';
+      default: return 'info';
+    }
+  }
+  
+  showCommunicationHistory(): void {
+    if (!this.selectedDonor) return;
+    
+    this.modal.info({
+      nzTitle: 'Storico Comunicazioni',
+      nzContent: this.buildHistoryContent(),
+      nzWidth: 800,
+      nzOkText: 'Chiudi'
+    });
+  }
+  
+  private buildHistoryContent(): string {
+    if (!this.duplicateAlert?.recentCommunications.length) {
+      return '<p>Nessuna comunicazione recente trovata.</p>';
+    }
+    
+    let html = '<table style="width:100%; border-collapse: collapse;">';
+    html += '<thead><tr style="background: #f5f5f5;"><th style="padding:8px;text-align:left;">Data</th><th style="padding:8px;text-align:left;">Tipo</th><th style="padding:8px;text-align:left;">Donazione</th><th style="padding:8px;text-align:right;">Importo</th><th style="padding:8px;text-align:center;">Stato</th></tr></thead>';
+    html += '<tbody>';
+    
+    for (const comm of this.duplicateAlert.recentCommunications) {
+      const date = new Date(comm.sentDate);
+      html += `<tr style="border-bottom: 1px solid #f0f0f0;">`;
+      html += `<td style="padding:8px;">${date.toLocaleDateString('it-IT')}</td>`;
+      html += `<td style="padding:8px;">Lettera</td>`;
+      html += `<td style="padding:8px;">${comm.donationReference || 'N/A'}</td>`;
+      html += `<td style="padding:8px;text-align:right;">${comm.donationAmount?.toFixed(2) || '0.00'} €</td>`;
+      html += `<td style="padding:8px;text-align:center;">${comm.isPrinted ? '✓ Stampata' : (comm.isInBatch ? '📦 In batch' : '⏳ In attesa')}</td>`;
+      html += `</tr>`;
+    }
+    
+    html += '</tbody></table>';
+    return html;
   }
 }

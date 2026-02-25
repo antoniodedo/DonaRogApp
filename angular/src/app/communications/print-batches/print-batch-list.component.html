@@ -1,0 +1,384 @@
+<div class="print-batch-list-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-icon">
+          <span nz-icon nzType="printer" nzTheme="outline"></span>
+        </div>
+        <div class="header-text">
+          <h1>Batch di Stampa</h1>
+          <p>Gestisci i batch per la stampa delle lettere di ringraziamento</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button nz-button nzType="primary" (click)="showCreateModal()">
+          <span nz-icon nzType="plus"></span>
+          Nuovo Batch
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <nz-card class="filter-card" [nzBordered]="false">
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="8">
+        <nz-input-group [nzPrefix]="searchIcon">
+          <input nz-input placeholder="Cerca per nome o codice" [(ngModel)]="searchText" (keyup.enter)="search()" />
+        </nz-input-group>
+        <ng-template #searchIcon>
+          <span nz-icon nzType="search"></span>
+        </ng-template>
+      </div>
+      
+      <div nz-col [nzSpan]="4">
+        <nz-select [(ngModel)]="filterStatus" nzPlaceHolder="Stato" nzAllowClear style="width: 100%;" (ngModelChange)="search()">
+          <nz-option [nzValue]="PrintBatchStatus.Draft" nzLabel="Bozza"></nz-option>
+          <nz-option [nzValue]="PrintBatchStatus.Ready" nzLabel="Pronto"></nz-option>
+          <nz-option [nzValue]="PrintBatchStatus.Generating" nzLabel="Generazione"></nz-option>
+          <nz-option [nzValue]="PrintBatchStatus.Downloaded" nzLabel="Scaricato"></nz-option>
+          <nz-option [nzValue]="PrintBatchStatus.Printed" nzLabel="Stampato"></nz-option>
+          <nz-option [nzValue]="PrintBatchStatus.Cancelled" nzLabel="Annullato"></nz-option>
+        </nz-select>
+      </div>
+      
+      <div nz-col [nzSpan]="4">
+        <nz-date-picker [(ngModel)]="filterDateFrom" nzPlaceHolder="Da data" style="width: 100%;" (ngModelChange)="search()"></nz-date-picker>
+      </div>
+      
+      <div nz-col [nzSpan]="4">
+        <nz-date-picker [(ngModel)]="filterDateTo" nzPlaceHolder="A data" style="width: 100%;" (ngModelChange)="search()"></nz-date-picker>
+      </div>
+      
+      <div nz-col [nzSpan]="4">
+        <button nz-button nzType="default" (click)="resetFilters()" style="width: 100%;">
+          <span nz-icon nzType="reload"></span>
+          Reset
+        </button>
+      </div>
+    </div>
+  </nz-card>
+
+  <!-- Table -->
+  <nz-card [nzBordered]="false" style="margin-top: 16px;">
+    <nz-table
+      #batchTable
+      [nzData]="batches"
+      [nzLoading]="loading"
+      [nzTotal]="totalCount"
+      [nzPageSize]="pageSize"
+      [nzPageIndex]="pageIndex"
+      [nzFrontPagination]="false"
+      (nzPageIndexChange)="onPageChange($event)"
+      nzSize="middle">
+      <thead>
+        <tr>
+          <th>Codice</th>
+          <th>Nome</th>
+          <th nzAlign="center">Stato</th>
+          <th nzAlign="right">Lettere</th>
+          <th nzAlign="right">Totale €</th>
+          <th nzAlign="right">Dimensione PDF</th>
+          <th nzAlign="center">Data Creazione</th>
+          <th nzAlign="center">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let batch of batchTable.data" [ngClass]="getRowClass(batch)">
+          <td>
+            <strong>{{ batch.batchNumber }}</strong>
+          </td>
+          <td>
+            <span *ngIf="batch.name">{{ batch.name }}</span>
+            <span *ngIf="!batch.name" style="color: #999; font-style: italic;">-</span>
+          </td>
+          <td nzAlign="center">
+            <nz-tag [nzColor]="getStatusTag(batch.status).color">
+              <span nz-icon [nzType]="getStatusTag(batch.status).icon"></span>
+              {{ getStatusTag(batch.status).text }}
+            </nz-tag>
+          </td>
+          <td nzAlign="right">
+            <strong>{{ batch.totalLetters }}</strong>
+          </td>
+          <td nzAlign="right">
+            {{ batch.totalDonationAmount | currency:'EUR':'symbol':'1.0-0' }}
+          </td>
+          <td nzAlign="right">
+            <span *ngIf="batch.pdfFileSizeBytes">{{ formatBytes(batch.pdfFileSizeBytes) }}</span>
+            <span *ngIf="!batch.pdfFileSizeBytes" style="color: #999;">-</span>
+          </td>
+          <td nzAlign="center">
+            {{ batch.creationTime | date:'dd/MM/yyyy HH:mm' }}
+          </td>
+          <td nzAlign="center">
+            <nz-space>
+              <!-- Generate PDF -->
+              <button *nzSpaceItem
+                      nz-button
+                      nzType="default"
+                      nzSize="small"
+                      [disabled]="!batch.canGeneratePdf || loading"
+                      (click)="generatePdf(batch)"
+                      nz-tooltip="Genera PDF">
+                <span nz-icon nzType="file-pdf"></span>
+              </button>
+              
+              <!-- Download PDF -->
+              <button *nzSpaceItem
+                      nz-button
+                      nzType="primary"
+                      nzSize="small"
+                      [disabled]="!batch.pdfFileSizeBytes || loading"
+                      (click)="downloadPdf(batch)"
+                      nz-tooltip="Scarica PDF">
+                <span nz-icon nzType="download"></span>
+              </button>
+              
+              <!-- Mark as Printed -->
+              <button *nzSpaceItem
+                      nz-button
+                      nzType="default"
+                      nzSize="small"
+                      [disabled]="batch.status === PrintBatchStatus.Printed || batch.status === PrintBatchStatus.Cancelled || !batch.pdfFileSizeBytes || loading"
+                      (click)="markAsPrinted(batch)"
+                      nz-tooltip="Marca come stampato">
+                <span nz-icon nzType="check"></span>
+              </button>
+              
+              <!-- Cancel -->
+              <button *nzSpaceItem
+                      nz-button
+                      nzDanger
+                      nzSize="small"
+                      [disabled]="!batch.canCancel || loading"
+                      (click)="cancelBatch(batch)"
+                      nz-tooltip="Annulla batch">
+                <span nz-icon nzType="close"></span>
+              </button>
+              
+              <!-- Delete -->
+              <button *nzSpaceItem
+                      nz-button
+                      nzDanger
+                      nzSize="small"
+                      [disabled]="batch.status === PrintBatchStatus.Printed || loading"
+                      (click)="deleteBatch(batch)"
+                      nz-tooltip="Elimina">
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </nz-space>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-card>
+</div>
+
+<!-- Create Batch Modal -->
+<nz-modal
+  [(nzVisible)]="isCreateModalVisible"
+  nzTitle="Nuovo Batch di Stampa"
+  [nzWidth]="900"
+  (nzOnCancel)="handleCreateModalCancel()"
+  [nzFooter]="createModalFooter">
+  
+  <ng-container *nzModalContent>
+    <form nz-form [nzLayout]="'vertical'">
+      <!-- Name -->
+      <nz-form-item>
+        <nz-form-label>Nome Batch (opzionale)</nz-form-label>
+        <nz-form-control>
+          <input nz-input [(ngModel)]="newBatchName" name="batchName" placeholder="Es: Batch Gennaio 2026" maxlength="200" />
+        </nz-form-control>
+      </nz-form-item>
+      
+      <nz-divider></nz-divider>
+      
+      <!-- Filters -->
+      <h4>Filtri</h4>
+      
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Importo Minimo</nz-form-label>
+            <nz-form-control>
+              <nz-input-number [(ngModel)]="newBatchFilters.minAmount" name="minAmount" [nzMin]="0" [nzStep]="10" placeholder="0" style="width: 100%;"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Importo Massimo</nz-form-label>
+            <nz-form-control>
+              <nz-input-number [(ngModel)]="newBatchFilters.maxAmount" name="maxAmount" [nzMin]="0" [nzStep]="10" placeholder="Illimitato" style="width: 100%;"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Progetti</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="newBatchFilters.projectIds" name="projectIds" nzMode="multiple" nzPlaceHolder="Tutti i progetti" style="width: 100%;" nzAllowClear>
+                <nz-option *ngFor="let project of projects" [nzValue]="project.id" [nzLabel]="project.name"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Campagne</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="newBatchFilters.campaignIds" name="campaignIds" nzMode="multiple" nzPlaceHolder="Tutte le campagne" style="width: 100%;" nzAllowClear>
+                <nz-option *ngFor="let campaign of campaigns" [nzValue]="campaign.id" [nzLabel]="campaign.name"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Data Donazione Da</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker [(ngModel)]="newBatchFilters.donationDateFrom" name="dateFrom" nzFormat="dd/MM/yyyy" style="width: 100%;"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Data Donazione A</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker [(ngModel)]="newBatchFilters.donationDateTo" name="dateTo" nzFormat="dd/MM/yyyy" style="width: 100%;"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Regione</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="newBatchFilters.region" name="region" placeholder="Es: Lombardia" maxlength="128" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label>Categoria Donatore</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="newBatchFilters.donorCategory" name="donorCategory" nzPlaceHolder="Tutte" style="width: 100%;" nzAllowClear>
+                <nz-option [nzValue]="1" nzLabel="Standard"></nz-option>
+                <nz-option [nzValue]="2" nzLabel="VIP"></nz-option>
+                <nz-option [nzValue]="3" nzLabel="Major"></nz-option>
+                <nz-option [nzValue]="4" nzLabel="Corporate"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="8">
+          <label nz-checkbox [(ngModel)]="newBatchFilters.onlyVerified" name="onlyVerified">Solo verificate</label>
+        </div>
+        <div nz-col [nzSpan]="8">
+          <label nz-checkbox [(ngModel)]="newBatchFilters.excludePrinted" name="excludePrinted">Escludi già stampate</label>
+        </div>
+        <div nz-col [nzSpan]="8">
+          <label nz-checkbox [(ngModel)]="newBatchFilters.excludeInOtherBatches" name="excludeInOther">Escludi in altri batch</label>
+        </div>
+      </div>
+      
+      <nz-divider></nz-divider>
+      
+      <!-- Preview Button -->
+      <button nz-button nzType="primary" nzBlock (click)="previewBatch()" [nzLoading]="isLoadingPreview">
+        <span nz-icon nzType="eye"></span>
+        Anteprima Batch
+      </button>
+      
+      <!-- Preview Results -->
+      <div *ngIf="batchPreview && !isLoadingPreview" style="margin-top: 16px;">
+        <nz-card nzTitle="Anteprima" [nzBordered]="true" [nzSize]="'small'">
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzSpan]="8">
+              <nz-statistic 
+                [nzValue]="batchPreview.totalLetters" 
+                nzTitle="Lettere Totali"
+                [nzPrefix]="letterIcon">
+              </nz-statistic>
+              <ng-template #letterIcon>
+                <span nz-icon nzType="mail"></span>
+              </ng-template>
+            </div>
+            
+            <div nz-col [nzSpan]="8">
+              <nz-statistic 
+                [nzValue]="batchPreview.totalDonationAmount" 
+                [nzPrecision]="2"
+                nzTitle="Importo Totale"
+                nzSuffix="€">
+              </nz-statistic>
+            </div>
+            
+            <div nz-col [nzSpan]="8">
+              <nz-statistic 
+                [nzValue]="batchPreview.estimatedPdfSizeMB" 
+                [nzPrecision]="2"
+                nzTitle="Dimensione Stimata"
+                nzSuffix="MB">
+              </nz-statistic>
+            </div>
+          </div>
+          
+          <!-- Breakdown -->
+          <div *ngIf="batchPreview.byProject && Object.keys(batchPreview.byProject).length > 0" style="margin-top: 16px;">
+            <h5>Per Progetto</h5>
+            <nz-tag *ngFor="let item of batchPreview.byProject | keyvalue">
+              {{ item.key }}: {{ item.value }}
+            </nz-tag>
+          </div>
+          
+          <div *ngIf="batchPreview.byRegion && Object.keys(batchPreview.byRegion).length > 0" style="margin-top: 12px;">
+            <h5>Per Regione</h5>
+            <nz-tag *ngFor="let item of batchPreview.byRegion | keyvalue">
+              {{ item.key }}: {{ item.value }}
+            </nz-tag>
+          </div>
+        </nz-card>
+      </div>
+      
+      <!-- Options -->
+      <div *ngIf="batchPreview" style="margin-top: 16px;">
+        <nz-form-item>
+          <nz-form-label>Note (opzionale)</nz-form-label>
+          <nz-form-control>
+            <textarea nz-input [(ngModel)]="newBatchNotes" name="notes" placeholder="Note o promemoria per questo batch" [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+        
+        <label nz-checkbox [(ngModel)]="autoGeneratePdf" name="autoGenerate">
+          Genera PDF automaticamente dopo la creazione
+        </label>
+      </div>
+    </form>
+  </ng-container>
+  
+  <ng-template #createModalFooter>
+    <button nz-button nzType="default" (click)="handleCreateModalCancel()">Annulla</button>
+    <button nz-button nzType="primary" [disabled]="!batchPreview || batchPreview.totalLetters === 0 || loading" (click)="createBatch()" [nzLoading]="loading">
+      Crea Batch
+    </button>
+  </ng-template>
+</nz-modal>

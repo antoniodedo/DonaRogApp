@@ -184,6 +184,11 @@ namespace DonaRogApp.Domain.Donations.Entities
         /// Project allocations (zero, one, or multiple)
         /// </summary>
         public virtual ICollection<DonationProject> Projects { get; private set; }
+        
+        /// <summary>
+        /// Documents attached to this donation (receipts, images, PDFs)
+        /// </summary>
+        public virtual ICollection<DonationDocument> Documents { get; private set; }
 
         // ======================================================================
         // CONSTRUCTOR
@@ -196,6 +201,7 @@ namespace DonaRogApp.Domain.Donations.Entities
             Reference = string.Empty;
             Currency = "EUR";
             Projects = new List<DonationProject>();
+            Documents = new List<DonationDocument>();
         }
 
         /// <summary>

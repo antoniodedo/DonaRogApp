@@ -35,6 +35,11 @@ const routes: Routes = [
     canActivate: [authGuard]
   },
   { 
+    path: 'communications', 
+    loadChildren: () => import('./communications/communications.module').then(m => m.CommunicationsModule),
+    canActivate: [authGuard]
+  },
+  { 
     path: 'admin/bank-accounts', 
     loadChildren: () => import('./admin/bank-accounts/bank-accounts.module').then(m => m.BankAccountsModule),
     canActivate: [authGuard]

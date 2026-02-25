@@ -1,5 +1,6 @@
 using DonaRogApp.Application.Contracts.Donations.Dto;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -16,6 +17,8 @@ namespace DonaRogApp.Application.Contracts.Donations
         Task<PagedResultDto<DonationListDto>> GetListAsync(GetDonationsInput input);
         
         Task<DonationDto> CreateAsync(CreateDonationDto input);
+        
+        Task<DonationDto> UpdateAsync(Guid id, UpdateDonationDto input);
         
         Task DeleteAsync(Guid id);
 
@@ -42,5 +45,26 @@ namespace DonaRogApp.Application.Contracts.Donations
         // STATISTICS
         // ======================================================================
         Task<DonationStatisticsDto> GetStatisticsAsync(GetDonationsInput filter);
+
+        // ======================================================================
+        // DOCUMENT MANAGEMENT
+        // ======================================================================
+        Task<List<DonationDocumentDto>> GetDocumentsAsync(Guid donationId);
+        
+        Task<DonationDocumentDto> SaveDocumentAsync(
+            Guid donationId,
+            System.IO.Stream fileStream,
+            string fileName,
+            string mimeType,
+            long fileSizeBytes,
+            UploadDonationDocumentDto input);
+        
+        Task<DonationDocumentDto> SaveTextDocumentAsync(
+            Guid donationId,
+            CreateTextDocumentDto input);
+        
+        Task<(System.IO.Stream stream, string fileName, string mimeType)> GetDocumentFileAsync(Guid documentId);
+        
+        Task DeleteDocumentAsync(Guid documentId);
     }
 }

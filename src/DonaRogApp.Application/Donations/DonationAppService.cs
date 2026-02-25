@@ -1,16 +1,30 @@
+using DonaRogApp.Application.Communications;
+using DonaRogApp.Application.Contracts.Communications;
+using DonaRogApp.Application.Contracts.Communications.Dto;
+using DonaRogApp.Application.Contracts.Communications.ThankYouRules;
+using DonaRogApp.Application.Contracts.Communications.ThankYouRules.Dto;
 using DonaRogApp.Application.Contracts.Donations;
 using DonaRogApp.Application.Contracts.Donations.Dto;
 using DonaRogApp.Domain.Donations.Entities;
 using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Domain.Projects.Entities;
+using DonaRogApp.Domain.Storage;
+using DonaRogApp.Enums.Communications;
 using DonaRogApp.Enums.Donations;
+using DonaRogApp.Enums.Donors;
+using DonaRogApp.LetterTemplates;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Guids;
+using Volo.Abp.Validation;
 
 namespace DonaRogApp.Application.Donations
 {
@@ -19,15 +33,42 @@ namespace DonaRogApp.Application.Donations
         private readonly IRepository<Donation, Guid> _donationRepository;
         private readonly IRepository<Donor, Guid> _donorRepository;
         private readonly IRepository<Project, Guid> _projectRepository;
+        private readonly IRepository<DonationDocument, Guid> _documentRepository;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly IRepository<Communication, Guid> _communicationRepository;
+        private readonly IRepository<LetterTemplate, Guid> _templateRepository;
+        private readonly IThankYouRuleAppService _thankYouRuleService;
+        private readonly ICommunicationAppService _communicationService;
+        private readonly PlaceholderService _placeholderService;
+        private readonly TemplateMergeService _templateMergeService;
+        private readonly IGuidGenerator _guidGenerator;
 
         public DonationAppService(
             IRepository<Donation, Guid> donationRepository,
             IRepository<Donor, Guid> donorRepository,
-            IRepository<Project, Guid> projectRepository)
+            IRepository<Project, Guid> projectRepository,
+            IRepository<DonationDocument, Guid> documentRepository,
+            IFileStorageService fileStorageService,
+            IRepository<Communication, Guid> communicationRepository,
+            IRepository<LetterTemplate, Guid> templateRepository,
+            IThankYouRuleAppService thankYouRuleService,
+            ICommunicationAppService communicationService,
+            PlaceholderService placeholderService,
+            TemplateMergeService templateMergeService,
+            IGuidGenerator guidGenerator)
         {
             _donationRepository = donationRepository;
             _donorRepository = donorRepository;
             _projectRepository = projectRepository;
+            _documentRepository = documentRepository;
+            _fileStorageService = fileStorageService;
+            _communicationRepository = communicationRepository;
+            _templateRepository = templateRepository;
+            _thankYouRuleService = thankYouRuleService;
+            _communicationService = communicationService;
+            _placeholderService = placeholderService;
+            _templateMergeService = templateMergeService;
+            _guidGenerator = guidGenerator;
         }
 
         // ======================================================================
@@ -225,6 +266,89 @@ namespace DonaRogApp.Application.Donations
             return await MapToDtoAsync(donation);
         }
 
+        public async Task<DonationDto> UpdateAsync(Guid id, UpdateDonationDto input)
+        {
+            Logger.LogInformation($"UpdateAsync called for donation {id}");
+            Logger.LogInformation($"Input: Channel={input.Channel}, Amount={input.TotalAmount}, ProjectAllocations={input.ProjectAllocations?.Count ?? 0}");
+            
+            var query = await _donationRepository.WithDetailsAsync(d => d.Projects);
+            var donation = await AsyncExecuter.FirstOrDefaultAsync(query.Where(d => d.Id == id));
+
+            if (donation == null)
+            {
+                throw new BusinessException("DonaRog:DonationNotFound")
+                    .WithData("donationId", id);
+            }
+
+            Logger.LogInformation($"Current donation: Amount={donation.TotalAmount}, Projects={donation.Projects.Count}, ExternalId={donation.ExternalId}");
+
+            // Store old amount for statistics recalculation
+            var oldAmount = donation.TotalAmount;
+            var oldDonorId = donation.DonorId;
+
+            // IMPORTANT: Update project allocations BEFORE updating core data
+            // This prevents VerifyInvariants from failing with old allocations vs new total
+            // Always update allocations (even if empty) to allow clearing all projects
+            var allocations = input.ProjectAllocations
+                .Select(a => (a.ProjectId, a.AllocatedAmount))
+                .ToArray();
+            
+            // Validate all projects exist
+            foreach (var allocation in input.ProjectAllocations)
+            {
+                await _projectRepository.GetAsync(allocation.ProjectId);
+            }
+            
+            donation.SetProjectAllocations(allocations);
+
+            // Update core data (channel, amount, dates) - only if provided and donation is manual
+            if (input.Channel.HasValue || input.TotalAmount.HasValue || input.DonationDate.HasValue)
+            {
+                var channel = input.Channel ?? donation.Channel;
+                var totalAmount = input.TotalAmount ?? donation.TotalAmount;
+                var donationDate = input.DonationDate ?? donation.DonationDate;
+                var creditDate = input.CreditDate.HasValue ? input.CreditDate : donation.CreditDate;
+
+                // This will throw if donation has ExternalId
+                donation.UpdateCoreData(channel, totalAmount, donationDate, creditDate);
+            }
+
+            // Update metadata (always allowed)
+            donation.UpdateMetadata(
+                input.CampaignId,
+                input.BankAccountId,
+                input.ThankYouTemplateId,
+                input.Notes,
+                input.InternalNotes
+            );
+
+            await _donationRepository.UpdateAsync(donation);
+
+            // Recalculate statistics if amount or donor changed
+            if (oldAmount != donation.TotalAmount || oldDonorId != donation.DonorId)
+            {
+                Logger.LogInformation($"Recalculating statistics: oldAmount={oldAmount}, newAmount={donation.TotalAmount}");
+                
+                // Recalculate donor statistics from scratch
+                await RecalculateDonorStatisticsAsync(donation.DonorId);
+                
+                // If donor changed, recalculate old donor too
+                if (oldDonorId != donation.DonorId)
+                {
+                    await RecalculateDonorStatisticsAsync(oldDonorId);
+                }
+            }
+
+            // Update project statistics for all projects (old and new)
+            var allProjectIds = donation.Projects.Select(p => p.ProjectId).Distinct();
+            foreach (var projectId in allProjectIds)
+            {
+                await UpdateProjectStatisticsAsync(projectId);
+            }
+
+            return await GetAsync(id);
+        }
+
         public async Task DeleteAsync(Guid id)
         {
             var donation = await _donationRepository.GetAsync(id);
@@ -280,6 +404,12 @@ namespace DonaRogApp.Application.Donations
             );
 
             await _donationRepository.UpdateAsync(donation);
+            await CurrentUnitOfWork!.SaveChangesAsync();
+
+            // ======================================================================
+            // THANK YOU WORKFLOW (New - Phase 5)
+            // ======================================================================
+            await ProcessThankYouAsync(donation, input);
 
             // Update donor statistics
             await UpdateDonorStatisticsAsync(donation.DonorId, donation.TotalAmount);
@@ -291,6 +421,226 @@ namespace DonaRogApp.Application.Donations
             }
 
             return await GetAsync(id);
+        }
+        
+        /// <summary>
+        /// Process thank you creation based on rules and user input
+        /// </summary>
+        private async Task ProcessThankYouAsync(Domain.Donations.Entities.Donation donation, VerifyDonationDto input)
+        {
+            Logger.LogInformation("Processing thank you for donation {DonationId}", donation.Id);
+
+            // Step 1: Check for duplicates and show alerts
+            var duplicateCheck = await _communicationService.CheckDuplicateLettersAsync(new CheckDuplicateLettersDto
+            {
+                DonorId = donation.DonorId,
+                ErrorThresholdDays = 7,
+                WarningThresholdDays = 15,
+                CheckLastDays = 30
+            });
+
+            if (duplicateCheck.HasCriticalAlert)
+            {
+                Logger.LogWarning("Critical duplicate alert for donor {DonorId}: {Message}", 
+                    donation.DonorId, duplicateCheck.Message);
+            }
+
+            // Step 2: Determine if we should create thank you
+            bool shouldCreateThankYou;
+            PreferredThankYouChannel channel;
+            Guid? templateId;
+            string explanation;
+
+            if (input.CreateThankYou.HasValue)
+            {
+                shouldCreateThankYou = input.CreateThankYou.Value;
+                channel = input.ThankYouChannel ?? PreferredThankYouChannel.Letter;
+                templateId = input.ThankYouTemplateId;
+                explanation = input.CreateThankYou.Value ? 
+                    "Ringraziamento forzato dall'operatore" : 
+                    $"Ringraziamento escluso dall'operatore: {input.NoThankYouReason ?? "N/A"}";
+                
+                Logger.LogInformation("Thank you decision overridden by operator: {Decision}", shouldCreateThankYou);
+            }
+            else
+            {
+                // Evaluate rules
+                var ruleEvaluation = await _thankYouRuleService.EvaluateRulesAsync(new EvaluateThankYouRulesDto
+                {
+                    DonorId = donation.DonorId,
+                    DonationId = donation.Id
+                });
+
+                shouldCreateThankYou = ruleEvaluation.ShouldCreateThankYou;
+                channel = input.ThankYouChannel ?? ruleEvaluation.SuggestedChannel;
+                templateId = input.ThankYouTemplateId ?? ruleEvaluation.SuggestedTemplateId;
+                explanation = ruleEvaluation.Explanation;
+
+                Logger.LogInformation("Rules evaluated: Create={Create}, Channel={Channel}, Explanation={Explanation}",
+                    shouldCreateThankYou, channel, explanation);
+            }
+
+            if (!shouldCreateThankYou)
+            {
+                Logger.LogInformation("Skipping thank you creation for donation {DonationId}: {Reason}", 
+                    donation.Id, explanation);
+                return;
+            }
+
+            // Step 3: Create communication(s) based on channel
+            var donor = await _donorRepository.GetAsync(donation.DonorId, includeDetails: true);
+            
+            if (channel == PreferredThankYouChannel.Letter || channel == PreferredThankYouChannel.Both)
+            {
+                await CreateThankYouLetterAsync(donor, donation, templateId, input.PrintImmediately);
+            }
+
+            if (channel == PreferredThankYouChannel.Email || channel == PreferredThankYouChannel.Both)
+            {
+                await CreateThankYouEmailAsync(donor, donation, templateId);
+            }
+
+            Logger.LogInformation("Thank you processing completed for donation {DonationId}", donation.Id);
+        }
+
+        /// <summary>
+        /// Create thank you letter communication
+        /// </summary>
+        private async Task CreateThankYouLetterAsync(
+            Donor donor, 
+            Domain.Donations.Entities.Donation donation, 
+            Guid? templateId, 
+            bool printImmediately)
+        {
+            var template = templateId.HasValue ? 
+                await _templateRepository.GetAsync(templateId.Value) : 
+                await _templateRepository.FirstOrDefaultAsync(t => t.Category == TemplateCategory.ThankYou && t.IsActive);
+
+            if (template == null)
+            {
+                Logger.LogWarning("No template found for thank you letter");
+                return;
+            }
+
+            // Build merge data
+            var mergeData = _placeholderService.BuildMergeData(donor, donation);
+            
+            // Get template content (HTML or DOCX converted to HTML)
+            string htmlContent;
+            if (template.TemplateType == TemplateType.Html)
+            {
+                htmlContent = template.Content ?? "";
+            }
+            else if (template.TemplateType == TemplateType.Docx && !string.IsNullOrEmpty(template.TemplateFilePath))
+            {
+                htmlContent = await _templateMergeService.ConvertDocxToHtmlAsync(template.TemplateFilePath);
+            }
+            else
+            {
+                Logger.LogWarning("Template {TemplateId} has invalid type or no content", template.Id);
+                return;
+            }
+
+            // Replace placeholders
+            var body = _placeholderService.ReplacePlaceholders(htmlContent, mergeData);
+
+            // Create communication
+            var communication = Communication.Create(
+                donor.Id,
+                CommunicationType.Letter,
+                $"Ringraziamento donazione {donation.Reference}",
+                "Donor Address", // Recipient will be resolved from donor address
+                CurrentTenant.Id,
+                TemplateCategory.ThankYou,
+                template.Id,
+                donation.Id,
+                donation.CampaignId,
+                body,
+                CurrentUser.Id,
+                null,
+                CommunicationStatus.PendingPrint);
+
+            await _communicationRepository.InsertAsync(communication);
+            
+            Logger.LogInformation("Thank you letter created: {CommunicationId} for donation {DonationId}, PrintImmediately={Print}",
+                communication.Id, donation.Id, printImmediately);
+
+            // TODO: If printImmediately, generate PDF and return download link
+        }
+
+        /// <summary>
+        /// Create thank you email communication
+        /// </summary>
+        private async Task CreateThankYouEmailAsync(
+            Donor donor, 
+            Domain.Donations.Entities.Donation donation, 
+            Guid? templateId)
+        {
+            var template = templateId.HasValue ? 
+                await _templateRepository.GetAsync(templateId.Value) : 
+                await _templateRepository.FirstOrDefaultAsync(t => t.Category == TemplateCategory.ThankYou && t.IsActive);
+
+            if (template == null)
+            {
+                Logger.LogWarning("No template found for thank you email");
+                return;
+            }
+
+            // Get donor email
+            var donorEmail = donor.Emails.FirstOrDefault(e => e.IsDefault)?.EmailAddress;
+            if (string.IsNullOrEmpty(donorEmail))
+            {
+                Logger.LogWarning("Donor {DonorId} has no default email address", donor.Id);
+                return;
+            }
+
+            // Build merge data
+            var mergeData = _placeholderService.BuildMergeData(donor, donation);
+            
+            // Get template content
+            string htmlContent;
+            if (template.TemplateType == TemplateType.Html)
+            {
+                htmlContent = template.Content ?? "";
+            }
+            else if (template.TemplateType == TemplateType.Docx && !string.IsNullOrEmpty(template.TemplateFilePath))
+            {
+                htmlContent = await _templateMergeService.ConvertDocxToHtmlAsync(template.TemplateFilePath);
+            }
+            else
+            {
+                Logger.LogWarning("Template {TemplateId} has invalid type or no content", template.Id);
+                return;
+            }
+
+            // Replace placeholders
+            var body = _placeholderService.ReplacePlaceholders(htmlContent, mergeData);
+            var subject = string.IsNullOrEmpty(template.EmailSubject) ? 
+                $"Grazie per la tua donazione - {donation.Reference}" : 
+                _placeholderService.ReplacePlaceholders(template.EmailSubject, mergeData);
+
+            // Create communication
+            var communication = Communication.Create(
+                donor.Id,
+                CommunicationType.Email,
+                subject,
+                donorEmail,
+                CurrentTenant.Id,
+                TemplateCategory.ThankYou,
+                template.Id,
+                donation.Id,
+                donation.CampaignId,
+                body,
+                CurrentUser.Id,
+                null,
+                CommunicationStatus.Draft);
+            
+            await _communicationRepository.InsertAsync(communication);
+            
+            Logger.LogInformation("Thank you email created: {CommunicationId} for donation {DonationId}", 
+                communication.Id, donation.Id);
+
+            // TODO: Send email immediately (requires email service integration)
         }
 
         public async Task<DonationDto> RejectAsync(Guid id, RejectDonationDto input)
@@ -458,6 +808,52 @@ namespace DonaRogApp.Application.Donations
             donor.UpdateStatistics(donationAmount);
             await _donorRepository.UpdateAsync(donor);
         }
+        
+        private async Task RecalculateDonorStatisticsAsync(Guid donorId)
+        {
+            // Get all verified donations for this donor
+            var donorDonations = await AsyncExecuter.ToListAsync(
+                (await _donationRepository.GetQueryableAsync())
+                .Where(d => d.DonorId == donorId && d.Status == DonationStatus.Verified)
+            );
+            
+            var donor = await _donorRepository.GetAsync(donorId);
+            
+            // Calculate aggregates
+            var totalDonated = donorDonations.Sum(d => d.TotalAmount);
+            var donationCount = donorDonations.Count;
+            
+            var orderedDonations = donorDonations.OrderBy(d => d.DonationDate).ToList();
+            DateTime? firstDonationDate = null;
+            decimal firstDonationAmount = 0;
+            DateTime? lastDonationDate = null;
+            decimal lastDonationAmount = 0;
+            
+            if (orderedDonations.Any())
+            {
+                var firstDonation = orderedDonations.First();
+                firstDonationDate = firstDonation.DonationDate;
+                firstDonationAmount = firstDonation.TotalAmount;
+                
+                var lastDonation = orderedDonations.Last();
+                lastDonationDate = lastDonation.DonationDate;
+                lastDonationAmount = lastDonation.TotalAmount;
+            }
+            
+            // Use domain method to recalculate
+            donor.RecalculateStatisticsFromData(
+                totalDonated,
+                donationCount,
+                firstDonationDate,
+                firstDonationAmount,
+                lastDonationDate,
+                lastDonationAmount
+            );
+            
+            await _donorRepository.UpdateAsync(donor);
+            
+            Logger.LogInformation($"Recalculated stats for donor {donorId}: Total={totalDonated}, Count={donationCount}");
+        }
 
         private async Task UpdateProjectStatisticsAsync(Guid projectId)
         {
@@ -546,6 +942,8 @@ namespace DonaRogApp.Application.Donations
                 TotalAllocatedAmount = donation.GetTotalAllocatedAmount(),
                 UnallocatedAmount = donation.GetUnallocatedAmount(),
                 IsFullyAllocated = donation.IsFullyAllocated(),
+                IsFromExternalFlow = donation.IsFromExternalFlow(),
+                CanEditCoreData = donation.CanEditCoreData(),
                 CreationTime = donation.CreationTime,
                 CreatorId = donation.CreatorId,
                 LastModificationTime = donation.LastModificationTime,
@@ -578,6 +976,177 @@ namespace DonaRogApp.Application.Donations
                 ProjectNames = projectNames,
                 IsFullyAllocated = donation.IsFullyAllocated()
             };
+        }
+
+        // ======================================================================
+        // DOCUMENT MANAGEMENT
+        // ======================================================================
+        
+        public async Task<List<DonationDocumentDto>> GetDocumentsAsync(Guid donationId)
+        {
+            var donation = await _donationRepository.GetAsync(donationId);
+            
+            var documents = await AsyncExecuter.ToListAsync(
+                (await _documentRepository.GetQueryableAsync())
+                .Where(d => d.DonationId == donationId)
+                .OrderByDescending(d => d.CreationTime)
+            );
+
+            return documents.Select(d => new DonationDocumentDto
+            {
+                Id = d.Id,
+                DonationId = d.DonationId,
+                FileName = d.FileName,
+                FileExtension = d.FileExtension,
+                MimeType = d.MimeType,
+                FileSizeBytes = d.FileSizeBytes,
+                StoragePath = d.StoragePath,
+                TextContent = d.TextContent,
+                DocumentType = d.DocumentType,
+                IsFromExternalFlow = d.IsFromExternalFlow,
+                IsTextDocument = d.IsTextDocument,
+                Notes = d.Notes,
+                CreationTime = d.CreationTime
+            }).ToList();
+        }
+
+        [DisableValidation]
+        public async Task<DonationDocumentDto> SaveDocumentAsync(
+            Guid donationId,
+            Stream fileStream,
+            string fileName,
+            string mimeType,
+            long fileSizeBytes,
+            UploadDonationDocumentDto input)
+        {
+            var query = await _donationRepository.WithDetailsAsync(d => d.Documents);
+            var donation = await AsyncExecuter.FirstOrDefaultAsync(query.Where(d => d.Id == donationId));
+            
+            if (donation == null)
+            {
+                throw new BusinessException("DonaRog:DonationNotFound")
+                    .WithData("donationId", donationId);
+            }
+            
+            // Get extension from filename
+            var fileExtension = Path.GetExtension(fileName).ToLowerInvariant();
+            
+            // Generate subfolder by date (e.g., "2024/01")
+            var subfolder = $"{DateTime.UtcNow:yyyy}/{DateTime.UtcNow:MM}";
+            
+            // Save file to storage
+            var storagePath = await _fileStorageService.SaveFileAsync(fileStream, fileName, subfolder);
+            
+            // Create document entity
+            var document = donation.AddDocument(
+                fileName,
+                fileExtension,
+                mimeType,
+                fileSizeBytes,
+                storagePath,
+                input.DocumentType,
+                isFromExternalFlow: false
+            );
+            
+            if (!string.IsNullOrWhiteSpace(input.Notes))
+            {
+                document.UpdateNotes(input.Notes);
+            }
+
+            await _donationRepository.UpdateAsync(donation);
+
+            return new DonationDocumentDto
+            {
+                Id = document.Id,
+                DonationId = document.DonationId,
+                FileName = document.FileName,
+                FileExtension = document.FileExtension,
+                MimeType = document.MimeType,
+                FileSizeBytes = document.FileSizeBytes,
+                StoragePath = document.StoragePath,
+                TextContent = document.TextContent,
+                DocumentType = document.DocumentType,
+                IsFromExternalFlow = document.IsFromExternalFlow,
+                IsTextDocument = document.IsTextDocument,
+                Notes = document.Notes,
+                CreationTime = document.CreationTime
+            };
+        }
+
+        public async Task<DonationDocumentDto> SaveTextDocumentAsync(
+            Guid donationId,
+            CreateTextDocumentDto input)
+        {
+            var query = await _donationRepository.WithDetailsAsync(d => d.Documents);
+            var donation = await AsyncExecuter.FirstOrDefaultAsync(query.Where(d => d.Id == donationId));
+
+            if (donation == null)
+            {
+                throw new BusinessException("DonaRog:DonationNotFound")
+                    .WithData("donationId", donationId);
+            }
+
+            // Create text document entity
+            var document = donation.AddTextDocument(
+                input.TextContent,
+                input.DocumentType,
+                input.IsFromExternalFlow
+            );
+
+            if (!string.IsNullOrWhiteSpace(input.Notes))
+            {
+                document.UpdateNotes(input.Notes);
+            }
+
+            await _donationRepository.UpdateAsync(donation);
+
+            return new DonationDocumentDto
+            {
+                Id = document.Id,
+                DonationId = document.DonationId,
+                FileName = document.FileName,
+                FileExtension = document.FileExtension,
+                MimeType = document.MimeType,
+                FileSizeBytes = document.FileSizeBytes,
+                StoragePath = document.StoragePath,
+                TextContent = document.TextContent,
+                DocumentType = document.DocumentType,
+                IsFromExternalFlow = document.IsFromExternalFlow,
+                IsTextDocument = document.IsTextDocument,
+                Notes = document.Notes,
+                CreationTime = document.CreationTime
+            };
+        }
+
+        public async Task<(Stream stream, string fileName, string mimeType)> GetDocumentFileAsync(Guid documentId)
+        {
+            var document = await _documentRepository.GetAsync(documentId);
+            
+            var stream = await _fileStorageService.GetFileAsync(document.StoragePath);
+            
+            return (stream, document.FileName, document.MimeType);
+        }
+
+        public async Task DeleteDocumentAsync(Guid documentId)
+        {
+            var document = await _documentRepository.GetAsync(documentId);
+            
+            var query = await _donationRepository.WithDetailsAsync(d => d.Documents);
+            var donation = await AsyncExecuter.FirstOrDefaultAsync(query.Where(d => d.Id == document.DonationId));
+            
+            if (donation == null)
+            {
+                throw new BusinessException("DonaRog:DonationNotFound")
+                    .WithData("donationId", document.DonationId);
+            }
+            
+            // Remove document from donation
+            donation.RemoveDocument(documentId);
+            
+            // Delete physical file
+            await _fileStorageService.DeleteFileAsync(document.StoragePath);
+            
+            await _donationRepository.UpdateAsync(donation);
         }
     }
 }

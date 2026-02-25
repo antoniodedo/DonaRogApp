@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------
+// --------------------------------------------------------------
 // Domain/Donors/Entities/Communication.cs
 // --------------------------------------------------------------
 
@@ -179,6 +179,35 @@ namespace DonaRogApp.Domain.Donors.Entities
         public string? Notes { get; private set; }
 
         // --------------------------------------------------------------
+        // BATCH PRINTING (for Letters)
+        // --------------------------------------------------------------
+
+        /// <summary>
+        /// Communication workflow status
+        /// </summary>
+        public CommunicationStatus Status { get; private set; }
+
+        /// <summary>
+        /// Print batch this letter is included in (for Type = Letter)
+        /// </summary>
+        public Guid? PrintBatchId { get; private set; }
+
+        /// <summary>
+        /// Navigation property: Print Batch
+        /// </summary>
+        public virtual Communications.Entities.PrintBatch? PrintBatch { get; private set; }
+
+        /// <summary>
+        /// Was this letter physically printed?
+        /// </summary>
+        public bool IsPrinted { get; private set; }
+
+        /// <summary>
+        /// Date when letter was printed
+        /// </summary>
+        public DateTime? PrintedAt { get; private set; }
+
+        // --------------------------------------------------------------
         // CONSTRUCTOR
         // --------------------------------------------------------------
 
@@ -197,6 +226,8 @@ namespace DonaRogApp.Domain.Donors.Entities
             IsFailed = false;
             OpenCount = 0;
             ClickCount = 0;
+            Status = CommunicationStatus.Draft;
+            IsPrinted = false;
         }
 
         // --------------------------------------------------------------
@@ -206,7 +237,7 @@ namespace DonaRogApp.Domain.Donors.Entities
         /// <summary>
         /// Creates new Communication entity
         /// </summary>
-        internal static Communication Create(
+        public static Communication Create(
             Guid donorId,
             CommunicationType type,
             string subject,
@@ -218,7 +249,8 @@ namespace DonaRogApp.Domain.Donors.Entities
             Guid? campaignId = null,
             string? body = null,
             Guid? sentByUserId = null,
-            string? notes = null)
+            string? notes = null,
+            CommunicationStatus? status = null)
         {
             return new Communication
             {
@@ -241,7 +273,9 @@ namespace DonaRogApp.Domain.Donors.Entities
                 IsClicked = false,
                 IsFailed = false,
                 OpenCount = 0,
-                ClickCount = 0
+                ClickCount = 0,
+                Status = status ?? (type == CommunicationType.Letter ? CommunicationStatus.PendingPrint : CommunicationStatus.Sent),
+                IsPrinted = false
             };
         }
 
@@ -317,6 +351,68 @@ namespace DonaRogApp.Domain.Donors.Entities
         internal void UpdateNotes(string? notes)
         {
             Notes = notes;
+        }
+
+        // --------------------------------------------------------------
+        // BUSINESS METHODS - Batch Printing
+        // --------------------------------------------------------------
+
+        /// <summary>
+        /// Assign communication to a print batch
+        /// </summary>
+        public void AssignToBatch(Guid printBatchId)
+        {
+            if (Type != CommunicationType.Letter)
+            {
+                throw new Volo.Abp.BusinessException("DonaRog:CanOnlyAssignLettersToBatch")
+                    .WithData("communicationId", Id)
+                    .WithData("type", Type);
+            }
+
+            if (Status == CommunicationStatus.Printed)
+            {
+                throw new Volo.Abp.BusinessException("DonaRog:CannotAssignPrintedLetterToBatch")
+                    .WithData("communicationId", Id);
+            }
+
+            PrintBatchId = printBatchId;
+            Status = CommunicationStatus.InBatch;
+        }
+
+        /// <summary>
+        /// Remove communication from print batch
+        /// </summary>
+        public void RemoveFromBatch()
+        {
+            PrintBatchId = null;
+            Status = CommunicationStatus.PendingPrint;
+        }
+
+        /// <summary>
+        /// Mark communication as printed
+        /// </summary>
+        public void MarkAsPrinted(DateTime? printedAt = null)
+        {
+            if (Type != CommunicationType.Letter)
+            {
+                throw new Volo.Abp.BusinessException("DonaRog:CanOnlyMarkLettersAsPrinted")
+                    .WithData("communicationId", Id)
+                    .WithData("type", Type);
+            }
+
+            IsPrinted = true;
+            PrintedAt = printedAt ?? DateTime.UtcNow;
+            Status = CommunicationStatus.Printed;
+            IsDelivered = true;
+            DeliveredDate = PrintedAt;
+        }
+
+        /// <summary>
+        /// Update communication status
+        /// </summary>
+        internal void UpdateStatus(CommunicationStatus status)
+        {
+            Status = status;
         }
 
         // --------------------------------------------------------------

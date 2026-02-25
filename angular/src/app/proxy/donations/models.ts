@@ -59,6 +59,8 @@ export interface DonationDto extends FullAuditedEntityDto<string> {
   totalAllocatedAmount: number;
   unallocatedAmount: number;
   isFullyAllocated: boolean;
+  isFromExternalFlow: boolean;
+  canEditCoreData: boolean;
 }
 
 export interface DonationListDto {
@@ -109,7 +111,11 @@ export interface VerifyDonationDto {
   donorId: string;
   campaignId?: string;
   bankAccountId?: string;
+  createThankYou?: boolean;
+  thankYouChannel?: number;
   thankYouTemplateId?: string;
+  noThankYouReason?: string;
+  printImmediately: boolean;
   projectAllocations: DonationProjectAllocationDto[];
   notes?: string;
   internalNotes?: string;
@@ -118,6 +124,19 @@ export interface VerifyDonationDto {
 export interface RejectDonationDto {
   reason: RejectionReason;
   notes?: string;
+}
+
+export interface UpdateDonationDto {
+  channel?: DonationChannel;
+  totalAmount?: number;
+  donationDate?: string;
+  creditDate?: string;
+  campaignId?: string;
+  bankAccountId?: string;
+  thankYouTemplateId?: string;
+  notes?: string;
+  internalNotes?: string;
+  projectAllocations: DonationProjectAllocationDto[];
 }
 
 export interface GetDonationsInput extends PagedAndSortedResultRequestDto {
@@ -155,4 +174,42 @@ export interface DonationStatisticsDto {
   averageAmount: number;
   firstDonationDate?: string;
   lastDonationDate?: string;
+}
+
+export interface DonationDocumentDto {
+  id: string;
+  donationId: string;
+  fileName?: string;
+  fileExtension?: string;
+  mimeType?: string;
+  fileSizeBytes: number;
+  storagePath?: string;
+  textContent?: string;
+  documentType: DonationDocumentType;
+  isFromExternalFlow: boolean;
+  isTextDocument: boolean;
+  notes?: string;
+  creationTime: string;
+  downloadUrl?: string;
+}
+
+export interface UploadDonationDocumentDto {
+  documentType: DonationDocumentType;
+  notes?: string;
+}
+
+export interface CreateTextDocumentDto {
+  textContent: string;
+  documentType: DonationDocumentType;
+  isFromExternalFlow: boolean;
+  notes?: string;
+}
+
+export enum DonationDocumentType {
+  BankReceipt = 0,
+  PostalReceipt = 1,
+  PayPalReceipt = 2,
+  CheckImage = 3,
+  CashReceipt = 4,
+  Other = 99,
 }

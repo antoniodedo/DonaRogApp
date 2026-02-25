@@ -103,6 +103,14 @@ namespace DonaRogApp.Domain.Donors.Entities
         public void GrantThirdPartyConsent() => ThirdPartyConsent = true;
         public void RevokeThirdPartyConsent() => ThirdPartyConsent = false;
 
+        /// <summary>
+        /// Update preferred thank you channel
+        /// </summary>
+        public void UpdatePreferredThankYouChannel(PreferredThankYouChannel? preferredChannel)
+        {
+            PreferredThankYouChannel = preferredChannel;
+        }
+
         public void Anonymize()
         {
             if (IsAnonymized)

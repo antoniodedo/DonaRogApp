@@ -24,6 +24,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
 
 import { DonationsRoutingModule } from './donations-routing.module';
 
@@ -55,6 +56,7 @@ import { DonationsRoutingModule } from './donations-routing.module';
     NzSpaceModule,
     NzPopconfirmModule,
     NzToolTipModule,
+    NzRadioModule,
   ],
 })
 export class DonationsModule {}

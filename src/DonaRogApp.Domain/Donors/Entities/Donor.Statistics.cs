@@ -1,4 +1,4 @@
-﻿using DonaRogApp.Domain.Donors.Events;
+using DonaRogApp.Domain.Donors.Events;
 using DonaRogApp.Enums.Donors;
 using System;
 using Volo.Abp;
@@ -39,6 +39,33 @@ namespace DonaRogApp.Domain.Donors.Entities
             CalculateRfmSegment();
 
             AddLocalEvent(new DonorRfmRecalculatedEvent(this.Id, RecencyScore, FrequencyScore, MonetaryScore, RfmSegment));
+        }
+        
+        /// <summary>
+        /// Recalculate all statistics based on verified donations data
+        /// Used when a donation is updated/deleted to ensure statistics are accurate
+        /// </summary>
+        public void RecalculateStatisticsFromData(
+            decimal totalDonated,
+            int donationCount,
+            DateTime? firstDonationDate,
+            decimal firstDonationAmount,
+            DateTime? lastDonationDate,
+            decimal lastDonationAmount)
+        {
+            TotalDonated = totalDonated;
+            DonationCount = donationCount;
+            AverageDonationAmount = donationCount > 0 ? totalDonated / donationCount : 0;
+            
+            FirstDonationDate = firstDonationDate;
+            FirstDonationAmount = firstDonationAmount;
+            LastDonationDate = lastDonationDate;
+            LastDonationAmount = lastDonationAmount;
+            
+            UpdateCategory();
+            RecalculateRFM();
+            
+            AddLocalEvent(new DonorStatisticsUpdatedEvent(this.Id, TotalDonated, DonationCount, AverageDonationAmount));
         }
 
         private void RecalculateRecencyScore()

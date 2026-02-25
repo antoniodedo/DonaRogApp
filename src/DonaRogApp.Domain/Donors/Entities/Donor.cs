@@ -333,6 +333,15 @@ namespace DonaRogApp.Domain.Donors.Entities
         public DateTime? AnonymizationDate { get; private set; }
 
         // ======================================================================
+        // COMMUNICATION PREFERENCES
+        // ======================================================================
+        /// <summary>
+        /// Preferred channel for thank you communications
+        /// Used by automatic rules when creating thank you letters/emails
+        /// </summary>
+        public PreferredThankYouChannel? PreferredThankYouChannel { get; private set; }
+
+        // ======================================================================
         // NOTES
         // ======================================================================
         /// <summary>

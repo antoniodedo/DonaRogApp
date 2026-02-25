@@ -1,5 +1,6 @@
 using DonaRogApp.Domain.BankAccounts.Entities;
 using DonaRogApp.Domain.Campaigns.Entities;
+using DonaRogApp.Domain.Communications.Entities;
 using DonaRogApp.Domain.Donations.Entities;
 using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Domain.Recurrences.Entities;
@@ -80,6 +81,13 @@ public class DonaRogAppDbContext :
 
     #endregion
 
+    #region Communications Aggregate Roots
+
+    public DbSet<PrintBatch> PrintBatches { get; set; }
+    public DbSet<ThankYouRule> ThankYouRules { get; set; }
+
+    #endregion
+
     #region Shared Entities (Lookup Tables)
 
     public DbSet<Title> Titles { get; set; }
@@ -99,6 +107,7 @@ public class DonaRogAppDbContext :
 
     public DbSet<Domain.Donations.Entities.Donation> Donations { get; set; }
     public DbSet<Domain.Donations.Entities.DonationProject> DonationProjects { get; set; }
+    public DbSet<Domain.Donations.Entities.DonationDocument> DonationDocuments { get; set; }
 
     #endregion
 
@@ -318,10 +327,19 @@ public class DonaRogAppDbContext :
             b.Property(x => x.ExternalId).HasMaxLength(256);
             b.Property(x => x.Notes).HasMaxLength(500);
 
+            // Relationship with PrintBatch
+            b.HasOne(x => x.PrintBatch)
+                .WithMany(x => x.Communications)
+                .HasForeignKey(x => x.PrintBatchId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             b.HasIndex(x => new { x.DonorId, x.SentDate });
             b.HasIndex(x => x.Type);
+            b.HasIndex(x => x.Status);
             b.HasIndex(x => x.IsDelivered);
             b.HasIndex(x => x.IsFailed);
+            b.HasIndex(x => x.IsPrinted);
+            b.HasIndex(x => x.PrintBatchId);
         });
 
         /* Configure M:M Junctions */
@@ -757,6 +775,11 @@ public class DonaRogAppDbContext :
                 .HasForeignKey(x => x.DonationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            b.HasMany(x => x.Documents)
+                .WithOne()
+                .HasForeignKey(x => x.DonationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Indexes
             b.HasIndex(x => x.Reference);
             b.HasIndex(x => x.ExternalId).IsUnique().HasFilter("[ExternalId] IS NOT NULL");
@@ -793,6 +816,78 @@ public class DonaRogAppDbContext :
             // Indexes
             b.HasIndex(x => x.ProjectId);
             b.HasIndex(x => x.DonationId);
+        });
+
+        // DONATION DOCUMENT (Child Entity)
+        builder.Entity<DonationDocument>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "DonationDocuments", DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Properties - nullable for text-only documents
+            b.Property(x => x.FileName).HasMaxLength(255);
+            b.Property(x => x.FileExtension).HasMaxLength(20);
+            b.Property(x => x.MimeType).HasMaxLength(100);
+            b.Property(x => x.StoragePath).HasMaxLength(1000);
+            b.Property(x => x.TextContent).HasMaxLength(4000);
+            b.Property(x => x.Notes).HasMaxLength(500);
+
+            // Indexes
+            b.HasIndex(x => x.DonationId);
+            b.HasIndex(x => x.DocumentType);
+            b.HasIndex(x => x.IsFromExternalFlow);
+            b.HasIndex(x => new { x.DonationId, x.CreationTime });
+        });
+
+        /* Configure Communications Aggregates */
+
+        // PRINT BATCH AGGREGATE ROOT
+        builder.Entity<PrintBatch>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "PrintBatches", DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Properties
+            b.Property(x => x.BatchNumber).IsRequired().HasMaxLength(50);
+            b.Property(x => x.Name).HasMaxLength(200);
+            b.Property(x => x.PdfFilePath).HasMaxLength(500);
+            b.Property(x => x.CancellationReason).HasMaxLength(500);
+            b.Property(x => x.TotalDonationAmount).HasPrecision(18, 2);
+            b.Property(x => x.FilterJson).HasColumnType("TEXT");
+            b.Property(x => x.MinAmount).HasPrecision(18, 2);
+            b.Property(x => x.MaxAmount).HasPrecision(18, 2);
+            b.Property(x => x.Region).HasMaxLength(128);
+            b.Property(x => x.ProjectIds).HasMaxLength(500);
+            b.Property(x => x.CampaignIds).HasMaxLength(500);
+            b.Property(x => x.Notes).HasMaxLength(1000);
+
+            // Indexes
+            b.HasIndex(x => x.BatchNumber).IsUnique();
+            b.HasIndex(x => x.Status);
+            b.HasIndex(x => x.GeneratedAt);
+            b.HasIndex(x => x.PrintedAt);
+            b.HasIndex(x => new { x.Status, x.GeneratedAt });
+            b.HasIndex(x => x.TenantId);
+        });
+
+        // THANK YOU RULE AGGREGATE ROOT
+        builder.Entity<ThankYouRule>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "ThankYouRules", DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Properties
+            b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+            b.Property(x => x.Description).HasMaxLength(1000);
+            b.Property(x => x.MinAmount).HasPrecision(18, 2);
+            b.Property(x => x.MaxAmount).HasPrecision(18, 2);
+
+            // Indexes
+            b.HasIndex(x => x.IsActive);
+            b.HasIndex(x => new { x.IsActive, x.Priority });
+            b.HasIndex(x => x.ProjectId);
+            b.HasIndex(x => x.CampaignId);
+            b.HasIndex(x => x.TenantId);
         });
     }
 }

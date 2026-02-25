@@ -1,3 +1,4 @@
+using DonaRogApp.Application.Contracts.Communications.Dto;
 using DonaRogApp.Enums.Communications;
 using DonaRogApp.LetterTemplates.Dto;
 using System;
@@ -64,6 +65,62 @@ namespace DonaRogApp.LetterTemplates
         /// Send a test email with template rendering
         /// </summary>
         Task SendTestEmailAsync(SendTestEmailInput input);
+        
+        // ======================================================================
+        // FILE-BASED TEMPLATES (DOCX UPLOAD)
+        // ======================================================================
+        
+        /// <summary>
+        /// Upload DOCX template file
+        /// </summary>
+        Task<TemplateFileDto> UploadTemplateFileAsync(UploadTemplateDto input);
+        
+        /// <summary>
+        /// Download template file
+        /// </summary>
+        Task<byte[]> DownloadTemplateFileAsync(Guid templateId);
+        
+        /// <summary>
+        /// Get template file information
+        /// </summary>
+        Task<TemplateFileDto?> GetTemplateFileInfoAsync(Guid templateId);
+        
+        /// <summary>
+        /// Delete template file (keeps template, removes file)
+        /// </summary>
+        Task DeleteTemplateFileAsync(Guid templateId);
+        
+        // ======================================================================
+        // TEMPLATE CONVERSION
+        // ======================================================================
+        
+        /// <summary>
+        /// Convert DOCX template to HTML (with merge fields conversion)
+        /// </summary>
+        Task<TemplateConversionResultDto> ConvertDocxToHtmlAsync(ConvertTemplateDto input);
+        
+        // ======================================================================
+        // PLACEHOLDER MANAGEMENT
+        // ======================================================================
+        
+        /// <summary>
+        /// Get all available placeholders
+        /// </summary>
+        Task<PlaceholderListDto> GetAvailablePlaceholdersAsync();
+        
+        /// <summary>
+        /// Validate placeholders in template content
+        /// </summary>
+        Task<List<string>> ValidatePlaceholdersAsync(Guid templateId);
+        
+        // ======================================================================
+        // TEMPLATE PREVIEW
+        // ======================================================================
+        
+        /// <summary>
+        /// Preview template with sample data
+        /// </summary>
+        Task<TemplatePreviewResultDto> PreviewTemplateAsync(PreviewTemplateDto input);
     }
 }
 

@@ -1,1 +1,237 @@
-<p>welcome works!</p>
+<div class="dashboard-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="dashboard" nzTheme="outline"></span>
+      </div>
+      <div class="hero-text">
+        <h1>Dashboard Fundraising</h1>
+        <p>Panoramica completa delle performance e KPI principali</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <nz-select 
+        [(ngModel)]="dateFilter" 
+        (ngModelChange)="onDateFilterChange()"
+        [nzSize]="'large'"
+        style="width: 200px;">
+        <nz-option 
+          *ngFor="let option of dateFilterOptions" 
+          [nzLabel]="option.label" 
+          [nzValue]="option.value">
+        </nz-option>
+      </nz-select>
+      
+      <nz-range-picker 
+        *ngIf="dateFilter === 'custom'"
+        [(ngModel)]="customDateRange"
+        (ngModelChange)="onCustomDateRangeChange($event)"
+        [nzSize]="'large'"
+        style="margin-left: 8px; width: 260px;">
+      </nz-range-picker>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" style="text-align: center; padding: 80px 0;">
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+    <p style="margin-top: 16px; color: #8c8c8c;">Caricamento dati...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading" class="dashboard-content">
+    
+    <!-- Critical Alerts -->
+    <nz-alert 
+      *ngIf="isAttritionCritical"
+      nzType="error"
+      nzShowIcon
+      [nzMessage]="'Attrition Rate Critico'"
+      [nzDescription]="'Il tasso di abbandono è superiore al 15%. Si consiglia di avviare campagne di re-engagement.'"
+      nzCloseable
+      style="margin-bottom: 24px;">
+    </nz-alert>
+
+    <nz-alert 
+      *ngIf="isAtRiskHigh"
+      nzType="warning"
+      nzShowIcon
+      [nzMessage]="'Donatori At Risk Elevati'"
+      [nzDescription]="'Oltre il 10% dei donatori è a rischio abbandono. Contatto proattivo raccomandato.'"
+      nzCloseable
+      style="margin-bottom: 24px;">
+    </nz-alert>
+
+    <!-- KPI Cards Grid - Row 1 -->
+    <div nz-row [nzGutter]="[16, 16]" style="margin-bottom: 16px;">
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-card class="kpi-card success-card">
+          <div class="kpi-header">
+            <span nz-icon nzType="euro" nzTheme="outline" class="kpi-icon"></span>
+            <span class="kpi-label">Raccolto Verificato</span>
+          </div>
+          <div class="kpi-value success-value">€ {{ totalRaised | number:'1.0-0' }}</div>
+        </nz-card>
+      </div>
+
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-card class="kpi-card primary-card">
+          <div class="kpi-header">
+            <span nz-icon nzType="rise" nzTheme="outline" class="kpi-icon"></span>
+            <span class="kpi-label">Donazioni Verificate</span>
+          </div>
+          <div class="kpi-value primary-value">{{ totalDonations }}</div>
+          <div class="kpi-subtitle">Media: €{{ averageDonation | number:'1.0-0' }}</div>
+        </nz-card>
+      </div>
+
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-card class="kpi-card info-card">
+          <div class="kpi-header">
+            <span nz-icon nzType="heart" nzTheme="outline" class="kpi-icon"></span>
+            <span class="kpi-label">Donatori Totali</span>
+          </div>
+          <div class="kpi-value info-value">{{ totalDonors }}</div>
+        </nz-card>
+      </div>
+
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-card class="kpi-card" [ngClass]="retentionRate >= 80 ? 'success-card' : 'warning-card'">
+          <div class="kpi-header">
+            <span nz-icon nzType="check-circle" nzTheme="outline" class="kpi-icon"></span>
+            <span class="kpi-label">Retention Rate</span>
+          </div>
+          <div class="kpi-value" [ngClass]="retentionRate >= 80 ? 'success-value' : 'warning-value'">
+            {{ retentionRate | number:'1.1-1' }}%
+          </div>
+          <div class="kpi-subtitle">Donatori ricorrenti</div>
+        </nz-card>
+      </div>
+    </div>
+
+    <!-- KPI Cards Grid - Row 2 -->
+    <div nz-row [nzGutter]="[16, 16]" style="margin-bottom: 24px;">
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-card class="kpi-card" [ngClass]="isAttritionCritical ? 'danger-card' : 'warning-card'">
+          <div class="kpi-header">
+            <span nz-icon nzType="fall" nzTheme="outline" class="kpi-icon"></span>
+            <span class="kpi-label">Attrition Rate</span>
+            <nz-badge *ngIf="isAttritionCritical" nzStatus="error" nzText="Critico"></nz-badge>
+          </div>
+          <div class="kpi-value" [ngClass]="isAttritionCritical ? 'danger-value' : 'warning-value'">
+            {{ attritionRate | number:'1.1-1' }}%
+          </div>
+          <div class="kpi-subtitle">Donatori persi</div>
+        </nz-card>
+      </div>
+
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-card class="kpi-card warning-card">
+          <div class="kpi-header">
+            <span nz-icon nzType="clock-circle" nzTheme="outline" class="kpi-icon"></span>
+            <span class="kpi-label">Donazioni Pending</span>
+          </div>
+          <div class="kpi-value warning-value">{{ pendingDonations }}</div>
+          <div class="kpi-subtitle">
+            <span>Da verificare</span>
+            <nz-badge *ngIf="pendingDonations > 20" nzStatus="warning" nzText="Urgente"></nz-badge>
+          </div>
+        </nz-card>
+      </div>
+
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-card class="kpi-card success-card">
+          <div class="kpi-header">
+            <span nz-icon nzType="trophy" nzTheme="outline" class="kpi-icon"></span>
+            <span class="kpi-label">Champions</span>
+          </div>
+          <div class="kpi-value success-value">{{ championsCount }}</div>
+          <div class="kpi-subtitle">I migliori donatori</div>
+        </nz-card>
+      </div>
+
+      <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+        <nz-card class="kpi-card" [ngClass]="isAtRiskHigh ? 'danger-card' : 'warning-card'">
+          <div class="kpi-header">
+            <span nz-icon nzType="warning" nzTheme="outline" class="kpi-icon"></span>
+            <span class="kpi-label">Donatori At Risk</span>
+            <nz-badge *ngIf="isAtRiskHigh" nzStatus="error" nzText="Alto"></nz-badge>
+          </div>
+          <div class="kpi-value" [ngClass]="isAtRiskHigh ? 'danger-value' : 'warning-value'">
+            {{ atRiskCount }}
+          </div>
+          <div class="kpi-subtitle">Da contattare urgentemente</div>
+        </nz-card>
+      </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div nz-row [nzGutter]="[16, 16]">
+      <!-- Monthly Trend Chart -->
+      <div nz-col [nzXs]="24" [nzLg]="12">
+        <nz-card class="chart-card" [nzTitle]="'Trend Donazioni Mensili'">
+          <div class="chart-container">
+            <canvas 
+              *ngIf="monthlyTrendChartData"
+              baseChart
+              [data]="monthlyTrendChartData"
+              [options]="lineChartOptions"
+              [type]="'line'">
+            </canvas>
+            <nz-empty *ngIf="!monthlyTrendChartData" [nzNotFoundContent]="'Nessun dato disponibile'"></nz-empty>
+          </div>
+        </nz-card>
+      </div>
+
+      <!-- Channel Distribution Chart -->
+      <div nz-col [nzXs]="24" [nzLg]="12">
+        <nz-card class="chart-card" [nzTitle]="'Donazioni per Canale'">
+          <div class="chart-container">
+            <canvas 
+              *ngIf="channelChartData"
+              baseChart
+              [data]="channelChartData"
+              [options]="pieChartOptions"
+              [type]="'pie'">
+            </canvas>
+            <nz-empty *ngIf="!channelChartData" [nzNotFoundContent]="'Nessun dato disponibile'"></nz-empty>
+          </div>
+        </nz-card>
+      </div>
+
+      <!-- RFM Segmentation Chart -->
+      <div nz-col [nzXs]="24" [nzLg]="12">
+        <nz-card class="chart-card" [nzTitle]="'Segmentazione RFM Donatori'">
+          <div class="chart-container">
+            <canvas 
+              *ngIf="rfmChartData"
+              baseChart
+              [data]="rfmChartData"
+              [options]="doughnutChartOptions"
+              [type]="'doughnut'">
+            </canvas>
+            <nz-empty *ngIf="!rfmChartData" [nzNotFoundContent]="'Nessun dato disponibile'"></nz-empty>
+          </div>
+        </nz-card>
+      </div>
+
+      <!-- Top Projects Chart -->
+      <div nz-col [nzXs]="24" [nzLg]="12">
+        <nz-card class="chart-card" [nzTitle]="'Top 5 Progetti per Raccolta'">
+          <div class="chart-container">
+            <canvas 
+              *ngIf="topProjectsChartData"
+              baseChart
+              [data]="topProjectsChartData"
+              [options]="barChartOptions"
+              [type]="'bar'">
+            </canvas>
+            <nz-empty *ngIf="!topProjectsChartData" [nzNotFoundContent]="'Nessun dato disponibile'"></nz-empty>
+          </div>
+        </nz-card>
+      </div>
+    </div>
+
+  </div>
+</div>

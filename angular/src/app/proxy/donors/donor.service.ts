@@ -1,5 +1,5 @@
 import type { GetDonorsInput } from './dto/models';
-import type { AssignTagDto, CreateDonorAddressDto, CreateDonorDto, CreateDonorEmailDto, DonorAddressDto, DonorDto, DonorEmailDto, DonorStatusHistoryDto, DonorTagDto, UpdateDonorDto } from './dtos/models';
+import type { AssignTagDto, CreateDonorAddressDto, CreateDonorDto, CreateDonorEmailDto, DonorAddressDto, DonorDto, DonorEmailDto, DonorRfmStatisticsDto, DonorStatusHistoryDto, DonorTagDto, UpdateDonorDto } from './dtos/models';
 import type { CreateDonorContactDto, DonorContactDto } from './models';
 import { RestService, Rest } from '@abp/ng.core';
 import type { PagedResultDto } from '@abp/ng.core';
@@ -273,6 +273,13 @@ export class DonorService {
       method: 'POST',
       url: `/api/app/donor/verify-email/${donorId}`,
       params: { emailAddress },
+    },
+    { apiName: this.apiName,...config });
+
+  getRfmStatistics = (config?: Partial<Rest.Config>) =>
+    this.restService.request<any, DonorRfmStatisticsDto>({
+      method: 'GET',
+      url: '/api/app/donor/rfm-statistics',
     },
     { apiName: this.apiName,...config });
 

@@ -983,6 +983,55 @@ namespace DonaRogApp.Donors
         }
 
         // ======================================================================
+        // STATISTICS
+        // ======================================================================
+
+        /// <summary>
+        /// Get RFM segmentation statistics for dashboard
+        /// </summary>
+        public async Task<Application.Contracts.Donors.Dto.DonorRfmStatisticsDto> GetRfmStatisticsAsync()
+        {
+            var query = await _donorRepository.GetQueryableAsync();
+            var donors = await AsyncExecuter.ToListAsync(query);
+
+            var totalDonors = donors.Count;
+            var lapsedDonors = donors.Count(d => d.Status == Enums.Donors.DonorStatus.Lapsed);
+            var activeDonors = totalDonors - lapsedDonors;
+
+            // Retention rate: percentage of donors with 2+ donations
+            var retainedDonors = donors.Count(d => d.DonationCount >= 2);
+            var retentionRate = totalDonors > 0 ? (decimal)retainedDonors / totalDonors * 100 : 0;
+
+            // Attrition rate: percentage of Lost or Lapsed donors
+            var lostDonors = donors.Count(d => d.RfmSegment == "Lost");
+            var attritionDonors = lostDonors + lapsedDonors;
+            var attritionRate = totalDonors > 0 ? (decimal)attritionDonors / totalDonors * 100 : 0;
+
+            // RFM segment distribution
+            var championsCount = donors.Count(d => d.RfmSegment == "Champions");
+            var loyalCount = donors.Count(d => d.RfmSegment == "Loyal");
+            var potentialCount = donors.Count(d => d.RfmSegment == "Potential");
+            var atRiskCount = donors.Count(d => d.RfmSegment == "AtRisk");
+            var dormantCount = donors.Count(d => d.RfmSegment == "Dormant");
+            var lostCount = donors.Count(d => d.RfmSegment == "Lost");
+
+            return new Application.Contracts.Donors.Dto.DonorRfmStatisticsDto
+            {
+                TotalDonors = totalDonors,
+                ActiveDonors = activeDonors,
+                LapsedDonors = lapsedDonors,
+                RetentionRate = Math.Round(retentionRate, 2),
+                AttritionRate = Math.Round(attritionRate, 2),
+                ChampionsCount = championsCount,
+                LoyalCount = loyalCount,
+                PotentialCount = potentialCount,
+                AtRiskCount = atRiskCount,
+                DormantCount = dormantCount,
+                LostCount = lostCount
+            };
+        }
+
+        // ======================================================================
         // HELPERS
         // ======================================================================
 

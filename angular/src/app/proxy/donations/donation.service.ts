@@ -11,6 +11,7 @@ import type {
   DonationStatisticsDto,
   ExternalDonationDto,
   GetDonationsInput,
+  MonthlyTrendDto,
   RejectDonationDto,
   UpdateDonationDto,
   UploadDonationDocumentDto,
@@ -206,6 +207,31 @@ export class DonationService {
         method: 'POST',
         url: `/api/donations/${donationId}/documents/text`,
         body: input,
+      },
+      { apiName: this.apiName, ...config }
+    );
+
+  getMonthlyTrend = (input: GetDonationsInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, MonthlyTrendDto[]>(
+      {
+        method: 'GET',
+        url: '/api/app/donation/monthly-trend',
+        params: {
+          status: input.status,
+          channel: input.channel,
+          donorId: input.donorId,
+          campaignId: input.campaignId,
+          projectId: input.projectId,
+          bankAccountId: input.bankAccountId,
+          fromDate: input.fromDate,
+          toDate: input.toDate,
+          minAmount: input.minAmount,
+          maxAmount: input.maxAmount,
+          search: input.search,
+          sorting: input.sorting,
+          skipCount: input.skipCount,
+          maxResultCount: input.maxResultCount,
+        },
       },
       { apiName: this.apiName, ...config }
     );

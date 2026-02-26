@@ -45,12 +45,16 @@ namespace DonaRogApp.Application.Contracts.Donations
         // STATISTICS
         // ======================================================================
         Task<DonationStatisticsDto> GetStatisticsAsync(GetDonationsInput filter);
+        
+        Task<List<MonthlyTrendDto>> GetMonthlyTrendAsync(GetDonationsInput filter);
 
         // ======================================================================
         // DOCUMENT MANAGEMENT
         // ======================================================================
         Task<List<DonationDocumentDto>> GetDocumentsAsync(Guid donationId);
-        
+
+        // Note: This method is called only by DonationDocumentController
+        // and should not be auto-exposed by ABP
         Task<DonationDocumentDto> SaveDocumentAsync(
             Guid donationId,
             System.IO.Stream fileStream,
@@ -58,7 +62,7 @@ namespace DonaRogApp.Application.Contracts.Donations
             string mimeType,
             long fileSizeBytes,
             UploadDonationDocumentDto input);
-        
+
         Task<DonationDocumentDto> SaveTextDocumentAsync(
             Guid donationId,
             CreateTextDocumentDto input);

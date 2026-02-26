@@ -176,6 +176,13 @@ export interface DonationStatisticsDto {
   lastDonationDate?: string;
 }
 
+export interface MonthlyTrendDto {
+  year: number;
+  month: number;
+  count: number;
+  amount: number;
+}
+
 export interface DonationDocumentDto {
   id: string;
   donationId: string;

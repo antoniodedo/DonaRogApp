@@ -179,3 +179,17 @@ export interface UpdateDonorDto {
   preferredChannel?: string;
   notes?: string;
 }
+
+export interface DonorRfmStatisticsDto {
+  totalDonors: number;
+  activeDonors: number;
+  lapsedDonors: number;
+  retentionRate: number;
+  attritionRate: number;
+  championsCount: number;
+  loyalCount: number;
+  potentialCount: number;
+  atRiskCount: number;
+  dormantCount: number;
+  lostCount: number;
+}

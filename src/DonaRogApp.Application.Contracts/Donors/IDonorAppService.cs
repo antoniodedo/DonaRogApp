@@ -1,3 +1,4 @@
+using DonaRogApp.Application.Contracts.Donors.Dto;
 using DonaRogApp.Donors.Dto;
 using System;
 using System.Threading.Tasks;
@@ -14,6 +15,8 @@ namespace DonaRogApp.Donors
         CreateUpdateDonorDto>
     {
         Task<PagedResultDto<DonorListDto>> GetLightListAsync(GetDonorsInput input);
+        
+        Task<DonorRfmStatisticsDto> GetRfmStatisticsAsync();
     }
 }
 

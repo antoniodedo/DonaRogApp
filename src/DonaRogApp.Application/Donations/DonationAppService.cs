@@ -798,6 +798,42 @@ namespace DonaRogApp.Application.Donations
             };
         }
 
+        public async Task<List<MonthlyTrendDto>> GetMonthlyTrendAsync(GetDonationsInput filter)
+        {
+            var query = await _donationRepository.GetQueryableAsync();
+
+            // Apply same filters as GetStatisticsAsync
+            if (filter.Status.HasValue)
+                query = query.Where(x => x.Status == filter.Status.Value);
+            if (filter.Channel.HasValue)
+                query = query.Where(x => x.Channel == filter.Channel.Value);
+            if (filter.DonorId.HasValue)
+                query = query.Where(x => x.DonorId == filter.DonorId.Value);
+            if (filter.CampaignId.HasValue)
+                query = query.Where(x => x.CampaignId == filter.CampaignId.Value);
+            if (filter.FromDate.HasValue)
+                query = query.Where(x => x.DonationDate >= filter.FromDate.Value);
+            if (filter.ToDate.HasValue)
+                query = query.Where(x => x.DonationDate <= filter.ToDate.Value);
+
+            var donations = await AsyncExecuter.ToListAsync(query);
+
+            var monthlyTrend = donations
+                .GroupBy(d => new { d.DonationDate.Year, d.DonationDate.Month })
+                .Select(g => new MonthlyTrendDto
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Count = g.Count(),
+                    Amount = g.Sum(d => d.TotalAmount)
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToList();
+
+            return monthlyTrend;
+        }
+
         // ======================================================================
         // PRIVATE HELPER METHODS
         // ======================================================================
@@ -1011,6 +1047,7 @@ namespace DonaRogApp.Application.Donations
         }
 
         [DisableValidation]
+        [RemoteService(false)]
         public async Task<DonationDocumentDto> SaveDocumentAsync(
             Guid donationId,
             Stream fileStream,

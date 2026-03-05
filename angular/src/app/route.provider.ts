@@ -1,20 +1,38 @@
 import { RoutesService, eLayoutType } from '@abp/ng.core';
-import { inject, provideAppInitializer } from '@angular/core';
+import { APP_INITIALIZER } from '@angular/core';
 
 export const APP_ROUTE_PROVIDER = [
-  provideAppInitializer(() => {
-    configureRoutes();
-  }),
+  {
+    provide: APP_INITIALIZER,
+    useFactory: configureRoutes,
+    deps: [RoutesService],
+    multi: true,
+  },
 ];
 
-function configureRoutes() {
-  const routes = inject(RoutesService);
-  routes.add([
+function configureRoutes(routes: RoutesService) {
+  return () => {
+    console.log('Configuring routes with APP_INITIALIZER...');
+    routes.add([
       {
         path: '/',
         name: '::Menu:Home',
         iconClass: 'fas fa-home',
         order: 1,
+        layout: eLayoutType.application,
+      },
+      {
+        path: '/communications/print-batches',
+        name: 'Batch Stampa',
+        iconClass: 'fas fa-print',
+        order: 1.1,
+        layout: eLayoutType.application,
+      },
+      {
+        path: '/communications/thank-you-rules',
+        name: 'Regole Ringraziamenti',
+        iconClass: 'fas fa-robot',
+        order: 1.2,
         layout: eLayoutType.application,
       },
       {
@@ -25,9 +43,9 @@ function configureRoutes() {
         layout: eLayoutType.application,
       },
       {
-        path: 'donors/donor-title',
-        name: 'Titoli Donatori',
-        iconClass: 'fas fa-users',
+        path: '/admin/segmentation-rules',
+        name: '::Menu:SegmentationRules',
+        iconClass: 'fas fa-chart-pie',
         order: 3,
         layout: eLayoutType.application,
       },
@@ -35,29 +53,17 @@ function configureRoutes() {
         path: '/letter-templates',
         name: 'Templates',
         iconClass: 'fas fa-file-alt',
-        order: 4,
+        order: 5,
         layout: eLayoutType.application,
       },
       {
         path: '/donations',
         name: 'Donazioni',
         iconClass: 'fas fa-hand-holding-heart',
-        order: 5,
-        layout: eLayoutType.application,
-      },
-      {
-        path: '/communications/print-batches',
-        name: 'Batch Stampa',
-        iconClass: 'fas fa-print',
         order: 6,
         layout: eLayoutType.application,
-      },
-      {
-        path: '/communications/thank-you-rules',
-        name: 'Regole Ringraziamenti',
-        iconClass: 'fas fa-robot',
-        order: 7,
-        layout: eLayoutType.application,
       }
-  ]);
+    ]);
+    console.log('Routes configured successfully, including Communications routes');
+  };
 }

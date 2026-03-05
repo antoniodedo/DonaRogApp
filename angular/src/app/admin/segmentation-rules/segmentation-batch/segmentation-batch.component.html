@@ -1,0 +1,153 @@
+<div class="card">
+  <div class="card-header">
+    <div class="row align-items-center">
+      <div class="col">
+        <h5 class="card-title mb-0">
+          {{ 'SegmentationRule:BatchProcessing' | abpLocalization }}
+        </h5>
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="back()">
+          <i class="fa fa-arrow-left me-1"></i>
+          {{ 'AbpUi::Back' | abpLocalization }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <!-- Information Alert -->
+    <div class="alert alert-info">
+      <h6 class="alert-heading">
+        <i class="fa fa-info-circle me-2"></i>
+        {{ 'SegmentationRule::WhatIsBatchProcessing' | abpLocalization }}
+      </h6>
+      <p class="mb-0">
+        Batch processing evaluates all active segmentation rules against all donors in the system.
+        It will automatically assign donors to matching segments and remove them from segments they no longer match.
+      </p>
+    </div>
+
+    <!-- Run Batch Button -->
+    <div class="text-center py-4" *ngIf="!running && !currentBatchResult">
+      <button 
+        type="button" 
+        class="btn btn-lg btn-primary" 
+        (click)="runBatch()"
+        [disabled]="loading">
+        <i class="fa fa-play me-2"></i>
+        {{ 'SegmentationRule::RunBatch' | abpLocalization }}
+      </button>
+      <p class="text-muted mt-3 small">
+        <i class="fa fa-warning me-1"></i>
+        This operation may take several minutes depending on the number of donors.
+      </p>
+    </div>
+
+    <!-- Running Indicator -->
+    <div *ngIf="running" class="text-center py-5">
+      <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Processing...</span>
+      </div>
+      <h5>{{ 'SegmentationRule::BatchRunning' | abpLocalization }}</h5>
+      <p class="text-muted">Please wait while we process all donors...</p>
+    </div>
+
+    <!-- Current Batch Result -->
+    <div *ngIf="currentBatchResult && !running" class="mt-4">
+      <h6 class="border-bottom pb-2 mb-3">
+        <i class="fa fa-check-circle text-success me-2"></i>
+        {{ 'SegmentationRule::BatchCompleted' | abpLocalization }}
+      </h6>
+
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="card bg-light">
+            <div class="card-body text-center">
+              <h3 class="mb-1">{{ currentBatchResult.donorsProcessed }}</h3>
+              <small class="text-muted">Donors Processed</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-success bg-opacity-10">
+            <div class="card-body text-center">
+              <h3 class="mb-1 text-success">{{ currentBatchResult.assignmentsCreated }}</h3>
+              <small class="text-muted">Assignments Created</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-warning bg-opacity-10">
+            <div class="card-body text-center">
+              <h3 class="mb-1 text-warning">{{ currentBatchResult.assignmentsRemoved }}</h3>
+              <small class="text-muted">Assignments Removed</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card" [ngClass]="currentBatchResult.errors > 0 ? 'bg-danger bg-opacity-10' : 'bg-light'">
+            <div class="card-body text-center">
+              <h3 class="mb-1" [ngClass]="currentBatchResult.errors > 0 ? 'text-danger' : ''">
+                {{ currentBatchResult.errors }}
+              </h3>
+              <small class="text-muted">Errors</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-3">
+        <div class="col-md-6">
+          <dl class="row mb-0">
+            <dt class="col-sm-4">Start Time:</dt>
+            <dd class="col-sm-8">{{ formatDateTime(currentBatchResult.startTime) }}</dd>
+            
+            <dt class="col-sm-4">End Time:</dt>
+            <dd class="col-sm-8">{{ formatDateTime(currentBatchResult.endTime) }}</dd>
+            
+            <dt class="col-sm-4">Duration:</dt>
+            <dd class="col-sm-8">
+              <strong>{{ formatDuration(currentBatchResult.durationSeconds) }}</strong>
+            </dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <button type="button" class="btn btn-primary" (click)="back()">
+          <i class="fa fa-arrow-left me-2"></i>
+          {{ 'SegmentationRule::BackToRules' | abpLocalization }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Last Batch Result -->
+    <div *ngIf="lastBatchResult && !currentBatchResult && !running" class="mt-4">
+      <h6 class="border-bottom pb-2 mb-3">
+        {{ 'SegmentationRule::LastBatchExecution' | abpLocalization }}
+      </h6>
+
+      <div class="alert alert-secondary">
+        <div class="row">
+          <div class="col-md-6">
+            <strong>Executed:</strong> {{ formatDateTime(lastBatchResult.startTime) }}<br>
+            <strong>Duration:</strong> {{ formatDuration(lastBatchResult.durationSeconds) }}
+          </div>
+          <div class="col-md-6">
+            <strong>Donors:</strong> {{ lastBatchResult.donorsProcessed }}<br>
+            <strong>Created:</strong> {{ lastBatchResult.assignmentsCreated }} |
+            <strong>Removed:</strong> {{ lastBatchResult.assignmentsRemoved }} |
+            <strong>Errors:</strong> {{ lastBatchResult.errors }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Previous Batch -->
+    <div *ngIf="!lastBatchResult && !loading && !running && !currentBatchResult" class="alert alert-warning mt-4">
+      <i class="fa fa-info-circle me-2"></i>
+      No previous batch execution found. Run the batch to start automatic segmentation.
+    </div>
+  </div>
+</div>

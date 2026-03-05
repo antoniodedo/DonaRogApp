@@ -1,0 +1,181 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="card-title mb-0">
+      {{ (isEditMode ? 'SegmentationRule:EditRule' : 'SegmentationRule:NewRule') | abpLocalization }}
+    </h5>
+  </div>
+
+  <div class="card-body">
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="save()">
+      <!-- Basic Information -->
+      <div class="row mb-4">
+        <div class="col-md-12">
+          <h6 class="border-bottom pb-2 mb-3">{{ 'SegmentationRule:BasicInformation' | abpLocalization }}</h6>
+        </div>
+
+        <div class="col-md-8">
+          <div class="mb-3">
+            <label for="name" class="form-label">{{ 'SegmentationRule:Name' | abpLocalization }} *</label>
+            <input type="text" id="name" class="form-control" formControlName="name" 
+                   [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched">
+            <div class="invalid-feedback" *ngIf="form.get('name')?.errors?.['required']">
+              This field is required
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="mb-3">
+            <label for="priority" class="form-label">{{ 'SegmentationRule:Priority' | abpLocalization }} *</label>
+            <input type="number" id="priority" class="form-control" formControlName="priority"
+                   [class.is-invalid]="form.get('priority')?.invalid && form.get('priority')?.touched">
+            <small class="form-text text-muted">Lower numbers = higher priority</small>
+          </div>
+        </div>
+
+        <div class="col-md-12">
+          <div class="mb-3">
+            <label for="description" class="form-label">{{ 'SegmentationRule:Description' | abpLocalization }}</label>
+            <textarea id="description" class="form-control" formControlName="description" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="segmentId" class="form-label">{{ 'SegmentationRule:TargetSegment' | abpLocalization }} *</label>
+            <select id="segmentId" class="form-select" formControlName="segmentId"
+                    [class.is-invalid]="form.get('segmentId')?.invalid && form.get('segmentId')?.touched">
+              <option value="">-- Select Segment --</option>
+              <option *ngFor="let segment of segments" [value]="segment.id">{{ segment.name }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="mb-3">
+            <div class="form-check form-switch mt-4">
+              <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive">
+              <label class="form-check-label" for="isActive">
+                {{ 'SegmentationRule:IsActive' | abpLocalization }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RFM Scores -->
+      <div class="row mb-4">
+        <div class="col-md-12">
+          <h6 class="border-bottom pb-2 mb-3">{{ 'SegmentationRule:RFMScores' | abpLocalization }}</h6>
+          <p class="text-muted small">Scores range from 1 (lowest) to 5 (highest)</p>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">{{ 'SegmentationRule:RecencyScore' | abpLocalization }}</label>
+          <div class="input-group mb-3">
+            <input type="number" class="form-control" placeholder="Min" formControlName="minRecencyScore" min="1" max="5">
+            <span class="input-group-text">-</span>
+            <input type="number" class="form-control" placeholder="Max" formControlName="maxRecencyScore" min="1" max="5">
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">{{ 'SegmentationRule:FrequencyScore' | abpLocalization }}</label>
+          <div class="input-group mb-3">
+            <input type="number" class="form-control" placeholder="Min" formControlName="minFrequencyScore" min="1" max="5">
+            <span class="input-group-text">-</span>
+            <input type="number" class="form-control" placeholder="Max" formControlName="maxFrequencyScore" min="1" max="5">
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">{{ 'SegmentationRule:MonetaryScore' | abpLocalization }}</label>
+          <div class="input-group mb-3">
+            <input type="number" class="form-control" placeholder="Min" formControlName="minMonetaryScore" min="1" max="5">
+            <span class="input-group-text">-</span>
+            <input type="number" class="form-control" placeholder="Max" formControlName="maxMonetaryScore" min="1" max="5">
+          </div>
+        </div>
+      </div>
+
+      <!-- Donation Metrics -->
+      <div class="row mb-4">
+        <div class="col-md-12">
+          <h6 class="border-bottom pb-2 mb-3">{{ 'SegmentationRule:DonationMetrics' | abpLocalization }}</h6>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ 'SegmentationRule:TotalDonated' | abpLocalization }} (€)</label>
+          <div class="input-group mb-3">
+            <input type="number" class="form-control" placeholder="Min" formControlName="minTotalDonated" step="0.01">
+            <span class="input-group-text">-</span>
+            <input type="number" class="form-control" placeholder="Max" formControlName="maxTotalDonated" step="0.01">
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ 'SegmentationRule:DonationCount' | abpLocalization }}</label>
+          <div class="input-group mb-3">
+            <input type="number" class="form-control" placeholder="Min" formControlName="minDonationCount">
+            <span class="input-group-text">-</span>
+            <input type="number" class="form-control" placeholder="Max" formControlName="maxDonationCount">
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ 'SegmentationRule:DaysSinceLastDonation' | abpLocalization }}</label>
+          <div class="input-group mb-3">
+            <input type="number" class="form-control" placeholder="Min" formControlName="minDaysSinceLastDonation">
+            <span class="input-group-text">-</span>
+            <input type="number" class="form-control" placeholder="Max" formControlName="maxDaysSinceLastDonation">
+          </div>
+        </div>
+      </div>
+
+      <!-- Date Ranges -->
+      <div class="row mb-4">
+        <div class="col-md-12">
+          <h6 class="border-bottom pb-2 mb-3">{{ 'SegmentationRule:DateRanges' | abpLocalization }}</h6>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ 'SegmentationRule:FirstDonation' | abpLocalization }}</label>
+          <div class="input-group mb-3">
+            <input type="date" class="form-control" formControlName="firstDonationAfter">
+            <span class="input-group-text">to</span>
+            <input type="date" class="form-control" formControlName="firstDonationBefore">
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ 'SegmentationRule:LastDonation' | abpLocalization }}</label>
+          <div class="input-group mb-3">
+            <input type="date" class="form-control" formControlName="lastDonationAfter">
+            <span class="input-group-text">to</span>
+            <input type="date" class="form-control" formControlName="lastDonationBefore">
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="row">
+        <div class="col-md-12">
+          <button type="submit" class="btn btn-primary me-2" [disabled]="saving">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!saving" class="fa fa-save me-1"></i>
+            {{ 'AbpUi::Save' | abpLocalization }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="saving">
+            {{ 'AbpUi::Cancel' | abpLocalization }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

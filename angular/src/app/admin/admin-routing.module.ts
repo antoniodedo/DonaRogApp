@@ -15,6 +15,10 @@ const routes: Routes = [
     loadChildren: () => import('./recurrences/recurrences.module').then(m => m.RecurrencesModule)
   },
   {
+    path: 'segmentation-rules',
+    loadChildren: () => import('./segmentation-rules/segmentation-rules.module').then(m => m.SegmentationRulesModule)
+  },
+  {
     path: 'tenants',
     loadChildren: () => import('./tenants/tenants.module').then(m => m.TenantsModule)
   },

@@ -1,0 +1,116 @@
+<div class="card">
+  <div class="card-header">
+    <div class="row align-items-center">
+      <div class="col">
+        <h5 class="card-title mb-0">
+          {{ 'SegmentationRule:Preview' | abpLocalization }}
+          <span *ngIf="preview" class="text-muted"> - {{ preview.ruleName }}</span>
+        </h5>
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-sm btn-secondary me-2" (click)="refresh()" [disabled]="loading">
+          <i class="fa fa-refresh me-1"></i>
+          {{ 'AbpUi::Refresh' | abpLocalization }}
+        </button>
+        <button type="button" class="btn btn-sm btn-primary me-2" (click)="editRule()">
+          <i class="fa fa-edit me-1"></i>
+          {{ 'AbpUi::Edit' | abpLocalization }}
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="back()">
+          <i class="fa fa-arrow-left me-1"></i>
+          {{ 'AbpUi::Back' | abpLocalization }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && preview">
+      <!-- Summary -->
+      <div class="alert alert-info mb-4">
+        <i class="fa fa-info-circle me-2"></i>
+        <strong>{{ preview.totalMatchingDonors }}</strong> donors match this rule.
+        <span *ngIf="preview.totalMatchingDonors > maxResults">
+          (Showing first {{ maxResults }})
+        </span>
+      </div>
+
+      <!-- Donors Table -->
+      <div *ngIf="preview.previewDonors.length > 0" class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>{{ 'SegmentationRule:DonorCode' | abpLocalization }}</th>
+              <th>{{ 'SegmentationRule:FullName' | abpLocalization }}</th>
+              <th class="text-end">{{ 'SegmentationRule:TotalDonated' | abpLocalization }}</th>
+              <th class="text-center">{{ 'SegmentationRule:DonationCount' | abpLocalization }}</th>
+              <th class="text-center">{{ 'SegmentationRule:DaysSinceLast' | abpLocalization }}</th>
+              <th class="text-center">R</th>
+              <th class="text-center">F</th>
+              <th class="text-center">M</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let donor of preview.previewDonors">
+              <td>
+                <code>{{ donor.donorCode }}</code>
+              </td>
+              <td>
+                <strong>{{ donor.fullName }}</strong>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-success">€{{ donor.totalDonated | number:'1.2-2' }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-info">{{ donor.donationCount }}</span>
+              </td>
+              <td class="text-center">
+                <span *ngIf="donor.daysSinceLastDonation !== null && donor.daysSinceLastDonation !== undefined">
+                  {{ donor.daysSinceLastDonation }} days
+                </span>
+                <span *ngIf="donor.daysSinceLastDonation === null || donor.daysSinceLastDonation === undefined">
+                  -
+                </span>
+              </td>
+              <td class="text-center">
+                <span *ngIf="donor.recencyScore" 
+                      class="badge" 
+                      [ngClass]="{'bg-success': donor.recencyScore >= 4, 'bg-warning': donor.recencyScore === 3, 'bg-danger': donor.recencyScore <= 2}">
+                  {{ donor.recencyScore }}
+                </span>
+                <span *ngIf="!donor.recencyScore">-</span>
+              </td>
+              <td class="text-center">
+                <span *ngIf="donor.frequencyScore" 
+                      class="badge" 
+                      [ngClass]="{'bg-success': donor.frequencyScore >= 4, 'bg-warning': donor.frequencyScore === 3, 'bg-danger': donor.frequencyScore <= 2}">
+                  {{ donor.frequencyScore }}
+                </span>
+                <span *ngIf="!donor.frequencyScore">-</span>
+              </td>
+              <td class="text-center">
+                <span *ngIf="donor.monetaryScore" 
+                      class="badge" 
+                      [ngClass]="{'bg-success': donor.monetaryScore >= 4, 'bg-warning': donor.monetaryScore === 3, 'bg-danger': donor.monetaryScore <= 2}">
+                  {{ donor.monetaryScore }}
+                </span>
+                <span *ngIf="!donor.monetaryScore">-</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="preview.previewDonors.length === 0" class="alert alert-warning">
+        <i class="fa fa-exclamation-triangle me-2"></i>
+        No donors match the current rule criteria.
+      </div>
+    </div>
+  </div>
+</div>

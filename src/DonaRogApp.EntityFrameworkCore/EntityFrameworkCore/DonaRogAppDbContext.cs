@@ -4,6 +4,7 @@ using DonaRogApp.Domain.Communications.Entities;
 using DonaRogApp.Domain.Donations.Entities;
 using DonaRogApp.Domain.Donors.Entities;
 using DonaRogApp.Domain.Recurrences.Entities;
+using DonaRogApp.Domain.Segmentation.Entities;
 using DonaRogApp.Domain.Shared.Entities;
 using DonaRogApp.LetterTemplates;
 using DonaRogApp.Notes.Entities;
@@ -42,6 +43,7 @@ public class DonaRogAppDbContext :
     public DbSet<DonorAddress> DonorAddresses { get; set; }
     public DbSet<DonorNote> DonorNotes { get; set; }
     public DbSet<DonorStatusHistory> DonorStatusHistories { get; set; }
+    public DbSet<DonorAttachment> DonorAttachments { get; set; }
     public DbSet<Communication> Communications { get; set; }
 
     #endregion
@@ -85,6 +87,14 @@ public class DonaRogAppDbContext :
 
     public DbSet<PrintBatch> PrintBatches { get; set; }
     public DbSet<ThankYouRule> ThankYouRules { get; set; }
+    public DbSet<RuleTemplateAssociation> RuleTemplateAssociations { get; set; }
+    public DbSet<DonorTemplateUsage> DonorTemplateUsages { get; set; }
+
+    #endregion
+
+    #region Segmentation Aggregate Roots
+
+    public DbSet<SegmentationRule> SegmentationRules { get; set; }
 
     #endregion
 
@@ -219,6 +229,11 @@ public class DonaRogAppDbContext :
                 .WithOne(x => x.Donor)
                 .HasForeignKey(x => x.DonorId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasMany(x => x.Attachments)
+                .WithOne(x => x.Donor)
+                .HasForeignKey(x => x.DonorId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             b.OwnsOne(x => x.TaxCode, tb =>
             {
@@ -312,6 +327,25 @@ public class DonaRogAppDbContext :
                 .OnDelete(DeleteBehavior.Cascade);
 
             b.HasIndex(x => new { x.DonorId, x.ChangedAt });
+        });
+
+        // DONOR ATTACHMENT
+        builder.Entity<DonorAttachment>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "DonorAttachments", DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.FileName).IsRequired().HasMaxLength(255);
+            b.Property(x => x.FileExtension).IsRequired().HasMaxLength(20);
+            b.Property(x => x.MimeType).IsRequired().HasMaxLength(100);
+            b.Property(x => x.BlobName).IsRequired().HasMaxLength(500);
+            b.Property(x => x.AttachmentType).HasMaxLength(50);
+            b.Property(x => x.Description).HasMaxLength(1000);
+
+            b.HasIndex(x => x.DonorId);
+            b.HasIndex(x => new { x.DonorId, x.DisplayOrder });
+            b.HasIndex(x => x.AttachmentType);
+            b.HasIndex(x => x.CreationTime);
         });
 
         // COMMUNICATION
@@ -498,7 +532,7 @@ public class DonaRogAppDbContext :
             b.Property(x => x.DeactivationReason).HasMaxLength(512);
 
             // Indexes
-            b.HasIndex(x => new { x.TenantId, x.Code }).IsUnique().HasFilter("[Code] IS NOT NULL");
+            b.HasIndex(x => new { x.TenantId, x.Code }).IsUnique().HasFilter("\"Code\" IS NOT NULL");
             b.HasIndex(x => x.IsActive);
             b.HasIndex(x => new { x.RecurrenceMonth, x.RecurrenceDay });
         });
@@ -615,7 +649,7 @@ public class DonaRogAppDbContext :
             // Indexes
             b.HasIndex(x => new { x.TenantId, x.Code })
                 .IsUnique()
-                .HasFilter("[TenantId] IS NOT NULL");
+                .HasFilter("\"TenantId\" IS NOT NULL");
             
             b.HasIndex(x => x.Status);
             b.HasIndex(x => x.Category);
@@ -657,20 +691,8 @@ public class DonaRogAppDbContext :
             b.Property(x => x.CcEmails).HasMaxLength(500);
             b.Property(x => x.BccEmails).HasMaxLength(500);
             b.Property(x => x.Tags).HasMaxLength(500);
-            b.Property(x => x.MinAmount).HasPrecision(18, 2);
-            b.Property(x => x.MaxAmount).HasPrecision(18, 2);
 
             // Relationships
-            b.HasOne(x => x.Project)
-                .WithMany()
-                .HasForeignKey(x => x.ProjectId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            b.HasOne(x => x.Recurrence)
-                .WithMany()
-                .HasForeignKey(x => x.RecurrenceId)
-                .OnDelete(DeleteBehavior.SetNull);
-
             b.HasMany(x => x.Attachments)
                 .WithOne(x => x.Template)
                 .HasForeignKey(x => x.TemplateId)
@@ -683,8 +705,6 @@ public class DonaRogAppDbContext :
             b.HasIndex(x => x.IsDefault);
             b.HasIndex(x => new { x.TenantId, x.Category, x.Language });
             b.HasIndex(x => new { x.Category, x.Language, x.IsActive });
-            b.HasIndex(x => x.ProjectId);
-            b.HasIndex(x => x.RecurrenceId);
             b.HasIndex(x => x.LastUsedDate);
         });
 
@@ -782,7 +802,7 @@ public class DonaRogAppDbContext :
 
             // Indexes
             b.HasIndex(x => x.Reference);
-            b.HasIndex(x => x.ExternalId).IsUnique().HasFilter("[ExternalId] IS NOT NULL");
+            b.HasIndex(x => x.ExternalId).IsUnique().HasFilter("\"ExternalId\" IS NOT NULL");
             b.HasIndex(x => x.Status);
             b.HasIndex(x => x.Channel);
             b.HasIndex(x => x.DonorId);
@@ -882,11 +902,106 @@ public class DonaRogAppDbContext :
             b.Property(x => x.MinAmount).HasPrecision(18, 2);
             b.Property(x => x.MaxAmount).HasPrecision(18, 2);
 
+            // Relationships
+            b.HasOne(x => x.Recurrence)
+                .WithMany()
+                .HasForeignKey(x => x.RecurrenceId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasMany(x => x.TemplateAssociations)
+                .WithOne(x => x.Rule)
+                .HasForeignKey(x => x.RuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Indexes
             b.HasIndex(x => x.IsActive);
             b.HasIndex(x => new { x.IsActive, x.Priority });
             b.HasIndex(x => x.ProjectId);
             b.HasIndex(x => x.CampaignId);
+            b.HasIndex(x => x.RecurrenceId);
+            b.HasIndex(x => x.ValidFrom);
+            b.HasIndex(x => x.ValidUntil);
+            b.HasIndex(x => new { x.ValidFrom, x.ValidUntil });
+            b.HasIndex(x => x.TenantId);
+        });
+
+        // RULE TEMPLATE ASSOCIATION (Many-to-Many)
+        builder.Entity<RuleTemplateAssociation>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "RuleTemplateAssociations", DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Composite key
+            b.HasKey(x => new { x.RuleId, x.TemplateId });
+
+            // Relationships
+            b.HasOne(x => x.Template)
+                .WithMany()
+                .HasForeignKey(x => x.TemplateId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes
+            b.HasIndex(x => x.RuleId);
+            b.HasIndex(x => x.TemplateId);
+            b.HasIndex(x => new { x.RuleId, x.Priority });
+            b.HasIndex(x => new { x.RuleId, x.IsActive });
+        });
+
+        // DONOR TEMPLATE USAGE (LRU Tracking)
+        builder.Entity<DonorTemplateUsage>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "DonorTemplateUsages", DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Composite key
+            b.HasKey(x => new { x.DonorId, x.TemplateId });
+
+            // Relationships
+            b.HasOne(x => x.Donor)
+                .WithMany()
+                .HasForeignKey(x => x.DonorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.Template)
+                .WithMany()
+                .HasForeignKey(x => x.TemplateId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes
+            b.HasIndex(x => x.DonorId);
+            b.HasIndex(x => x.TemplateId);
+            b.HasIndex(x => new { x.DonorId, x.LastUsedDate });
+            b.HasIndex(x => x.LastUsedDate);
+            b.HasIndex(x => x.TenantId);
+        });
+
+        // ======================================================================
+        // SEGMENTATION RULES
+        // ======================================================================
+        builder.Entity<SegmentationRule>(b =>
+        {
+            b.ToTable(DonaRogAppConsts.DbTablePrefix + "SegmentationRules", DonaRogAppConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Properties
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Description).HasMaxLength(500);
+            
+            // Decimal precision
+            b.Property(x => x.MinTotalDonated).HasPrecision(18, 2);
+            b.Property(x => x.MaxTotalDonated).HasPrecision(18, 2);
+
+            // Relationships
+            b.HasOne(x => x.Segment)
+                .WithMany()
+                .HasForeignKey(x => x.SegmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Indexes
+            b.HasIndex(x => x.IsActive);
+            b.HasIndex(x => x.Priority);
+            b.HasIndex(x => new { x.IsActive, x.Priority });
+            b.HasIndex(x => x.SegmentId);
             b.HasIndex(x => x.TenantId);
         });
     }

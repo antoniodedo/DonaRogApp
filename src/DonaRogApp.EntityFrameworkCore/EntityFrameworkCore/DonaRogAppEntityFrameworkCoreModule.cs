@@ -4,7 +4,7 @@ using Volo.Abp.Uow;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
-using Volo.Abp.EntityFrameworkCore.SqlServer;
+using Volo.Abp.EntityFrameworkCore.PostgreSql;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
@@ -21,7 +21,7 @@ namespace DonaRogApp.EntityFrameworkCore;
     typeof(DonaRogAppDomainModule),
     typeof(AbpPermissionManagementEntityFrameworkCoreModule),
     typeof(AbpSettingManagementEntityFrameworkCoreModule),
-    typeof(AbpEntityFrameworkCoreSqlServerModule),
+    typeof(AbpEntityFrameworkCorePostgreSqlModule),
     typeof(AbpBackgroundJobsEntityFrameworkCoreModule),
     typeof(AbpAuditLoggingEntityFrameworkCoreModule),
     typeof(AbpFeatureManagementEntityFrameworkCoreModule),
@@ -57,7 +57,7 @@ public class DonaRogAppEntityFrameworkCoreModule : AbpModule
             /* The main point to change your DBMS.
              * See also DonaRogAppDbContextFactory for EF Core tooling. */
 
-            options.UseSqlServer();
+            options.UseNpgsql();
 
         });
         

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -17,7 +17,7 @@ public class DonaRogAppDbContextFactory : IDesignTimeDbContextFactory<DonaRogApp
         DonaRogAppEfCoreEntityExtensionMappings.Configure();
 
         var builder = new DbContextOptionsBuilder<DonaRogAppDbContext>()
-            .UseSqlServer(configuration.GetConnectionString("Default"));
+            .UseNpgsql(configuration.GetConnectionString("Default"));
         
         return new DonaRogAppDbContext(builder.Options);
     }

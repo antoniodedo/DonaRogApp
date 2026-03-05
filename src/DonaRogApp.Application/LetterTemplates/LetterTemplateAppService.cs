@@ -31,8 +31,7 @@ namespace DonaRogApp.Application.LetterTemplates
         private readonly TemplateRenderer _templateRenderer;
         private readonly IRepository<Domain.Donors.Entities.Donor, Guid> _donorRepository;
         private readonly IRepository<Domain.Donations.Entities.Donation, Guid> _donationRepository;
-        private readonly IRepository<Domain.Projects.Entities.Project, Guid> _projectRepository;
-        private readonly IRepository<Domain.Recurrences.Entities.Recurrence, Guid> _recurrenceRepository;
+        private readonly IRepository<Domain.Communications.Entities.ThankYouRule, Guid> _thankYouRuleRepository;
         private readonly PlaceholderService _placeholderService;
         private readonly TemplateMergeService _templateMergeService;
         private readonly IFileStorageService _fileStorageService;
@@ -42,8 +41,7 @@ namespace DonaRogApp.Application.LetterTemplates
             TemplateRenderer templateRenderer,
             IRepository<Domain.Donors.Entities.Donor, Guid> donorRepository,
             IRepository<Domain.Donations.Entities.Donation, Guid> donationRepository,
-            IRepository<Domain.Projects.Entities.Project, Guid> projectRepository,
-            IRepository<Domain.Recurrences.Entities.Recurrence, Guid> recurrenceRepository,
+            IRepository<Domain.Communications.Entities.ThankYouRule, Guid> thankYouRuleRepository,
             PlaceholderService placeholderService,
             TemplateMergeService templateMergeService,
             IFileStorageService fileStorageService)
@@ -52,8 +50,7 @@ namespace DonaRogApp.Application.LetterTemplates
             _templateRenderer = templateRenderer;
             _donorRepository = donorRepository;
             _donationRepository = donationRepository;
-            _projectRepository = projectRepository;
-            _recurrenceRepository = recurrenceRepository;
+            _thankYouRuleRepository = thankYouRuleRepository;
             _placeholderService = placeholderService;
             _templateMergeService = templateMergeService;
             _fileStorageService = fileStorageService;
@@ -65,7 +62,7 @@ namespace DonaRogApp.Application.LetterTemplates
 
         protected override async Task<IQueryable<DonaRogApp.LetterTemplates.LetterTemplate>> CreateFilteredQueryAsync(GetLetterTemplatesInput input)
         {
-            var query = await Repository.WithDetailsAsync(x => x.Project, x => x.Recurrence, x => x.Attachments);
+            var query = await Repository.WithDetailsAsync(x => x.Attachments);
 
             return query
                 .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x =>
@@ -76,44 +73,41 @@ namespace DonaRogApp.Application.LetterTemplates
                 .WhereIf(!string.IsNullOrWhiteSpace(input.Language), x => x.Language == input.Language!)
                 .WhereIf(input.IsActive.HasValue, x => x.IsActive == input.IsActive!.Value)
                 .WhereIf(input.IsDefault.HasValue, x => x.IsDefault == input.IsDefault!.Value)
-                .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId!.Value)
-                .WhereIf(input.RecurrenceId.HasValue, x => x.RecurrenceId == input.RecurrenceId!.Value)
                 .WhereIf(input.CommunicationType.HasValue, x => x.CommunicationType == input.CommunicationType!.Value || x.CommunicationType == null)
-                .WhereIf(input.IsForNewDonor.HasValue, x => x.IsForNewDonor == input.IsForNewDonor!.Value)
                 .WhereIf(input.IsPlural.HasValue, x => x.IsPlural == input.IsPlural!.Value);
         }
 
         protected override async Task<LetterTemplateDto> MapToGetOutputDtoAsync(DonaRogApp.LetterTemplates.LetterTemplate entity)
         {
             var dto = await base.MapToGetOutputDtoAsync(entity);
+
+            // Load template associations from rules
+            var rulesQueryable = await _thankYouRuleRepository.WithDetailsAsync(r => r.TemplateAssociations);
+            var rulesUsingTemplate = rulesQueryable
+                .Where(r => r.TemplateAssociations.Any(ta => ta.TemplateId == entity.Id))
+                .ToList();
             
-            // Map navigation properties
-            dto.ProjectName = entity.Project?.Name;
-            dto.RecurrenceName = entity.Recurrence?.Name;
-            
+            dto.AssociatedRules = rulesUsingTemplate
+                .SelectMany(rule => rule.TemplateAssociations
+                    .Where(ta => ta.TemplateId == entity.Id)
+                    .Select(ta => new RuleTemplateAssociationDto
+                    {
+                        RuleId = rule.Id,
+                        RuleName = rule.Name,
+                        TemplateId = entity.Id,
+                        TemplatePriorityInPool = ta.Priority,
+                        IsTemplateActiveInPool = ta.IsActive,
+                        RulePriority = rule.Priority,
+                        IsRuleActive = rule.IsActive,
+                        IsRuleTemporary = rule.IsTemporaryRule(),
+                        RuleValidFrom = rule.ValidFrom,
+                        RuleValidUntil = rule.ValidUntil
+                    }))
+                .OrderBy(r => r.RulePriority)
+                .ThenBy(r => r.TemplatePriorityInPool)
+                .ToList();
+
             return dto;
-        }
-
-        public override async Task<LetterTemplateDto> CreateAsync(CreateUpdateLetterTemplateDto input)
-        {
-            // Verify invariants
-            if (input.MinAmount.HasValue && input.MaxAmount.HasValue && input.MinAmount.Value > input.MaxAmount.Value)
-            {
-                throw new Volo.Abp.UserFriendlyException("MinAmount cannot be greater than MaxAmount");
-            }
-
-            return await base.CreateAsync(input);
-        }
-
-        public override async Task<LetterTemplateDto> UpdateAsync(Guid id, CreateUpdateLetterTemplateDto input)
-        {
-            // Verify invariants
-            if (input.MinAmount.HasValue && input.MaxAmount.HasValue && input.MinAmount.Value > input.MaxAmount.Value)
-            {
-                throw new Volo.Abp.UserFriendlyException("MinAmount cannot be greater than MaxAmount");
-            }
-
-            return await base.UpdateAsync(id, input);
         }
 
         // ======================================================================
@@ -139,19 +133,12 @@ namespace DonaRogApp.Application.LetterTemplates
                 Category = entity.Category,
                 Language = entity.Language,
                 CommunicationType = entity.CommunicationType,
-                ProjectId = entity.ProjectId,
-                RecurrenceId = entity.RecurrenceId,
-                MinAmount = entity.MinAmount,
-                MaxAmount = entity.MaxAmount,
-                IsForNewDonor = entity.IsForNewDonor,
                 IsPlural = entity.IsPlural,
                 IsActive = entity.IsActive,
                 IsDefault = entity.IsDefault,
                 UsageCount = entity.UsageCount,
                 LastUsedDate = entity.LastUsedDate,
                 Version = entity.Version,
-                ProjectName = entity.Project?.Name,
-                RecurrenceName = entity.Recurrence?.Name,
                 Tags = entity.Tags,
                 CreationTime = entity.CreationTime,
                 LastModificationTime = entity.LastModificationTime
@@ -183,25 +170,11 @@ namespace DonaRogApp.Application.LetterTemplates
                 throw new Volo.Abp.UserFriendlyException("Donor not found");
             }
 
-            // Load project if template has one
-            Domain.Projects.Entities.Project? project = null;
-            if (template.ProjectId.HasValue)
-            {
-                project = await _projectRepository.FirstOrDefaultAsync(p => p.Id == template.ProjectId.Value);
-            }
-
-            // Load recurrence if template has one
-            Domain.Recurrences.Entities.Recurrence? recurrence = null;
-            if (template.RecurrenceId.HasValue)
-            {
-                recurrence = await _recurrenceRepository.FirstOrDefaultAsync(r => r.Id == template.RecurrenceId.Value);
-            }
-
             // Build tag values from donor data
             var tagValues = _templateRenderer.BuildDonorTagValues(
                 donor,
-                project: project,
-                recurrence: recurrence
+                project: null,
+                recurrence: null
             );
 
             // Merge with additional tags
@@ -217,37 +190,9 @@ namespace DonaRogApp.Application.LetterTemplates
         // ======================================================================
         // SELECTION AND SUGGESTIONS
         // ======================================================================
-
-        public virtual async Task<List<LetterTemplateDto>> GetSuggestedTemplatesAsync(SelectTemplateInput input)
-        {
-            var query = await Repository.WithDetailsAsync(x => x.Project, x => x.Recurrence);
-            
-            var templates = query
-                .Where(x => x.IsActive)
-                .Where(x => x.Category == input.Category)
-                .Where(x => x.Language == input.Language)
-                .Where(x => x.CommunicationType == input.PreferredCommunicationType || x.CommunicationType == null)
-                .ToList();
-
-            // Filter and score templates
-            var scoredTemplates = templates
-                .Select(t => new
-                {
-                    Template = t,
-                    Score = t.GetMatchScore(
-                        input.DonationAmount,
-                        input.IsNewDonor,
-                        input.IsPlural,
-                        input.ProjectId,
-                        input.RecurrenceId)
-                })
-                .Where(x => x.Score > 0)
-                .OrderByDescending(x => x.Score)
-                .Select(x => x.Template)
-                .ToList();
-
-            return ObjectMapper.Map<List<DonaRogApp.LetterTemplates.LetterTemplate>, List<LetterTemplateDto>>(scoredTemplates);
-        }
+        
+        // NOTE: Template selection is now handled by ThankYouRules
+        // This method returns all active templates for manual selection
 
         public virtual async Task<LetterTemplateDto?> GetDefaultTemplateAsync(TemplateCategory category, string language)
         {
@@ -277,11 +222,6 @@ namespace DonaRogApp.Application.LetterTemplates
                 Category = originalTemplate.Category,
                 Language = originalTemplate.Language,
                 CommunicationType = originalTemplate.CommunicationType,
-                ProjectId = originalTemplate.ProjectId,
-                RecurrenceId = originalTemplate.RecurrenceId,
-                MinAmount = originalTemplate.MinAmount,
-                MaxAmount = originalTemplate.MaxAmount,
-                IsForNewDonor = originalTemplate.IsForNewDonor,
                 IsPlural = originalTemplate.IsPlural,
                 IsActive = false, // Duplicated templates start as inactive
                 IsDefault = false, // Cannot duplicate as default

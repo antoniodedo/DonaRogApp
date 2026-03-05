@@ -1148,12 +1148,16 @@ select.native-select-sm {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--neutral-300);
+  background: var(--brand-400);
   border-radius: var(--radius-full);
   transition: background var(--duration-fast);
 
   &:hover {
-    background: var(--neutral-400);
+    background: var(--brand-500);
+  }
+
+  &:active {
+    background: var(--brand-600);
   }
 }
 

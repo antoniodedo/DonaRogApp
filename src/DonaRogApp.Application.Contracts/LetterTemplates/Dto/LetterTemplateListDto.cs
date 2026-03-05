@@ -17,12 +17,7 @@ namespace DonaRogApp.LetterTemplates.Dto
         public string Language { get; set; } = "it";
         public CommunicationType? CommunicationType { get; set; }
         
-        // Selection Criteria
-        public Guid? ProjectId { get; set; }
-        public Guid? RecurrenceId { get; set; }
-        public decimal? MinAmount { get; set; }
-        public decimal? MaxAmount { get; set; }
-        public bool IsForNewDonor { get; set; }
+        // Template Characteristics
         public bool IsPlural { get; set; }
         
         // Status
@@ -35,10 +30,6 @@ namespace DonaRogApp.LetterTemplates.Dto
         
         // Versioning
         public int Version { get; set; }
-        
-        // Navigation properties (for display)
-        public string? ProjectName { get; set; }
-        public string? RecurrenceName { get; set; }
         
         // Tags
         public string? Tags { get; set; }

@@ -3,16 +3,13 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { LetterTemplateService } from '../../proxy/letter-templates/letter-template.service';
-import { ProjectService } from '../../proxy/application/projects/project.service';
-import { RecurrenceService } from '../../proxy/application/recurrences/recurrence.service';
 import {
   LetterTemplateDto,
   CreateUpdateLetterTemplateDto,
 } from '../../proxy/letter-templates/dto/models';
 import { TemplateCategory } from '../../proxy/enums/communications/template-category.enum';
 import { CommunicationType } from '../../proxy/enums/communications/communication-type.enum';
-import { ProjectListDto } from '../../proxy/application/contracts/projects/dto/models';
-import { RecurrenceDto } from '../../proxy/application/contracts/recurrences/dto/models';
+import { ThankYouRuleService } from '../../proxy/communications/thank-you-rules/thank-you-rule.service';
 
 @Component({
   selector: 'app-template-form',
@@ -33,9 +30,14 @@ export class TemplateFormComponent implements OnInit {
   TemplateCategory = TemplateCategory;
   CommunicationType = CommunicationType;
 
-  // Dropdowns data
-  projects: ProjectListDto[] = [];
-  recurrences: RecurrenceDto[] = [];
+  // Associated rules
+  associatedRules: any[] = [];
+  
+  // Available rules for pool management
+  availableRules: any[] = [];
+  isAddToPoolModalVisible = false;
+  selectedRuleForPool?: string;
+  selectedPriorityForPool = 1;
 
   // TinyMCE Configuration - Self-hosted (GPL License)
   tinyMceConfig = {
@@ -126,8 +128,7 @@ export class TemplateFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private templateService: LetterTemplateService,
-    private projectService: ProjectService,
-    private recurrenceService: RecurrenceService,
+    private ruleService: ThankYouRuleService,
     private message: NzMessageService,
     private route: ActivatedRoute,
     private router: Router
@@ -135,8 +136,6 @@ export class TemplateFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
-    this.loadProjects();
-    this.loadRecurrences();
 
     // Check if we're in edit mode
     this.route.params.subscribe(params => {
@@ -154,6 +153,7 @@ export class TemplateFormComponent implements OnInit {
     this.templateService.get(id).subscribe({
       next: template => {
         this.template = template;
+        this.associatedRules = (template as any).associatedRules || [];
         this.patchFormValues();
         this.loading = false;
       },
@@ -173,11 +173,6 @@ export class TemplateFormComponent implements OnInit {
       category: [TemplateCategory.ThankYou, Validators.required],
       language: ['it', [Validators.required, Validators.maxLength(5)]],
       communicationType: [null],
-      projectId: [null],
-      recurrenceId: [null],
-      minAmount: [null],
-      maxAmount: [null],
-      isForNewDonor: [false],
       isPlural: [false],
       isActive: [true],
       isDefault: [false],
@@ -193,38 +188,11 @@ export class TemplateFormComponent implements OnInit {
         category: this.template.category,
         language: this.template.language,
         communicationType: this.template.communicationType,
-        projectId: this.template.projectId,
-        recurrenceId: this.template.recurrenceId,
-        minAmount: this.template.minAmount,
-        maxAmount: this.template.maxAmount,
-        isForNewDonor: this.template.isForNewDonor,
-        isPlural: this.template.isPlural,
+        isPlural: (this.template as any).isPlural,
         isActive: this.template.isActive,
-        isDefault: this.template.isDefault,
+        isDefault: (this.template as any).isDefault,
       });
     }
-  }
-
-  loadProjects(): void {
-    this.projectService.getProjectList({ maxResultCount: 1000 }).subscribe({
-      next: result => {
-        this.projects = result.items || [];
-      },
-      error: err => {
-        console.error('Errore nel caricamento progetti', err);
-      },
-    });
-  }
-
-  loadRecurrences(): void {
-    this.recurrenceService.getList({ maxResultCount: 1000 }).subscribe({
-      next: result => {
-        this.recurrences = result.items || [];
-      },
-      error: err => {
-        console.error('Errore nel caricamento ricorrenze', err);
-      },
-    });
   }
 
   onSubmit(): void {
@@ -263,5 +231,76 @@ export class TemplateFormComponent implements OnInit {
 
   onCancel(): void {
     this.router.navigate(['/letter-templates']);
+  }
+
+  // ======================================================================
+  // POOL TEMPLATE MANAGEMENT
+  // ======================================================================
+
+  loadAvailableRules(): void {
+    this.ruleService.getList({ maxResultCount: 1000 }).subscribe({
+      next: (result) => {
+        this.availableRules = result.items || [];
+      },
+      error: (err) => {
+        console.error('Errore caricamento regole', err);
+      }
+    });
+  }
+
+  showAddToPoolModal(): void {
+    if (!this.template?.id) {
+      this.message.warning('Salva prima il template per poterlo associare a una regola');
+      return;
+    }
+    
+    this.loadAvailableRules();
+    this.selectedRuleForPool = undefined;
+    this.selectedPriorityForPool = 1;
+    this.isAddToPoolModalVisible = true;
+  }
+
+  addTemplateToPool(): void {
+    if (!this.selectedRuleForPool || !this.template?.id) {
+      return;
+    }
+
+    this.loading = true;
+    (this.ruleService as any).addTemplateToPool(
+      this.selectedRuleForPool,
+      this.template.id,
+      this.selectedPriorityForPool,
+      true
+    ).subscribe({
+      next: () => {
+        this.message.success('Template aggiunto al pool della regola');
+        this.isAddToPoolModalVisible = false;
+        this.loadTemplate(this.template!.id);
+      },
+      error: (err: any) => {
+        this.loading = false;
+        this.message.error('Errore nell\'aggiunta al pool: ' + (err.error?.error?.message || 'Errore sconosciuto'));
+      }
+    });
+  }
+
+  removeFromPool(ruleId: string): void {
+    if (!this.template?.id) return;
+
+    this.loading = true;
+    (this.ruleService as any).removeTemplateFromPool(ruleId, this.template.id).subscribe({
+      next: () => {
+        this.message.success('Template rimosso dal pool');
+        this.loadTemplate(this.template!.id);
+      },
+      error: () => {
+        this.loading = false;
+        this.message.error('Errore nella rimozione dal pool');
+      }
+    });
+  }
+
+  cancelAddToPool(): void {
+    this.isAddToPoolModalVisible = false;
   }
 }

@@ -19,12 +19,7 @@ namespace DonaRogApp.LetterTemplates.Dto
         public string Language { get; set; } = "it";
         public CommunicationType? CommunicationType { get; set; }
         
-        // Selection Criteria
-        public Guid? ProjectId { get; set; }
-        public Guid? RecurrenceId { get; set; }
-        public decimal? MinAmount { get; set; }
-        public decimal? MaxAmount { get; set; }
-        public bool IsForNewDonor { get; set; }
+        // Template Characteristics
         public bool IsPlural { get; set; }
         
         // Status
@@ -46,11 +41,27 @@ namespace DonaRogApp.LetterTemplates.Dto
         // Categorization Advanced
         public string? Tags { get; set; }
         
-        // Navigation properties (for display)
-        public string? ProjectName { get; set; }
-        public string? RecurrenceName { get; set; }
+        // Associated Thank You Rules with priority in pool
+        public List<RuleTemplateAssociationDto> AssociatedRules { get; set; } = new();
         
         // Attachments
         public List<TemplateAttachmentDto> Attachments { get; set; } = new();
+    }
+    
+    /// <summary>
+    /// DTO for displaying rule-template associations
+    /// </summary>
+    public class RuleTemplateAssociationDto
+    {
+        public Guid RuleId { get; set; }
+        public string RuleName { get; set; } = null!;
+        public Guid TemplateId { get; set; }
+        public int TemplatePriorityInPool { get; set; }
+        public bool IsTemplateActiveInPool { get; set; }
+        public int RulePriority { get; set; }
+        public bool IsRuleActive { get; set; }
+        public bool IsRuleTemporary { get; set; }
+        public DateTime? RuleValidFrom { get; set; }
+        public DateTime? RuleValidUntil { get; set; }
     }
 }

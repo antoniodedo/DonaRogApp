@@ -858,20 +858,24 @@
   overflow-y: auto;
   
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
   }
   
   &::-webkit-scrollbar-track {
-    background: var(--neutral-50);
+    background: var(--neutral-100);
     border-radius: var(--radius-sm);
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--neutral-300);
+    background: var(--brand-400);
     border-radius: var(--radius-sm);
     
     &:hover {
-      background: var(--brand-400);
+      background: var(--brand-500);
+    }
+    
+    &:active {
+      background: var(--brand-600);
     }
   }
 
@@ -1479,7 +1483,7 @@
       overflow-y: auto;
 
       &::-webkit-scrollbar {
-        width: 6px;
+        width: 8px;
       }
       
       &::-webkit-scrollbar-track {
@@ -1487,11 +1491,11 @@
       }
       
       &::-webkit-scrollbar-thumb {
-        background: var(--brand-300);
+        background: var(--brand-400);
         border-radius: var(--radius-sm);
         
         &:hover {
-          background: var(--brand-400);
+          background: var(--brand-500);
         }
       }
     }
@@ -1577,15 +1581,15 @@
   }
   
   &::-webkit-scrollbar-track {
-    background: var(--neutral-50);
+    background: var(--neutral-100);
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--neutral-300);
+    background: var(--brand-400);
     border-radius: var(--radius-sm);
     
     &:hover {
-      background: var(--brand-400);
+      background: var(--brand-500);
     }
   }
 
@@ -1997,19 +2001,25 @@
     background: #fafafa;
 
     &::-webkit-scrollbar {
-      width: 10px;
+      width: 8px;
     }
     
     &::-webkit-scrollbar-track {
       background: var(--neutral-100);
       border-radius: var(--radius-md);
-      margin: 4px;
     }
     
     &::-webkit-scrollbar-thumb {
-      background: linear-gradient(to bottom, var(--brand-400), var(--brand-500));
+      background: var(--brand-400);
       border-radius: var(--radius-md);
-      border: 2px solid var(--neutral-100);
+      
+      &:hover {
+        background: var(--brand-500);
+      }
+      
+      &:active {
+        background: var(--brand-600);
+      }
       
       &:hover {
         background: linear-gradient(to bottom, var(--brand-500), var(--brand-600));

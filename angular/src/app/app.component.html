@@ -16,8 +16,10 @@
       </a>
     </div>
 
-    <!-- Navigation - Solo se autenticato -->
-    <ng-container *ngIf="isAuthenticated">
+    <!-- Scrollable Content -->
+    <div class="sidebar-content">
+      <!-- Navigation - Solo se autenticato -->
+      <ng-container *ngIf="isAuthenticated">
       
       <!-- Menu per utenti TENANT -->
       <ng-container *ngIf="isTenantUser">
@@ -38,6 +40,10 @@
           <li nz-menu-item nzMatchRouter routerLink="/letter-templates">
             <span nz-icon nzType="file-text"></span>
             <span>Template</span>
+          </li>
+          <li nz-menu-item nzMatchRouter routerLink="/communications/print-batches">
+            <span nz-icon nzType="printer"></span>
+            <span>Batch Stampa</span>
           </li>
           <li nz-menu-item nzMatchRouter routerLink="/welcome">
             <span nz-icon nzType="dashboard"></span>
@@ -77,6 +83,14 @@
               <span nz-icon nzType="bank"></span>
               <span>Conti Correnti</span>
             </li>
+            <li nz-menu-item nzMatchRouter routerLink="/communications/thank-you-rules">
+              <span nz-icon nzType="robot"></span>
+              <span>Regole Ringraziamenti</span>
+            </li>
+            <li nz-menu-item nzMatchRouter routerLink="/admin/segmentation-rules">
+              <span nz-icon nzType="pie-chart"></span>
+              <span>Regole Segmentazione</span>
+            </li>
           </ul>
         </ng-container>
       </ng-container>
@@ -101,12 +115,13 @@
       </ng-container>
     </ng-container>
     
-    <!-- Menu non autenticato -->
-    <div class="login-prompt" *ngIf="!isAuthenticated && !isCollapsed">
-      <div class="login-prompt-icon">
-        <span nz-icon nzType="lock" nzTheme="outline"></span>
+      <!-- Menu non autenticato -->
+      <div class="login-prompt" *ngIf="!isAuthenticated && !isCollapsed">
+        <div class="login-prompt-icon">
+          <span nz-icon nzType="lock" nzTheme="outline"></span>
+        </div>
+        <p>Accedi per visualizzare il menu</p>
       </div>
-      <p>Accedi per visualizzare il menu</p>
     </div>
 
     <!-- Sidebar Footer -->

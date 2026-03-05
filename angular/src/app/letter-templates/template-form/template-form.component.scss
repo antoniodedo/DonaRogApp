@@ -197,12 +197,16 @@ form {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--neutral-300);
+    background: var(--brand-400);
     border-radius: var(--radius-full);
     transition: background var(--duration-fast);
 
     &:hover {
-      background: var(--neutral-400);
+      background: var(--brand-500);
+    }
+    
+    &:active {
+      background: var(--brand-600);
     }
   }
 }
@@ -222,12 +226,16 @@ form {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--neutral-300);
+    background: var(--brand-400);
     border-radius: var(--radius-full);
     transition: background var(--duration-fast);
 
     &:hover {
-      background: var(--neutral-400);
+      background: var(--brand-500);
+    }
+    
+    &:active {
+      background: var(--brand-600);
     }
   }
 
@@ -678,5 +686,122 @@ small {
     resize: vertical;
     min-height: 80px;
     line-height: 1.6;
+  }
+}
+
+// Associated Rules Section
+.associated-rules {
+  h4 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+
+    > span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [nz-icon] {
+      color: var(--brand-600);
+      font-size: 18px;
+    }
+  }
+
+  .rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .rule-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+    transition: all var(--duration-normal);
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+      border-radius: 10px 0 0 10px;
+      opacity: 0;
+      transition: opacity var(--duration-fast);
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
+      border-color: var(--brand-400);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.12);
+      transform: translateX(2px);
+
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    > div:first-child {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .rule-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+
+      [nz-icon] {
+        color: var(--brand-600);
+        font-size: 16px;
+      }
+    }
+
+    .rule-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 12px;
+
+      nz-tag {
+        border-radius: 6px;
+        font-weight: 500;
+      }
+
+      .priority {
+        color: var(--text-secondary);
+        font-weight: 500;
+        padding: 2px 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+      }
+    }
+
+    button[nz-button] {
+      flex-shrink: 0;
+      transition: all var(--duration-fast);
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
   }
 }

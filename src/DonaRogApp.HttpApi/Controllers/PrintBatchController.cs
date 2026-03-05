@@ -27,7 +27,7 @@ namespace DonaRogApp.HttpApi.Controllers
         // ======================================================================
 
         [HttpGet]
-        public virtual Task<PagedResultDto<PrintBatchDto>> GetListAsync(GetPrintBatchesInput input)
+        public virtual Task<PagedResultDto<PrintBatchDto>> GetListAsync([FromQuery] GetPrintBatchesInput input)
         {
             return _service.GetListAsync(input);
         }
@@ -45,7 +45,7 @@ namespace DonaRogApp.HttpApi.Controllers
 
         [HttpPost]
         [Route("preview")]
-        public virtual Task<PrintBatchPreviewDto> PreviewBatchAsync(PrintBatchFilterDto filters)
+        public virtual Task<PrintBatchPreviewDto> PreviewBatchAsync([FromBody] PrintBatchFilterDto filters)
         {
             return _service.PreviewBatchAsync(filters);
         }
@@ -55,14 +55,14 @@ namespace DonaRogApp.HttpApi.Controllers
         // ======================================================================
 
         [HttpPost]
-        public virtual Task<PrintBatchDto> CreateAsync(CreatePrintBatchDto input)
+        public virtual Task<PrintBatchDto> CreateAsync([FromBody] CreatePrintBatchDto input)
         {
             return _service.CreateAsync(input);
         }
 
         [HttpPut]
         [Route("{id}")]
-        public virtual Task<PrintBatchDto> UpdateAsync(Guid id, UpdatePrintBatchDto input)
+        public virtual Task<PrintBatchDto> UpdateAsync(Guid id, [FromBody] UpdatePrintBatchDto input)
         {
             return _service.UpdateAsync(id, input);
         }
@@ -80,7 +80,7 @@ namespace DonaRogApp.HttpApi.Controllers
 
         [HttpPost]
         [Route("generate-pdf")]
-        public virtual Task<BatchPdfGenerationResultDto> GeneratePdfAsync(GenerateBatchPdfDto input)
+        public virtual Task<BatchPdfGenerationResultDto> GeneratePdfAsync([FromBody] GenerateBatchPdfDto input)
         {
             return _service.GeneratePdfAsync(input);
         }
@@ -115,14 +115,14 @@ namespace DonaRogApp.HttpApi.Controllers
 
         [HttpPost]
         [Route("mark-printed")]
-        public virtual Task<PrintBatchDto> MarkAsPrintedAsync(MarkBatchAsPrintedDto input)
+        public virtual Task<PrintBatchDto> MarkAsPrintedAsync([FromBody] MarkBatchAsPrintedDto input)
         {
             return _service.MarkAsPrintedAsync(input);
         }
 
         [HttpPost]
         [Route("cancel")]
-        public virtual Task<PrintBatchDto> CancelAsync(CancelBatchDto input)
+        public virtual Task<PrintBatchDto> CancelAsync([FromBody] CancelBatchDto input)
         {
             return _service.CancelAsync(input);
         }

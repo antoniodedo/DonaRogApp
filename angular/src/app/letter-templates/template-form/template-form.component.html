@@ -110,6 +110,9 @@
               <nz-form-label>Opzioni</nz-form-label>
               <nz-form-control>
                 <div class="checkboxes-inline">
+                  <label nz-checkbox formControlName="isPlural">
+                    <span nz-tooltip="Per gruppi/famiglie/organizzazioni">Plurale</span>
+                  </label>
                   <label nz-checkbox formControlName="isDefault">
                     <span nz-tooltip="Default per categoria e lingua">Default</span>
                   </label>
@@ -120,66 +123,77 @@
           </div>
 
           <!-- Right Column -->
-          <div class="column">
-            <nz-form-item>
-              <nz-form-label>Progetto</nz-form-label>
-              <nz-form-control>
-                <nz-select formControlName="projectId" nzAllowClear nzPlaceHolder="Tutti i progetti" nzShowSearch [nzOptionOverflowSize]="20">
-                  <nz-option *ngFor="let project of projects" [nzValue]="project.id" [nzLabel]="project.name"></nz-option>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-
-            <nz-form-item>
-              <nz-form-label>Ricorrenza</nz-form-label>
-              <nz-form-control>
-                <nz-select formControlName="recurrenceId" nzAllowClear nzPlaceHolder="Tutte le ricorrenze" nzShowSearch [nzOptionOverflowSize]="20">
-                  <nz-option *ngFor="let recurrence of recurrences" [nzValue]="recurrence.id" [nzLabel]="recurrence.name"></nz-option>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-
-            <nz-form-item>
-              <nz-form-label>Importo Min (€)</nz-form-label>
-              <nz-form-control>
-                <nz-input-number
-                  formControlName="minAmount"
-                  [nzMin]="0"
-                  [nzStep]="10"
-                  [nzPrecision]="2"
-                  nzPlaceHolder="0.00"
-                  style="width: 100%">
-                </nz-input-number>
-              </nz-form-control>
-            </nz-form-item>
-
-            <nz-form-item>
-              <nz-form-label>Importo Max (€)</nz-form-label>
-              <nz-form-control>
-                <nz-input-number
-                  formControlName="maxAmount"
-                  [nzMin]="0"
-                  [nzStep]="10"
-                  [nzPrecision]="2"
-                  nzPlaceHolder="999999.99"
-                  style="width: 100%">
-                </nz-input-number>
-              </nz-form-control>
-            </nz-form-item>
-
-            <nz-form-item>
-              <nz-form-label>Destinatari</nz-form-label>
-              <nz-form-control>
-                <div class="checkboxes-inline">
-                  <label nz-checkbox formControlName="isForNewDonor">
-                    <span nz-tooltip="Per nuovi donatori">Nuovo Donatore</span>
-                  </label>
-                  <label nz-checkbox formControlName="isPlural">
-                    <span nz-tooltip="Per gruppi/famiglie">Plurale</span>
-                  </label>
+          <div class="column" *ngIf="isEditMode">
+            <div class="associated-rules">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h4 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                  <span nz-icon nzType="file-sync" nzTheme="twotone" style="font-size: 18px; color: var(--brand-600);"></span>
+                  <span style="font-weight: 600; color: #262626;">Pool Regole (Rotazione LRU)</span>
+                  <nz-tag nzColor="blue" *ngIf="associatedRules.length > 0">{{ associatedRules.length }}</nz-tag>
+                </h4>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="showAddToPoolModal()">
+                  <span nz-icon nzType="plus-circle"></span>
+                  Aggiungi a Regola
+                </button>
+              </div>
+              <nz-alert
+                [nzType]="associatedRules.length > 0 ? 'success' : 'info'"
+                nzShowIcon
+                style="margin-bottom: 14px;">
+                <ng-container *nzAlertDescription>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span *ngIf="associatedRules.length > 0">
+                      Questo template è nel pool di <strong>{{ associatedRules.length }} regola{{ associatedRules.length > 1 ? '/e' : '' }}</strong>
+                    </span>
+                    <span *ngIf="associatedRules.length === 0">
+                      Questo template non è ancora associato a nessuna regola. Usa il bottone sopra per aggiungerlo.
+                    </span>
+                  </div>
+                </ng-container>
+              </nz-alert>
+              <div class="rules-list" *ngIf="associatedRules.length > 0">
+                <div *ngFor="let rule of associatedRules" class="rule-item">
+                  <div style="flex: 1;">
+                    <div class="rule-name">
+                      <span nz-icon nzType="file-text" nzTheme="twotone"></span>
+                      {{ rule.ruleName }}
+                      <nz-tag *ngIf="rule.isRuleTemporary" nzColor="orange">
+                        <span nz-icon nzType="clock-circle"></span> Temporanea
+                      </nz-tag>
+                      <nz-tag *ngIf="!rule.isRuleActive" nzColor="default">
+                        <span nz-icon nzType="pause-circle"></span> Regola Disattivata
+                      </nz-tag>
+                    </div>
+                    <div class="rule-meta">
+                      <nz-tag [nzColor]="rule.isRuleActive ? 'success' : 'default'">
+                        <span nz-icon [nzType]="rule.isRuleActive ? 'check-circle' : 'stop'"></span>
+                        {{ rule.isRuleActive ? 'Regola Attiva' : 'Regola Off' }}
+                      </nz-tag>
+                      <nz-tag [nzColor]="rule.isTemplateActiveInPool ? 'blue' : 'default'">
+                        <span nz-icon [nzType]="rule.isTemplateActiveInPool ? 'sync' : 'pause'"></span>
+                        {{ rule.isTemplateActiveInPool ? 'Template Attivo' : 'Template Off' }}
+                      </nz-tag>
+                      <span class="priority">
+                        <span nz-icon nzType="sort-ascending"></span>
+                        Prio Regola: {{ rule.rulePriority }}
+                      </span>
+                      <span class="priority">
+                        <span nz-icon nzType="ordered-list"></span>
+                        Prio Pool: #{{ rule.templatePriorityInPool }}
+                      </span>
+                    </div>
+                  </div>
+                  <button nz-button nzDanger nzSize="small" type="button" (click)="removeFromPool(rule.ruleId)" 
+                          nz-tooltip="Rimuovi template da questa regola"
+                          nz-popconfirm
+                          nzPopconfirmTitle="Sicuro di rimuovere il template da questa regola?"
+                          (nzOnConfirm)="removeFromPool(rule.ruleId)"
+                          (click)="$event.preventDefault()">
+                    <span nz-icon nzType="delete"></span>
+                  </button>
                 </div>
-              </nz-form-control>
-            </nz-form-item>
+              </div>
+            </div>
           </div>
         </div>
         </div>
@@ -225,3 +239,108 @@
 
   </div>
 </div>
+
+<!-- Modal: Add Template to Rule Pool -->
+<nz-modal
+  [(nzVisible)]="isAddToPoolModalVisible"
+  [nzTitle]="addToPoolModalTitle"
+  [nzWidth]="650"
+  (nzOnCancel)="cancelAddToPool()"
+  (nzOnOk)="addTemplateToPool()"
+  [nzOkDisabled]="!selectedRuleForPool"
+  nzOkText="Aggiungi al Pool"
+  nzCancelText="Annulla"
+  [nzBodyStyle]="{ padding: '24px' }">
+  
+  <ng-template #addToPoolModalTitle>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span nz-icon nzType="plus-circle" nzTheme="twotone" style="font-size: 20px; color: var(--brand-500);"></span>
+      <span style="font-size: 16px; font-weight: 600;">Aggiungi Template al Pool</span>
+    </div>
+  </ng-template>
+  
+  <ng-container *nzModalContent>
+    <nz-alert
+      nzType="success"
+      nzShowIcon
+      style="margin-bottom: 20px;">
+      <ng-container *nzAlertMessage>
+        <span style="font-weight: 600;">Rotazione LRU Intelligente</span>
+      </ng-container>
+      <ng-container *nzAlertDescription>
+        Il template sarà aggiunto al pool della regola e verrà automaticamente scelto dal sistema usando l'algoritmo LRU (Least Recently Used) per ogni donatore
+      </ng-container>
+    </nz-alert>
+
+    <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+      <nz-form-item style="margin-bottom: 0;">
+        <nz-form-label nzRequired style="font-weight: 600;">
+          <span nz-icon nzType="file-text" style="margin-right: 6px;"></span>
+          Seleziona Regola
+        </nz-form-label>
+        <nz-form-control>
+          <nz-select 
+            [(ngModel)]="selectedRuleForPool" 
+            nzPlaceHolder="Scegli la regola di destinazione" 
+            nzShowSearch
+            nzSize="large"
+            style="width: 100%;">
+            <nz-option 
+              *ngFor="let rule of availableRules" 
+              [nzValue]="rule.id" 
+              [nzLabel]="rule.name">
+              <span nz-option-item style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="flex: 1;">
+                  <span nz-icon nzType="file-text" style="margin-right: 8px;"></span>
+                  {{ rule.name }}
+                </span>
+                <span style="display: flex; gap: 6px; align-items: center;">
+                  <nz-tag [nzColor]="rule.isActive ? 'success' : 'default'" nzSize="small">
+                    {{ rule.isActive ? 'Attiva' : 'Off' }}
+                  </nz-tag>
+                  <span style="color: #999; font-size: 12px;">P:{{ rule.priority }}</span>
+                </span>
+              </span>
+            </nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+
+    <div style="background: #fafafa; padding: 16px; border-radius: 8px; border: 1px solid #e8e8e8;">
+      <nz-form-item style="margin-bottom: 0;">
+        <nz-form-label nzRequired style="font-weight: 600;">
+          <span nz-icon nzType="sort-ascending" style="margin-right: 6px;"></span>
+          Priorità nel Pool
+        </nz-form-label>
+        <nz-form-control>
+          <nz-input-number 
+            [(ngModel)]="selectedPriorityForPool" 
+            [nzMin]="1" 
+            [nzMax]="100"
+            [nzStep]="1"
+            nzSize="large"
+            style="width: 100%;"
+            nzPlaceHolder="1 = usato per primo">
+          </nz-input-number>
+          <small style="display: block; margin-top: 8px; color: #8c8c8c;">
+            <span nz-icon nzType="info-circle"></span>
+            Priorità 1 = prima scelta per nuovi donatori, 2 = seconda scelta, ecc.
+          </small>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+    
+    <nz-alert
+      nzType="warning"
+      nzShowIcon
+      style="margin-top: 16px;">
+      <ng-container *nzAlertMessage>
+        <span style="font-weight: 600;">Nota sulla Priorità</span>
+      </ng-container>
+      <ng-container *nzAlertDescription>
+        La priorità determina quale template usare per i nuovi donatori senza storico. Dopo la prima lettera, il sistema userà automaticamente il template meno recente (LRU).
+      </ng-container>
+    </nz-alert>
+  </ng-container>
+</nz-modal>

@@ -1,21 +1,64 @@
-<div class="print-batch-list-page">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <div class="header-left">
-        <div class="header-icon">
-          <span nz-icon nzType="printer" nzTheme="outline"></span>
-        </div>
-        <div class="header-text">
-          <h1>Batch di Stampa</h1>
-          <p>Gestisci i batch per la stampa delle lettere di ringraziamento</p>
-        </div>
+<div class="print-batch-list-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="printer" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
       </div>
-      <div class="header-actions">
-        <button nz-button nzType="primary" (click)="showCreateModal()">
-          <span nz-icon nzType="plus"></span>
-          Nuovo Batch
-        </button>
+      <div class="hero-text">
+        <h1>Batch di Stampa</h1>
+        <p>Gestisci i batch per la stampa delle lettere di ringraziamento</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="showCreateModal()" nz-tooltip="Nuovo Batch">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+  
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="folder"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ totalCount }}</span>
+        <span class="stat-label">Batch Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-success">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.ready }}</span>
+        <span class="stat-label">Pronti</span>
+      </div>
+    </div>
+    <div class="stat-card stat-warning">
+      <div class="stat-icon">
+        <span nz-icon nzType="clock-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.generating }}</span>
+        <span class="stat-label">In Generazione</span>
+      </div>
+    </div>
+    <div class="stat-card stat-purple">
+      <div class="stat-icon">
+        <span nz-icon nzType="printer" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.printed }}</span>
+        <span class="stat-label">Stampati</span>
       </div>
     </div>
   </div>
@@ -71,6 +114,7 @@
       [nzPageIndex]="pageIndex"
       [nzFrontPagination]="false"
       (nzPageIndexChange)="onPageChange($event)"
+      [nzNoResult]="emptyTemplate"
       nzSize="middle">
       <thead>
         <tr>
@@ -173,6 +217,27 @@
         </tr>
       </tbody>
     </nz-table>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-illustration">
+          <div class="empty-icon">
+            <span nz-icon nzType="printer" nzTheme="outline"></span>
+          </div>
+          <div class="empty-circles">
+            <div class="circle c1"></div>
+            <div class="circle c2"></div>
+            <div class="circle c3"></div>
+          </div>
+        </div>
+        <h3>Nessun batch trovato</h3>
+        <p>Crea il tuo primo batch per stampare le lettere di ringraziamento</p>
+        <button nz-button nzType="primary" (click)="showCreateModal()">
+          <span nz-icon nzType="plus"></span>
+          Crea il primo batch
+        </button>
+      </div>
+    </ng-template>
   </nz-card>
 </div>
 

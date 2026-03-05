@@ -2,6 +2,7 @@ using DonaRogApp.Enums.Communications;
 using DonaRogApp.Enums.Donations;
 using DonaRogApp.Enums.Donors;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace DonaRogApp.Application.Contracts.Communications.ThankYouRules.Dto
@@ -35,13 +36,35 @@ namespace DonaRogApp.Application.Contracts.Communications.ThankYouRules.Dto
         public Guid? CampaignId { get; set; }
         public DonorCategory? DonorCategory { get; set; }
         public SubjectType? SubjectType { get; set; }
+        public Guid? RecurrenceId { get; set; }
+
+        // Validity Period (for temporary rules/campaigns)
+        public DateTime? ValidFrom { get; set; }
+        public DateTime? ValidUntil { get; set; }
 
         // Actions
         public bool CreateThankYou { get; set; } = true;
         public PreferredThankYouChannel? SuggestedChannel { get; set; }
         public Guid? SuggestedTemplateId { get; set; }
 
+        // Template Pool for LRU rotation
+        public List<CreateUpdateTemplatePoolItemDto> TemplatePoolItems { get; set; } = new();
+
         [StringLength(1000)]
         public string? Notes { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for creating/updating template pool items
+    /// </summary>
+    public class CreateUpdateTemplatePoolItemDto
+    {
+        [Required]
+        public Guid TemplateId { get; set; }
+
+        [Range(1, 1000)]
+        public int Priority { get; set; } = 1;
+
+        public bool IsActive { get; set; } = true;
     }
 }

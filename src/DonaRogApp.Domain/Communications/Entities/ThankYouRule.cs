@@ -1,6 +1,7 @@
 using DonaRogApp.Enums.Communications;
 using DonaRogApp.Enums.Donors;
 using System;
+using System.Collections.Generic;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp.MultiTenancy;
@@ -87,6 +88,24 @@ namespace DonaRogApp.Domain.Communications.Entities
         /// </summary>
         public SubjectType? SubjectType { get; private set; }
 
+        /// <summary>
+        /// Recurrence ID for seasonal communications (null = any time)
+        /// </summary>
+        public Guid? RecurrenceId { get; private set; }
+
+        // ======================================================================
+        // VALIDITY PERIOD (For temporary rules/campaigns)
+        // ======================================================================
+        /// <summary>
+        /// Rule is valid from this date (null = always valid from start)
+        /// </summary>
+        public DateTime? ValidFrom { get; private set; }
+
+        /// <summary>
+        /// Rule is valid until this date (null = always valid until end)
+        /// </summary>
+        public DateTime? ValidUntil { get; private set; }
+
         // ======================================================================
         // ACTIONS (What to do when rule matches)
         // ======================================================================
@@ -102,8 +121,22 @@ namespace DonaRogApp.Domain.Communications.Entities
 
         /// <summary>
         /// Suggested template ID (null = use default template for category)
+        /// DEPRECATED: Use TemplateAssociations instead
         /// </summary>
         public Guid? SuggestedTemplateId { get; private set; }
+
+        // ======================================================================
+        // NAVIGATION PROPERTIES
+        // ======================================================================
+        /// <summary>
+        /// Template pool for LRU rotation
+        /// </summary>
+        public virtual ICollection<RuleTemplateAssociation> TemplateAssociations { get; set; } = new List<RuleTemplateAssociation>();
+
+        /// <summary>
+        /// Associated recurrence (if RecurrenceId is set)
+        /// </summary>
+        public virtual Domain.Recurrences.Entities.Recurrence? Recurrence { get; set; }
 
         // ======================================================================
         // CONSTRUCTOR
@@ -168,7 +201,8 @@ namespace DonaRogApp.Domain.Communications.Entities
             Guid? projectId = null,
             Guid? campaignId = null,
             DonorCategory? donorCategory = null,
-            SubjectType? subjectType = null)
+            SubjectType? subjectType = null,
+            Guid? recurrenceId = null)
         {
             MinAmount = minAmount;
             MaxAmount = maxAmount;
@@ -177,6 +211,7 @@ namespace DonaRogApp.Domain.Communications.Entities
             CampaignId = campaignId;
             DonorCategory = donorCategory;
             SubjectType = subjectType;
+            RecurrenceId = recurrenceId;
 
             VerifyInvariants();
         }
@@ -292,6 +327,73 @@ namespace DonaRogApp.Domain.Communications.Entities
         }
 
         // ======================================================================
+        // VALIDITY AND TEMPORAL METHODS
+        // ======================================================================
+        /// <summary>
+        /// Set validity period for temporary rules
+        /// </summary>
+        public void SetValidityPeriod(DateTime? validFrom, DateTime? validUntil)
+        {
+            if (validFrom.HasValue && validUntil.HasValue && validFrom.Value > validUntil.Value)
+            {
+                throw new BusinessException("DonaRog:InvalidValidityPeriod")
+                    .WithData("validFrom", validFrom.Value)
+                    .WithData("validUntil", validUntil.Value);
+            }
+
+            ValidFrom = validFrom;
+            ValidUntil = validUntil;
+        }
+
+        /// <summary>
+        /// Check if rule is valid on a specific date
+        /// </summary>
+        public bool IsValidOnDate(DateTime date)
+        {
+            if (ValidFrom.HasValue && date < ValidFrom.Value) return false;
+            if (ValidUntil.HasValue && date > ValidUntil.Value) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Check if this is a temporary rule (has validity dates)
+        /// </summary>
+        public bool IsTemporaryRule()
+        {
+            return ValidFrom.HasValue || ValidUntil.HasValue;
+        }
+
+        /// <summary>
+        /// Clone this rule with all its properties
+        /// </summary>
+        public ThankYouRule Clone(string newName)
+        {
+            var cloned = new ThankYouRule(
+                Guid.NewGuid(),
+                TenantId,
+                newName,
+                Priority,
+                CreateThankYou,
+                Description);
+
+            cloned.MinAmount = MinAmount;
+            cloned.MaxAmount = MaxAmount;
+            cloned.IsFirstDonation = IsFirstDonation;
+            cloned.ProjectId = ProjectId;
+            cloned.CampaignId = CampaignId;
+            cloned.DonorCategory = DonorCategory;
+            cloned.SubjectType = SubjectType;
+            cloned.RecurrenceId = RecurrenceId;
+            cloned.ValidFrom = ValidFrom;
+            cloned.ValidUntil = ValidUntil;
+            cloned.SuggestedChannel = SuggestedChannel;
+            cloned.SuggestedTemplateId = SuggestedTemplateId;
+            cloned.IsActive = false;
+
+            return cloned;
+        }
+
+        // ======================================================================
         // INVARIANTS
         // ======================================================================
         /// <summary>
@@ -318,6 +420,13 @@ namespace DonaRogApp.Domain.Communications.Entities
                 throw new BusinessException("DonaRog:RuleMinAmountGreaterThanMax")
                     .WithData("minAmount", MinAmount.Value)
                     .WithData("maxAmount", MaxAmount.Value);
+            }
+
+            if (ValidFrom.HasValue && ValidUntil.HasValue && ValidFrom.Value > ValidUntil.Value)
+            {
+                throw new BusinessException("DonaRog:InvalidValidityPeriod")
+                    .WithData("validFrom", ValidFrom.Value)
+                    .WithData("validUntil", ValidUntil.Value);
             }
         }
     }

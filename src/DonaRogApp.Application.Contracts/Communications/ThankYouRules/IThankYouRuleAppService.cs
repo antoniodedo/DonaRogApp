@@ -31,6 +31,31 @@ namespace DonaRogApp.Application.Contracts.Communications.ThankYouRules
         /// Reorder rule priorities
         /// </summary>
         Task ReorderRulesAsync(List<RuleOrderDto> order);
+
+        /// <summary>
+        /// Clone an existing rule with all its properties and template pool
+        /// </summary>
+        Task<ThankYouRuleDto> CloneRuleAsync(Guid id, string newName);
+
+        /// <summary>
+        /// Add a template to a rule's pool
+        /// </summary>
+        Task AddTemplateToPoolAsync(Guid ruleId, Guid templateId, int priority = 1, bool isActive = true);
+
+        /// <summary>
+        /// Remove a template from a rule's pool
+        /// </summary>
+        Task RemoveTemplateFromPoolAsync(Guid ruleId, Guid templateId);
+
+        /// <summary>
+        /// Update template priority in pool
+        /// </summary>
+        Task UpdateTemplatePoolPriorityAsync(Guid ruleId, Guid templateId, int newPriority);
+
+        /// <summary>
+        /// Toggle template active status in pool
+        /// </summary>
+        Task ToggleTemplateInPoolAsync(Guid ruleId, Guid templateId);
     }
 
     /// <summary>

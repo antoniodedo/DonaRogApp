@@ -34,11 +34,6 @@ namespace DonaRogApp.LetterTemplates
         // ======================================================================
         
         /// <summary>
-        /// Get suggested templates based on criteria
-        /// </summary>
-        Task<List<LetterTemplateDto>> GetSuggestedTemplatesAsync(SelectTemplateInput input);
-        
-        /// <summary>
         /// Get default/fallback template for a category and language
         /// </summary>
         Task<LetterTemplateDto?> GetDefaultTemplateAsync(TemplateCategory category, string language);

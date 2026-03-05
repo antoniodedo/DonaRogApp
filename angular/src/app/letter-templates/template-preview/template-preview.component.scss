@@ -77,11 +77,15 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: var(--neutral-300);
+    background: var(--brand-400);
     border-radius: var(--radius-full);
 
     &:hover {
-      background: var(--neutral-400);
+      background: var(--brand-500);
+    }
+    
+    &:active {
+      background: var(--brand-600);
     }
   }
 }

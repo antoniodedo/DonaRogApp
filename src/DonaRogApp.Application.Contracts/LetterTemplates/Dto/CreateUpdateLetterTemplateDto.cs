@@ -29,12 +29,7 @@ namespace DonaRogApp.LetterTemplates.Dto
         
         public CommunicationType? CommunicationType { get; set; }
         
-        // Selection Criteria
-        public Guid? ProjectId { get; set; }
-        public Guid? RecurrenceId { get; set; }
-        public decimal? MinAmount { get; set; }
-        public decimal? MaxAmount { get; set; }
-        public bool IsForNewDonor { get; set; }
+        // Template Characteristics
         public bool IsPlural { get; set; }
         
         // Status

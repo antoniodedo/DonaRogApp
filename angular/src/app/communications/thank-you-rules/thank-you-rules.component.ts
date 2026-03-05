@@ -28,6 +28,9 @@ import { PreferredThankYouChannel, TemplateType } from '../../proxy/communicatio
 import { LetterTemplateService } from '../../proxy/letter-templates/letter-template.service';
 import { ProjectService } from '../../proxy/application/projects/project.service';
 import { CampaignService } from '../../proxy/application/campaigns/campaign.service';
+import { RecurrenceService } from '../../proxy/application/recurrences/recurrence.service';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzTransferModule } from 'ng-zorro-antd/transfer';
 
 @Component({
   selector: 'app-thank-you-rules',
@@ -54,12 +57,22 @@ import { CampaignService } from '../../proxy/application/campaigns/campaign.serv
     NzCheckboxModule,
     NzDividerModule,
     NzDescriptionsModule,
-    NzCollapseModule
+    NzCollapseModule,
+    NzDatePickerModule,
+    NzTransferModule
   ]
 })
 export class ThankYouRulesComponent implements OnInit {
   rules: ThankYouRuleDto[] = [];
   loading = false;
+  
+  get activeRulesCount(): number {
+    return this.rules.filter(r => r.isActive).length;
+  }
+  
+  get inactiveRulesCount(): number {
+    return this.rules.filter(r => !r.isActive).length;
+  }
   
   PreferredThankYouChannel = PreferredThankYouChannel;
   
@@ -73,12 +86,17 @@ export class ThankYouRulesComponent implements OnInit {
   letterTemplates: any[] = [];
   projects: any[] = [];
   campaigns: any[] = [];
+  recurrences: any[] = [];
+  
+  // Template pool management
+  selectedTemplatesForPool: string[] = [];
   
   constructor(
     private ruleService: ThankYouRuleService,
     private letterTemplateService: LetterTemplateService,
     private projectService: ProjectService,
     private campaignService: CampaignService,
+    private recurrenceService: RecurrenceService,
     private fb: FormBuilder,
     private message: NzMessageService,
     private modal: NzModalService
@@ -96,7 +114,7 @@ export class ThankYouRulesComponent implements OnInit {
       description: ['', Validators.maxLength(500)],
       priority: [100, [Validators.required, Validators.min(1), Validators.max(1000)]],
       isActive: [true],
-      
+
       // Conditions
       minAmount: [null, Validators.min(0)],
       maxAmount: [null, Validators.min(0)],
@@ -105,11 +123,19 @@ export class ThankYouRulesComponent implements OnInit {
       subjectTypes: [[]],
       projectIds: [[]],
       campaignIds: [[]],
-      
+      recurrenceId: [null],
+
+      // Validity Period (for temporary rules)
+      validFrom: [null],
+      validUntil: [null],
+
       // Actions
       createThankYou: [true, Validators.required],
       suggestedChannel: [null],
-      suggestedTemplateId: [null]
+      suggestedTemplateId: [null],
+      
+      // Template Pool (LRU rotation)
+      templatePoolItems: [[]]
     });
   }
   
@@ -119,16 +145,22 @@ export class ThankYouRulesComponent implements OnInit {
         this.letterTemplates = result.items?.filter((t: any) => t.category === 1) || [];
       }
     });
-    
+
     this.projectService.getList({ maxResultCount: 1000 }).subscribe({
       next: (result) => {
         this.projects = result.items || [];
       }
     });
-    
+
     this.campaignService.getList({ maxResultCount: 1000 }).subscribe({
       next: (result) => {
         this.campaigns = result.items || [];
+      }
+    });
+
+    this.recurrenceService.getList({ maxResultCount: 1000 }).subscribe({
+      next: (result) => {
+        this.recurrences = result.items || [];
       }
     });
   }
@@ -155,6 +187,7 @@ export class ThankYouRulesComponent implements OnInit {
   showCreateModal(): void {
     this.isEditMode = false;
     this.currentRuleId = undefined;
+    this.selectedTemplatesForPool = [];
     this.ruleForm.reset({
       priority: 100,
       isActive: true,
@@ -162,7 +195,11 @@ export class ThankYouRulesComponent implements OnInit {
       donorCategories: [],
       subjectTypes: [],
       projectIds: [],
-      campaignIds: []
+      campaignIds: [],
+      recurrenceId: null,
+      validFrom: null,
+      validUntil: null,
+      templatePoolItems: []
     });
     this.isModalVisible = true;
   }
@@ -170,7 +207,16 @@ export class ThankYouRulesComponent implements OnInit {
   showEditModal(rule: ThankYouRuleDto): void {
     this.isEditMode = true;
     this.currentRuleId = rule.id;
+
+    // Load template pool
+    const templatePoolItems = (rule as any).templatePool?.map((tp: any) => ({
+      templateId: tp.templateId,
+      priority: tp.priority,
+      isActive: tp.isActive
+    })) || [];
     
+    this.selectedTemplatesForPool = templatePoolItems.map((tp: any) => tp.templateId);
+
     this.ruleForm.patchValue({
       name: rule.name,
       description: rule.description,
@@ -183,9 +229,13 @@ export class ThankYouRulesComponent implements OnInit {
       subjectTypes: rule.subjectTypes || [],
       projectIds: rule.projectIds || [],
       campaignIds: rule.campaignIds || [],
+      recurrenceId: (rule as any).recurrenceId || null,
+      validFrom: (rule as any).validFrom ? new Date((rule as any).validFrom) : null,
+      validUntil: (rule as any).validUntil ? new Date((rule as any).validUntil) : null,
       createThankYou: rule.createThankYou,
       suggestedChannel: rule.suggestedChannel,
-      suggestedTemplateId: rule.suggestedTemplateId
+      suggestedTemplateId: rule.suggestedTemplateId,
+      templatePoolItems: templatePoolItems
     });
     
     this.isModalVisible = true;
@@ -199,21 +249,34 @@ export class ThankYouRulesComponent implements OnInit {
       });
       return;
     }
+
+    const formValue = this.ruleForm.value;
     
+    // Build template pool items from selected templates
+    const templatePoolItems = this.selectedTemplatesForPool.map((templateId, index) => ({
+      templateId: templateId,
+      priority: index + 1,
+      isActive: true
+    }));
+
     const dto: CreateUpdateThankYouRuleDto = {
-      ...this.ruleForm.value,
-      donorCategories: this.ruleForm.value.donorCategories?.length > 0 ? this.ruleForm.value.donorCategories : undefined,
-      subjectTypes: this.ruleForm.value.subjectTypes?.length > 0 ? this.ruleForm.value.subjectTypes : undefined,
-      projectIds: this.ruleForm.value.projectIds?.length > 0 ? this.ruleForm.value.projectIds : undefined,
-      campaignIds: this.ruleForm.value.campaignIds?.length > 0 ? this.ruleForm.value.campaignIds : undefined,
+      ...formValue,
+      donorCategories: formValue.donorCategories?.length > 0 ? formValue.donorCategories : undefined,
+      subjectTypes: formValue.subjectTypes?.length > 0 ? formValue.subjectTypes : undefined,
+      projectIds: formValue.projectIds?.length > 0 ? formValue.projectIds : undefined,
+      campaignIds: formValue.campaignIds?.length > 0 ? formValue.campaignIds : undefined,
+      recurrenceId: formValue.recurrenceId || null,
+      validFrom: formValue.validFrom ? new Date(formValue.validFrom).toISOString() : null,
+      validUntil: formValue.validUntil ? new Date(formValue.validUntil).toISOString() : null,
+      templatePoolItems: templatePoolItems.length > 0 ? templatePoolItems : []
     };
-    
+
     this.loading = true;
-    
+
     const operation = this.isEditMode && this.currentRuleId
       ? this.ruleService.update(this.currentRuleId, dto)
       : this.ruleService.create(dto);
-    
+
     operation.subscribe({
       next: () => {
         this.message.success(this.isEditMode ? 'Regola aggiornata' : 'Regola creata');
@@ -363,5 +426,82 @@ export class ThankYouRulesComponent implements OnInit {
     if (channel === PreferredThankYouChannel.Letter) return 'Lettera';
     if (channel === PreferredThankYouChannel.Email) return 'Email';
     return 'Auto';
+  }
+
+  // ======================================================================
+  // TEMPLATE POOL MANAGEMENT
+  // ======================================================================
+  
+  onTemplatePoolChange(selectedIds: string[]): void {
+    this.selectedTemplatesForPool = selectedIds;
+  }
+
+  moveTemplateUp(index: number): void {
+    if (index > 0) {
+      const temp = this.selectedTemplatesForPool[index];
+      this.selectedTemplatesForPool[index] = this.selectedTemplatesForPool[index - 1];
+      this.selectedTemplatesForPool[index - 1] = temp;
+    }
+  }
+
+  moveTemplateDown(index: number): void {
+    if (index < this.selectedTemplatesForPool.length - 1) {
+      const temp = this.selectedTemplatesForPool[index];
+      this.selectedTemplatesForPool[index] = this.selectedTemplatesForPool[index + 1];
+      this.selectedTemplatesForPool[index + 1] = temp;
+    }
+  }
+
+  removeTemplateFromPool(templateId: string): void {
+    this.selectedTemplatesForPool = this.selectedTemplatesForPool.filter(id => id !== templateId);
+  }
+
+  getTemplateName(templateId: string): string {
+    return this.letterTemplates.find(t => t.id === templateId)?.name || 'Unknown';
+  }
+
+  // ======================================================================
+  // RULE CLONING
+  // ======================================================================
+
+  cloneRule(rule: ThankYouRuleDto): void {
+    this.modal.confirm({
+      nzTitle: 'Clona Regola',
+      nzContent: `Vuoi clonare la regola "${rule.name}"? Verrà creata una copia con lo stesso pool di template.`,
+      nzOkText: 'Clona',
+      nzCancelText: 'Annulla',
+      nzOnOk: () => {
+        const newName = `${rule.name} (Copia)`;
+        this.loading = true;
+        (this.ruleService as any).cloneRule(rule.id, newName).subscribe({
+          next: () => {
+            this.message.success('Regola clonata con successo');
+            this.loadRules();
+          },
+          error: () => {
+            this.loading = false;
+            this.message.error('Errore durante la clonazione');
+          }
+        });
+      }
+    });
+  }
+
+  // ======================================================================
+  // HELPERS
+  // ======================================================================
+
+  isTemporaryRule(rule: ThankYouRuleDto): boolean {
+    return !!(rule as any).validFrom || !!(rule as any).validUntil;
+  }
+
+  getValidityLabel(rule: ThankYouRuleDto): string {
+    const ruleAny = rule as any;
+    if (!this.isTemporaryRule(rule)) return '';
+    
+    const from = ruleAny.validFrom ? new Date(ruleAny.validFrom).toLocaleDateString('it-IT') : '∞';
+    const to = ruleAny.validUntil ? new Date(ruleAny.validUntil).toLocaleDateString('it-IT') : '∞';
+    
+    return `${from} - ${to}`;
   }
 }

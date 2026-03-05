@@ -30,7 +30,7 @@ namespace DonaRogApp.HttpApi.Controllers
 
         [HttpPost]
         [Route("check-duplicates")]
-        public virtual Task<DuplicateCheckResultDto> CheckDuplicateLettersAsync(CheckDuplicateLettersDto input)
+        public virtual Task<DuplicateCheckResultDto> CheckDuplicateLettersAsync([FromBody] CheckDuplicateLettersDto input)
         {
             return _service.CheckDuplicateLettersAsync(input);
         }
@@ -48,7 +48,7 @@ namespace DonaRogApp.HttpApi.Controllers
 
         [HttpGet]
         [Route("history")]
-        public virtual Task<PagedResultDto<CommunicationHistoryDto>> GetHistoryAsync(GetCommunicationHistoryInput input)
+        public virtual Task<PagedResultDto<CommunicationHistoryDto>> GetHistoryAsync([FromQuery] GetCommunicationHistoryInput input)
         {
             return _service.GetHistoryAsync(input);
         }

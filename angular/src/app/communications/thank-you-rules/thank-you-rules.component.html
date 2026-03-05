@@ -1,21 +1,55 @@
-<div class="thank-you-rules-page">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <div class="header-left">
-        <div class="header-icon">
-          <span nz-icon nzType="robot" nzTheme="outline"></span>
-        </div>
-        <div class="header-text">
-          <h1>Regole Automatiche Ringraziamenti</h1>
-          <p>Configura le regole per decidere automaticamente se e come ringraziare i donatori</p>
-        </div>
+<div class="thank-you-rules-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span nz-icon nzType="robot" nzTheme="fill"></span>
+        <div class="hero-icon-ring"></div>
       </div>
-      <div class="header-actions">
-        <button nz-button nzType="primary" (click)="showCreateModal()">
-          <span nz-icon nzType="plus"></span>
-          Nuova Regola
-        </button>
+      <div class="hero-text">
+        <h1>Regole Automatiche Ringraziamenti</h1>
+        <p>Configura le regole per decidere automaticamente se e come ringraziare i donatori</p>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button nz-button class="hero-btn" (click)="showCreateModal()" nz-tooltip="Nuova Regola">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+    <div class="hero-decoration">
+      <div class="decoration-circle c1"></div>
+      <div class="decoration-circle c2"></div>
+      <div class="decoration-circle c3"></div>
+    </div>
+  </div>
+  
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <span nz-icon nzType="robot"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ rules.length }}</span>
+        <span class="stat-label">Regole Totali</span>
+      </div>
+    </div>
+    <div class="stat-card stat-success">
+      <div class="stat-icon">
+        <span nz-icon nzType="check-circle" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ activeRulesCount }}</span>
+        <span class="stat-label">Regole Attive</span>
+      </div>
+    </div>
+    <div class="stat-card stat-disabled">
+      <div class="stat-icon">
+        <span nz-icon nzType="stop" nzTheme="fill"></span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ inactiveRulesCount }}</span>
+        <span class="stat-label">Regole Disattivate</span>
       </div>
     </div>
   </div>
@@ -27,6 +61,7 @@
       [nzData]="rules"
       [nzLoading]="loading"
       [nzShowPagination]="false"
+      [nzNoResult]="emptyTemplate"
       nzSize="middle">
       <thead>
         <tr>
@@ -56,6 +91,10 @@
           <td>
             <div>
               <strong>{{ rule.name }}</strong>
+              <nz-tag *ngIf="isTemporaryRule(rule)" nzColor="orange" style="margin-left: 8px;">
+                <span nz-icon nzType="clock-circle"></span> 
+                Temporanea: {{ getValidityLabel(rule) }}
+              </nz-tag>
               <div *ngIf="rule.description" style="font-size: 12px; color: #999; margin-top: 4px;">
                 {{ rule.description }}
               </div>
@@ -84,6 +123,10 @@
                 <span nz-icon nzType="edit"></span>
                 Modifica
               </button>
+              <button *nzSpaceItem nz-button nzType="default" nzSize="small" (click)="cloneRule(rule)" 
+                      nz-tooltip="Clona regola">
+                <span nz-icon nzType="copy"></span>
+              </button>
               <button *nzSpaceItem nz-button nzDanger nzSize="small" (click)="deleteRule(rule)">
                 <span nz-icon nzType="delete"></span>
               </button>
@@ -92,81 +135,138 @@
         </tr>
       </tbody>
     </nz-table>
-    
-    <div *ngIf="rules.length === 0 && !loading" style="text-align: center; padding: 40px; color: #999;">
-      <span nz-icon nzType="inbox" style="font-size: 48px; margin-bottom: 16px;"></span>
-      <p>Nessuna regola configurata</p>
-      <button nz-button nzType="primary" (click)="showCreateModal()">
-        <span nz-icon nzType="plus"></span>
-        Crea la prima regola
-      </button>
-    </div>
+
+    <ng-template #emptyTemplate>
+      <div class="empty-state">
+        <div class="empty-illustration">
+          <div class="empty-icon">
+            <span nz-icon nzType="robot" nzTheme="outline"></span>
+          </div>
+          <div class="empty-circles">
+            <div class="circle c1"></div>
+            <div class="circle c2"></div>
+            <div class="circle c3"></div>
+          </div>
+        </div>
+        <h3>Nessuna regola configurata</h3>
+        <p>Crea regole automatiche per l'invio delle lettere di ringraziamento</p>
+        <button nz-button nzType="primary" (click)="showCreateModal()">
+          <span nz-icon nzType="plus"></span>
+          Crea la prima regola
+        </button>
+      </div>
+    </ng-template>
   </nz-card>
 </div>
 
 <!-- Create/Edit Rule Modal -->
 <nz-modal
   [(nzVisible)]="isModalVisible"
-  [nzTitle]="isEditMode ? 'Modifica Regola' : 'Nuova Regola'"
-  [nzWidth]="800"
+  [nzWidth]="900"
+  [nzBodyStyle]="{'max-height': '75vh', 'overflow-y': 'auto', 'padding': '24px'}"
   (nzOnCancel)="handleModalCancel()"
   [nzFooter]="modalFooter">
   
+  <ng-template #modalTitle>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span nz-icon [nzType]="isEditMode ? 'edit' : 'plus-circle'" nzTheme="twotone" style="font-size: 24px;"></span>
+      <span style="font-size: 18px; font-weight: 600;">{{ isEditMode ? 'Modifica Regola' : 'Nuova Regola' }}</span>
+    </div>
+  </ng-template>
+  
   <ng-container *nzModalContent>
-    <form nz-form [formGroup]="ruleForm" [nzLayout]="'vertical'">
-      <!-- Basic Info -->
-      <nz-form-item>
-        <nz-form-label nzRequired>Nome</nz-form-label>
-        <nz-form-control nzErrorTip="Inserisci un nome per la regola">
-          <input nz-input formControlName="name" placeholder="Es: Ringraziamento major donors" maxlength="200" />
-        </nz-form-control>
-      </nz-form-item>
+    <form nz-form [formGroup]="ruleForm" [nzLayout]="'vertical'" class="rule-form">
       
-      <nz-form-item>
-        <nz-form-label>Descrizione</nz-form-label>
-        <nz-form-control>
-          <textarea nz-input formControlName="description" placeholder="Descrizione opzionale" [nzAutosize]="{ minRows: 2, maxRows: 4 }" maxlength="500"></textarea>
-        </nz-form-control>
-      </nz-form-item>
+      <!-- Basic Info Card -->
+      <nz-card nzSize="small" [nzBordered]="true" class="form-section">
+        <div class="section-header">
+          <span nz-icon nzType="info-circle" nzTheme="twotone"></span>
+          <h4>Informazioni Base</h4>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label nzRequired>Nome Regola</nz-form-label>
+          <nz-form-control nzErrorTip="Inserisci un nome per la regola">
+            <input nz-input formControlName="name" placeholder="Es: Major Donors Natale 2026" maxlength="200" />
+          </nz-form-control>
+        </nz-form-item>
+        
+        <nz-form-item>
+          <nz-form-label>Descrizione</nz-form-label>
+          <nz-form-control>
+            <textarea nz-input formControlName="description" placeholder="Descrizione opzionale della regola" [nzAutosize]="{ minRows: 2, maxRows: 4 }" maxlength="500"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+        
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Priorità</nz-form-label>
+              <nz-form-control nzErrorTip="Valore tra 1 e 1000">
+                <nz-input-number formControlName="priority" [nzMin]="1" [nzMax]="1000" [nzStep]="10" style="width: 100%;" placeholder="100">
+                  <ng-template nzAddOnBefore>
+                    <span nz-icon nzType="sort-ascending"></span>
+                  </ng-template>
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>Stato Regola</nz-form-label>
+              <nz-form-control>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <nz-switch formControlName="isActive"></nz-switch>
+                  <nz-tag [nzColor]="ruleForm.value.isActive ? 'success' : 'default'">
+                    {{ ruleForm.value.isActive ? 'Attiva' : 'Disattivata' }}
+                  </nz-tag>
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+      </nz-card>
+
+      <!-- Conditions Card -->
+      <nz-card nzSize="small" [nzBordered]="true" class="form-section">
+        <div class="section-header">
+          <span nz-icon nzType="filter" nzTheme="twotone"></span>
+          <h4>Condizioni di Corrispondenza</h4>
+        </div>
+        
+        <nz-alert
+          nzType="info"
+          nzShowIcon
+          nzMessage="La regola si applica solo quando TUTTE le condizioni specificate sono soddisfatte"
+          style="margin-bottom: 16px;">
+        </nz-alert>
       
       <div nz-row [nzGutter]="16">
         <div nz-col [nzSpan]="12">
           <nz-form-item>
-            <nz-form-label nzRequired>Priorità</nz-form-label>
-            <nz-form-control nzErrorTip="Valore tra 1 e 1000">
-              <nz-input-number formControlName="priority" [nzMin]="1" [nzMax]="1000" [nzStep]="10" style="width: 100%;" placeholder="100"></nz-input-number>
+            <nz-form-label>
+              <span nz-icon nzType="euro" style="margin-right: 4px;"></span>
+              Importo Minimo
+            </nz-form-label>
+            <nz-form-control>
+              <nz-input-number formControlName="minAmount" [nzMin]="0" [nzStep]="10" placeholder="Nessun limite" style="width: 100%;">
+                <ng-template nzAddOnAfter>€</ng-template>
+              </nz-input-number>
             </nz-form-control>
           </nz-form-item>
         </div>
         
         <div nz-col [nzSpan]="12">
           <nz-form-item>
-            <nz-form-label>Stato</nz-form-label>
+            <nz-form-label>
+              <span nz-icon nzType="euro" style="margin-right: 4px;"></span>
+              Importo Massimo
+            </nz-form-label>
             <nz-form-control>
-              <nz-switch formControlName="isActive"></nz-switch>
-              <span style="margin-left: 8px;">{{ ruleForm.value.isActive ? 'Attiva' : 'Disattivata' }}</span>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </div>
-      
-      <nz-divider nzText="Condizioni"></nz-divider>
-      
-      <div nz-row [nzGutter]="16">
-        <div nz-col [nzSpan]="12">
-          <nz-form-item>
-            <nz-form-label>Importo Minimo</nz-form-label>
-            <nz-form-control>
-              <nz-input-number formControlName="minAmount" [nzMin]="0" [nzStep]="10" placeholder="Nessun limite" style="width: 100%;"></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-        
-        <div nz-col [nzSpan]="12">
-          <nz-form-item>
-            <nz-form-label>Importo Massimo</nz-form-label>
-            <nz-form-control>
-              <nz-input-number formControlName="maxAmount" [nzMin]="0" [nzStep]="10" placeholder="Nessun limite" style="width: 100%;"></nz-input-number>
+              <nz-input-number formControlName="maxAmount" [nzMin]="0" [nzStep]="10" placeholder="Nessun limite" style="width: 100%;">
+                <ng-template nzAddOnAfter>€</ng-template>
+              </nz-input-number>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -223,35 +323,170 @@
           </nz-select>
         </nz-form-control>
       </nz-form-item>
-      
-      <nz-divider nzText="Azioni"></nz-divider>
-      
+
       <nz-form-item>
+        <nz-form-label>
+          <span nz-icon nzType="calendar" style="margin-right: 4px;"></span>
+          Evento/Ricorrenza
+        </nz-form-label>
         <nz-form-control>
-          <label nz-checkbox formControlName="createThankYou">Crea ringraziamento</label>
+          <nz-select formControlName="recurrenceId" nzPlaceHolder="Nessuna ricorrenza specifica" style="width: 100%;" nzAllowClear nzShowSearch>
+            <nz-option *ngFor="let recurrence of recurrences" [nzValue]="recurrence.id" [nzLabel]="recurrence.name"></nz-option>
+          </nz-select>
         </nz-form-control>
       </nz-form-item>
+      </nz-card>
+
+      <!-- Temporal Validity Card -->
+      <nz-card nzSize="small" [nzBordered]="true" class="form-section">
+        <div class="section-header">
+          <span nz-icon nzType="calendar" nzTheme="twotone"></span>
+          <h4>Validità Temporale (Regole Temporanee)</h4>
+        </div>
+
+        <nz-alert
+          nzType="warning"
+          nzShowIcon
+          nzMessage="Le regole temporali hanno priorità maggiore"
+          nzDescription="Utile per campagne stagionali o eventi specifici (es: Natale, Pasqua)"
+          style="margin-bottom: 16px;">
+        </nz-alert>
+
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>
+                <span nz-icon nzType="calendar-check" style="margin-right: 4px;"></span>
+                Valida Dal
+              </nz-form-label>
+              <nz-form-control>
+                <nz-date-picker formControlName="validFrom" placeholder="Sempre valida dall'inizio" style="width: 100%;"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label>
+                <span nz-icon nzType="calendar-times" style="margin-right: 4px;"></span>
+                Valida Fino Al
+              </nz-form-label>
+              <nz-form-control>
+                <nz-date-picker formControlName="validUntil" placeholder="Sempre valida fino alla fine" style="width: 100%;"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+      </nz-card>
+
+      <!-- Actions Card -->
+      <nz-card nzSize="small" [nzBordered]="true" class="form-section">
+        <div class="section-header">
+          <span nz-icon nzType="thunderbolt" nzTheme="twotone"></span>
+          <h4>Azioni da Eseguire</h4>
+        </div>
       
-      <div *ngIf="ruleForm.value.createThankYou">
         <nz-form-item>
-          <nz-form-label>Canale Suggerito</nz-form-label>
           <nz-form-control>
-            <nz-select formControlName="suggestedChannel" nzPlaceHolder="Auto (preferenza donatore)" style="width: 100%;" nzAllowClear>
-              <nz-option [nzValue]="PreferredThankYouChannel.Letter" nzLabel="Lettera"></nz-option>
-              <nz-option [nzValue]="PreferredThankYouChannel.Email" nzLabel="Email"></nz-option>
-            </nz-select>
+            <label nz-checkbox formControlName="createThankYou">
+              <span style="font-weight: 500;">Crea ringraziamento automatico</span>
+            </label>
           </nz-form-control>
         </nz-form-item>
         
-        <nz-form-item>
-          <nz-form-label>Template Suggerito</nz-form-label>
-          <nz-form-control>
-            <nz-select formControlName="suggestedTemplateId" nzPlaceHolder="Nessun template specifico" style="width: 100%;" nzAllowClear nzShowSearch>
-              <nz-option *ngFor="let template of letterTemplates" [nzValue]="template.id" [nzLabel]="template.name"></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+        <div *ngIf="ruleForm.value.createThankYou">
+          <nz-form-item>
+            <nz-form-label>Canale Suggerito</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="suggestedChannel" nzPlaceHolder="Auto (preferenza donatore)" style="width: 100%;" nzAllowClear>
+                <nz-option [nzValue]="PreferredThankYouChannel.Letter" nzLabel="📧 Lettera"></nz-option>
+                <nz-option [nzValue]="PreferredThankYouChannel.Email" nzLabel="✉️ Email"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+          
+          <nz-alert
+            nzType="warning"
+            nzShowIcon
+            nzMessage="Deprecato"
+            nzDescription="Il campo 'Template Suggerito' è deprecato. Usa il Pool Template qui sotto."
+            style="margin-bottom: 16px;">
+          </nz-alert>
+          
+          <nz-form-item>
+            <nz-form-label>Template Suggerito (Deprecato)</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="suggestedTemplateId" nzPlaceHolder="Usa il Pool Template invece" style="width: 100%;" nzAllowClear nzShowSearch>
+                <nz-option *ngFor="let template of letterTemplates" [nzValue]="template.id" [nzLabel]="template.name"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </nz-card>
+
+      <!-- Template Pool Card -->
+      <nz-card nzSize="small" [nzBordered]="true" class="form-section">
+        <div class="section-header">
+          <span nz-icon nzType="file-sync" nzTheme="twotone"></span>
+          <h4>Pool Template (Rotazione LRU)</h4>
+        </div>
+
+        <nz-alert
+          nzType="success"
+          nzShowIcon
+          nzMessage="Sistema di rotazione intelligente"
+          nzDescription="Seleziona più template. Il sistema sceglierà automaticamente il template meno usato per ogni donatore (Least Recently Used)"
+          style="margin-bottom: 16px;">
+        </nz-alert>
+
+      <nz-form-item>
+        <nz-form-label>Template nel Pool</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            nzMode="multiple"
+            nzPlaceHolder="Seleziona template per il pool"
+            style="width: 100%;"
+            [(ngModel)]="selectedTemplatesForPool"
+            [ngModelOptions]="{standalone: true}"
+            nzShowSearch>
+            <nz-option *ngFor="let template of letterTemplates" [nzValue]="template.id" [nzLabel]="template.name"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <div *ngIf="selectedTemplatesForPool.length > 0" style="margin-top: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <span nz-icon nzType="ordered-list" style="color: var(--brand-600); font-size: 16px;"></span>
+          <span style="font-weight: 600; color: #262626;">Ordine di Priorità</span>
+          <nz-tag nzColor="blue">{{ selectedTemplatesForPool.length }} template</nz-tag>
+        </div>
+        <div class="template-pool-list">
+          <div *ngFor="let templateId of selectedTemplatesForPool; let i = index" class="pool-item">
+            <div class="pool-number">{{ i + 1 }}</div>
+            <div class="pool-name">{{ getTemplateName(templateId) }}</div>
+            <div class="pool-actions">
+              <button nz-button nzSize="small" nzType="default" (click)="moveTemplateUp(i)" [disabled]="i === 0"
+                      nz-tooltip="Sposta su">
+                <span nz-icon nzType="arrow-up"></span>
+              </button>
+              <button nz-button nzSize="small" nzType="default" (click)="moveTemplateDown(i)" [disabled]="i === selectedTemplatesForPool.length - 1"
+                      nz-tooltip="Sposta giù">
+                <span nz-icon nzType="arrow-down"></span>
+              </button>
+              <button nz-button nzSize="small" nzDanger (click)="removeTemplateFromPool(templateId)"
+                      nz-tooltip="Rimuovi">
+                <span nz-icon nzType="close"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <nz-alert
+          nzType="success"
+          nzShowIcon
+          nzMessage="Il primo template (#1) sarà usato per i nuovi donatori. Il sistema sceglierà poi il meno recente per ogni donatore."
+          style="margin-top: 12px;">
+        </nz-alert>
       </div>
+      </nz-card>
     </form>
   </ng-container>
   

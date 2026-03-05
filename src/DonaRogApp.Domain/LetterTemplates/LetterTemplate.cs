@@ -1,5 +1,3 @@
-using DonaRogApp.Domain.Projects.Entities;
-using DonaRogApp.Domain.Recurrences.Entities;
 using DonaRogApp.Enums.Communications;
 using System;
 using System.Collections.Generic;
@@ -100,33 +98,8 @@ namespace DonaRogApp.LetterTemplates
         public string? EmailSubject { get; set; }
 
         // ======================================================================
-        // SELECTION CRITERIA (for automatic template matching)
+        // TEMPLATE CHARACTERISTICS
         // ======================================================================
-        /// <summary>
-        /// Project ID (optional - template specific to a project)
-        /// </summary>
-        public Guid? ProjectId { get; set; }
-
-        /// <summary>
-        /// Recurrence ID (optional - template for seasonal communications)
-        /// </summary>
-        public Guid? RecurrenceId { get; set; }
-
-        /// <summary>
-        /// Minimum donation amount for this template
-        /// </summary>
-        public decimal? MinAmount { get; set; }
-
-        /// <summary>
-        /// Maximum donation amount for this template
-        /// </summary>
-        public decimal? MaxAmount { get; set; }
-
-        /// <summary>
-        /// Is this template for new donors only?
-        /// </summary>
-        public bool IsForNewDonor { get; set; }
-
         /// <summary>
         /// Is this template for plural recipients (families, couples, organizations)?
         /// </summary>
@@ -195,15 +168,6 @@ namespace DonaRogApp.LetterTemplates
         // ======================================================================
         // NAVIGATION PROPERTIES
         // ======================================================================
-        /// <summary>
-        /// Associated project (if ProjectId is set)
-        /// </summary>
-        public virtual Project? Project { get; set; }
-
-        /// <summary>
-        /// Associated recurrence (if RecurrenceId is set)
-        /// </summary>
-        public virtual Recurrence? Recurrence { get; set; }
 
         /// <summary>
         /// Template attachments
@@ -237,11 +201,6 @@ namespace DonaRogApp.LetterTemplates
                 Category = Category,
                 Language = Language,
                 CommunicationType = CommunicationType,
-                ProjectId = ProjectId,
-                RecurrenceId = RecurrenceId,
-                MinAmount = MinAmount,
-                MaxAmount = MaxAmount,
-                IsForNewDonor = IsForNewDonor,
                 IsPlural = IsPlural,
                 IsActive = IsActive,
                 IsDefault = IsDefault,
@@ -253,66 +212,6 @@ namespace DonaRogApp.LetterTemplates
             };
 
             return newVersion;
-        }
-
-        // ======================================================================
-        // BUSINESS METHODS - Criteria Matching
-        // ======================================================================
-        /// <summary>
-        /// Check if this template matches the given criteria
-        /// </summary>
-        public bool MatchesCriteria(
-            decimal donationAmount,
-            bool isNewDonor,
-            bool isPlural,
-            Guid? projectId = null,
-            Guid? recurrenceId = null)
-        {
-            // Check active status
-            if (!IsActive) return false;
-
-            // Check amount range
-            if (MinAmount.HasValue && donationAmount < MinAmount.Value) return false;
-            if (MaxAmount.HasValue && donationAmount > MaxAmount.Value) return false;
-
-            // Check new donor flag
-            if (IsForNewDonor != isNewDonor) return false;
-
-            // Check plural flag
-            if (IsPlural != isPlural) return false;
-
-            // Check project (if template is project-specific)
-            if (ProjectId.HasValue && ProjectId.Value != projectId) return false;
-
-            // Check recurrence (if template is recurrence-specific)
-            if (RecurrenceId.HasValue && RecurrenceId.Value != recurrenceId) return false;
-
-            return true;
-        }
-
-        /// <summary>
-        /// Calculate match score for ranking (higher = better match)
-        /// </summary>
-        public int GetMatchScore(
-            decimal donationAmount,
-            bool isNewDonor,
-            bool isPlural,
-            Guid? projectId = null,
-            Guid? recurrenceId = null)
-        {
-            if (!MatchesCriteria(donationAmount, isNewDonor, isPlural, projectId, recurrenceId))
-                return 0;
-
-            int score = 0;
-
-            // More specific templates get higher scores
-            if (ProjectId.HasValue && ProjectId.Value == projectId) score += 10;
-            if (RecurrenceId.HasValue && RecurrenceId.Value == recurrenceId) score += 10;
-            if (MinAmount.HasValue || MaxAmount.HasValue) score += 5;
-            if (IsForNewDonor) score += 3;
-            if (IsPlural) score += 3;
-
-            return score;
         }
 
         // ======================================================================
@@ -425,25 +324,6 @@ namespace DonaRogApp.LetterTemplates
             Check.NotNullOrWhiteSpace(Name, nameof(Name));
             Check.NotNullOrWhiteSpace(Content, nameof(Content));
             Check.NotNullOrWhiteSpace(Language, nameof(Language));
-
-            if (MinAmount.HasValue && MinAmount.Value < 0)
-            {
-                throw new BusinessException("DonaRog:TemplateNegativeMinAmount")
-                    .WithData("minAmount", MinAmount.Value);
-            }
-
-            if (MaxAmount.HasValue && MaxAmount.Value < 0)
-            {
-                throw new BusinessException("DonaRog:TemplateNegativeMaxAmount")
-                    .WithData("maxAmount", MaxAmount.Value);
-            }
-
-            if (MinAmount.HasValue && MaxAmount.HasValue && MinAmount.Value > MaxAmount.Value)
-            {
-                throw new BusinessException("DonaRog:TemplateMinAmountGreaterThanMax")
-                    .WithData("minAmount", MinAmount.Value)
-                    .WithData("maxAmount", MaxAmount.Value);
-            }
         }
     }
 }

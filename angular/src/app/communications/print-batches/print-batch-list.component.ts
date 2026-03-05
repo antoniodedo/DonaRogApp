@@ -19,7 +19,6 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { PrintBatchService } from '../../proxy/communications/print-batches/print-batch.service';
 import { 
@@ -58,7 +57,6 @@ import { CampaignService } from '../../proxy/application/campaigns/campaign.serv
     NzCheckboxModule,
     NzFormModule,
     NzDescriptionsModule,
-    NzStatisticModule,
     NzSpinModule
   ]
 })
@@ -68,6 +66,12 @@ export class PrintBatchListComponent implements OnInit {
   totalCount = 0;
   pageSize = 20;
   pageIndex = 1;
+  
+  stats = {
+    ready: 0,
+    generating: 0,
+    printed: 0
+  };
   
   PrintBatchStatus = PrintBatchStatus;
   
@@ -137,6 +141,7 @@ export class PrintBatchListComponent implements OnInit {
       next: (result) => {
         this.batches = result.items || [];
         this.totalCount = result.totalCount || 0;
+        this.calculateStats();
         this.loading = false;
       },
       error: () => {
@@ -144,6 +149,14 @@ export class PrintBatchListComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+  
+  calculateStats(): void {
+    this.stats = {
+      ready: this.batches.filter(b => b.status === PrintBatchStatus.Ready).length,
+      generating: this.batches.filter(b => b.status === PrintBatchStatus.Generating).length,
+      printed: this.batches.filter(b => b.status === PrintBatchStatus.Printed).length
+    };
   }
   
   onPageChange(pageIndex: number): void {

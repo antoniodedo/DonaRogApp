@@ -14,10 +14,7 @@ namespace DonaRogApp.LetterTemplates.Dto
         public string? Language { get; set; }
         public bool? IsActive { get; set; }
         public bool? IsDefault { get; set; }
-        public Guid? ProjectId { get; set; }
-        public Guid? RecurrenceId { get; set; }
         public CommunicationType? CommunicationType { get; set; }
-        public bool? IsForNewDonor { get; set; }
         public bool? IsPlural { get; set; }
     }
 }

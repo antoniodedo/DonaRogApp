@@ -9,8 +9,7 @@ namespace DonaRogApp.Application.LetterTemplates
         {
             // Entity -> DTO
             CreateMap<DonaRogApp.LetterTemplates.LetterTemplate, LetterTemplateDto>()
-                .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => src.Project != null ? src.Project.Name : null))
-                .ForMember(dest => dest.RecurrenceName, opt => opt.MapFrom(src => src.Recurrence != null ? src.Recurrence.Name : null));
+                .ForMember(dest => dest.AssociatedRules, opt => opt.Ignore()); // Populated separately
 
             CreateMap<DonaRogApp.LetterTemplates.TemplateAttachment, TemplateAttachmentDto>();
 
@@ -22,8 +21,6 @@ namespace DonaRogApp.Application.LetterTemplates
                 .ForMember(dest => dest.LastUsedDate, opt => opt.Ignore())
                 .ForMember(dest => dest.Version, opt => opt.Ignore())
                 .ForMember(dest => dest.PreviousVersionId, opt => opt.Ignore())
-                .ForMember(dest => dest.Project, opt => opt.Ignore())
-                .ForMember(dest => dest.Recurrence, opt => opt.Ignore())
                 .ForMember(dest => dest.Attachments, opt => opt.Ignore());
         }
     }

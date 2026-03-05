@@ -2,6 +2,7 @@ using DonaRogApp.Enums.Communications;
 using DonaRogApp.Enums.Donations;
 using DonaRogApp.Enums.Donors;
 using System;
+using System.Collections.Generic;
 using Volo.Abp.Application.Dtos;
 
 namespace DonaRogApp.Application.Contracts.Communications.ThankYouRules.Dto
@@ -26,6 +27,13 @@ namespace DonaRogApp.Application.Contracts.Communications.ThankYouRules.Dto
         public string? CampaignName { get; set; }
         public DonorCategory? DonorCategory { get; set; }
         public SubjectType? SubjectType { get; set; }
+        public Guid? RecurrenceId { get; set; }
+        public string? RecurrenceName { get; set; }
+
+        // Validity Period (for temporary rules)
+        public DateTime? ValidFrom { get; set; }
+        public DateTime? ValidUntil { get; set; }
+        public bool IsTemporary { get; set; }
 
         // Actions
         public bool CreateThankYou { get; set; }
@@ -33,6 +41,20 @@ namespace DonaRogApp.Application.Contracts.Communications.ThankYouRules.Dto
         public Guid? SuggestedTemplateId { get; set; }
         public string? SuggestedTemplateName { get; set; }
 
+        // Template Pool
+        public List<TemplatePoolItemDto> TemplatePool { get; set; } = new();
+
         public string? Notes { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for templates in a rule's pool
+    /// </summary>
+    public class TemplatePoolItemDto
+    {
+        public Guid TemplateId { get; set; }
+        public string TemplateName { get; set; } = null!;
+        public int Priority { get; set; }
+        public bool IsActive { get; set; }
     }
 }

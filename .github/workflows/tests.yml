@@ -1,0 +1,110 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run Tests
+      run: dotnet test --no-build --configuration Release --logger "trx;LogFileName=test-results.trx" --logger "console;verbosity=detailed"
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: '**/TestResults/*.trx'
+
+  test-with-coverage:
+    name: Tests with Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Install coverage tools
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+    - name: Run Tests with Coverage
+      run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/
+
+    - name: Generate Coverage Report
+      run: reportgenerator -reports:./test/DonaRogApp.Application.Tests/TestResults/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Html
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: ./CoverageReport
+
+    - name: Comment PR with Coverage
+      uses: romeovs/lcov-reporter-action@v0.3.1
+      if: github.event_name == 'pull_request'
+      with:
+        lcov-file: ./test/DonaRogApp.Application.Tests/TestResults/coverage.info
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourStrong@Passw0rd
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Run Integration Tests
+      run: dotnet test --filter "FullyQualifiedName~Integration" --logger "console;verbosity=detailed"
+      env:
+        ConnectionStrings__Default: "Server=localhost,1433;Database=DonaRogApp_Test;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True"

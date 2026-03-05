@@ -1,4 +1,9 @@
-﻿using Microsoft.Data.Sqlite;
+using System;
+using System.Linq;
+using DinkToPdf;
+using DinkToPdf.Contracts;
+using DinkToPdf.EventDefinitions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -37,7 +42,6 @@ public class DonaRogAppEntityFrameworkCoreTestModule : AbpModule
         context.Services.AddAlwaysDisableUnitOfWorkTransaction();
 
         ConfigureInMemorySqlite(context.Services);
-
     }
 
     private void ConfigureInMemorySqlite(IServiceCollection services)
@@ -51,6 +55,14 @@ public class DonaRogAppEntityFrameworkCoreTestModule : AbpModule
                 context.DbContextOptions.UseSqlite(_sqliteConnection);
             });
         });
+
+        // Remove and replace DinkToPdf registration to avoid native DLL dependency
+        var converterDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IConverter));
+        if (converterDescriptor != null)
+        {
+            services.Remove(converterDescriptor);
+        }
+        services.AddSingleton<IConverter>(new MockPdfConverter());
     }
 
     public override void OnApplicationShutdown(ApplicationShutdownContext context)
@@ -73,5 +85,21 @@ public class DonaRogAppEntityFrameworkCoreTestModule : AbpModule
         }
 
         return connection;
+    }
+
+    private class MockPdfConverter : IConverter
+    {
+#pragma warning disable CS0067
+        public event EventHandler<PhaseChangedArgs>? PhaseChanged;
+        public event EventHandler<ProgressChangedArgs>? ProgressChanged;
+        public event EventHandler<FinishedArgs>? Finished;
+        public event EventHandler<ErrorArgs>? Error;
+        public event EventHandler<WarningArgs>? Warning;
+#pragma warning restore CS0067
+
+        public byte[] Convert(IDocument document)
+        {
+            return new byte[] { 0x25, 0x50, 0x44, 0x46 }; // "%PDF" header
+        }
     }
 }

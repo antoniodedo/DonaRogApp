@@ -1,2 +1,14 @@
 {
+  "oAuthConfig": {
+    "issuer": "http://localhost:44318/",
+    "requireHttps": false
+  },
+  "apis": {
+    "default": {
+      "url": "http://localhost:44318"
+    },
+    "AbpAccountPublic": {
+      "url": "http://localhost:44318/"
+    }
+  }
 }

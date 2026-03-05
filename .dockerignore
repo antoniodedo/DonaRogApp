@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Build outputs
+**/bin
+**/obj
+
+# Angular
+angular/node_modules
+angular/dist
+angular/.angular
+
+# Old/unused folders
+angular_old/
+toDo/
+
+# Logs
+**/Logs
+**/*.log
+
+# Test projects
+test/
+
+# IDE / OS
+.vs/
+.vscode/
+.cursor/
+**/.DS_Store
+**/Thumbs.db
+
+# Docs / reports
+*.md
+*.sql
+*.sh
+*.ps1

@@ -1,0 +1,41 @@
+# Estende docker-compose.yml aggiungendo un container PostgreSQL locale.
+#
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.local-db.yml up
+#
+# In questo file il migrator e l'api attendono che PostgreSQL
+# sia pronto prima di avviarsi (healthcheck).
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: donarog-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  migrator:
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

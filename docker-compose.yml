@@ -1,0 +1,51 @@
+services:
+
+  migrator:
+    build:
+      context: .
+      dockerfile: src/DonaRogApp.DbMigrator/Dockerfile
+    container_name: donarog-migrator
+    environment:
+      ConnectionStrings__Default: "Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: src/DonaRogApp.HttpApi.Host/Dockerfile
+    container_name: donarog-api
+    ports:
+      - "${API_PORT}:80"
+    volumes:
+      - app_files:/app/files
+    environment:
+      ConnectionStrings__Default: "Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+      App__SelfUrl: "http://${SERVER_HOST}:${API_PORT}"
+      App__AngularUrl: "http://${SERVER_HOST}:${FRONTEND_PORT}"
+      App__CorsOrigins: "http://${SERVER_HOST}:${FRONTEND_PORT}"
+      App__RedirectAllowedUrls: "http://${SERVER_HOST}:${FRONTEND_PORT}"
+      AuthServer__Authority: "http://${SERVER_HOST}:${API_PORT}"
+      AuthServer__RequireHttpsMetadata: "false"
+      FileStorage__BasePath: "/app/files"
+      FileStorage__Provider: "Local"
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT}"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./angular
+      dockerfile: Dockerfile
+    container_name: donarog-frontend
+    ports:
+      - "${FRONTEND_PORT}:80"
+    environment:
+      API_URL: "http://${SERVER_HOST}:${API_PORT}"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  app_files:

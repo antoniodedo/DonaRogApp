@@ -1,5 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY . .
+
+RUN dotnet publish src/DonaRogApp.DbMigrator/DonaRogApp.DbMigrator.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-self-contained
+
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
-COPY bin/Release/net9.0/publish/ app/
+
 WORKDIR /app
-ENV ASPNETCORE_URLS=http://+:80
+COPY --from=build /app/publish .
+
 ENTRYPOINT ["dotnet", "DonaRogApp.DbMigrator.dll"]

@@ -12,6 +12,7 @@ import { DonorAddressesComponent } from './donor-addresses/donor-addresses.compo
 import { DonorContactsComponent } from './donor-contacts/donor-contacts.component';
 import { DonorNotesComponent } from './donor-notes/donor-notes.component';
 import { DonorTagsComponent } from './donor-tags/donor-tags.component';
+import { DonorAttachmentsComponent } from './donor-attachments/donor-attachments.component';
 
 // NG-ZORRO Modules
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -43,6 +44,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTimelineModule } from 'ng-zorro-antd/timeline';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzUploadModule } from 'ng-zorro-antd/upload';
 
 @NgModule({
   declarations: [
@@ -53,7 +55,8 @@ import { NzDrawerModule } from 'ng-zorro-antd/drawer';
     DonorAddressesComponent,
     DonorContactsComponent,
     DonorNotesComponent,
-    DonorTagsComponent
+    DonorTagsComponent,
+    DonorAttachmentsComponent
   ],
   imports: [
     CommonModule,
@@ -90,7 +93,8 @@ import { NzDrawerModule } from 'ng-zorro-antd/drawer';
     NzCheckboxModule,
     NzTimelineModule,
     NzAutocompleteModule,
-    NzDrawerModule
+    NzDrawerModule,
+    NzUploadModule
   ]
 })
 export class DonorsModule { }

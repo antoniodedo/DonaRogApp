@@ -398,6 +398,11 @@ namespace DonaRogApp.Domain.Donors.Entities
         /// </summary>
         public virtual ICollection<DonorStatusHistory> StatusHistory { get; private set; }
 
+        /// <summary>
+        /// File attachments (documents, images, letters, etc.)
+        /// </summary>
+        public virtual ICollection<DonorAttachment> Attachments { get; private set; }
+
         // ======================================================================
         // NAVIGATION PROPERTIES - Campaigns
         // ======================================================================
@@ -425,6 +430,7 @@ namespace DonaRogApp.Domain.Donors.Entities
             Tags = new List<DonorTag>();
             Interests = new List<DonorInterest>();
             StatusHistory = new List<DonorStatusHistory>();
+            Attachments = new List<DonorAttachment>();
             CampaignParticipations = new List<DonaRogApp.Domain.Campaigns.Entities.CampaignDonor>();
 
             // Default values

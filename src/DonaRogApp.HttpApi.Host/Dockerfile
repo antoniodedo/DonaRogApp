@@ -4,12 +4,11 @@ WORKDIR /src
 RUN apt-get update && apt-get install -y nodejs npm --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN dotnet tool install -g Volo.Abp.Cli
-ENV PATH="$PATH:/root/.dotnet/tools"
-
 COPY . .
 
-RUN cd src/DonaRogApp.HttpApi.Host && abp install-libs
+RUN cd src/DonaRogApp.HttpApi.Host \
+    && npm install \
+    && node install-libs.js
 
 RUN dotnet publish src/DonaRogApp.HttpApi.Host/DonaRogApp.HttpApi.Host.csproj \
     -c Release \

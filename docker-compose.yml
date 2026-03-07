@@ -29,6 +29,7 @@ services:
       FileStorage__BasePath: "/app/files"
       FileStorage__Provider: "Local"
       ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT}"
+      App__HealthUiCheckUrl: "http://localhost/health-status"
     depends_on:
       migrator:
         condition: service_completed_successfully

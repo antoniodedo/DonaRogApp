@@ -1,14 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-RUN apt-get update && apt-get install -y nodejs npm --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY . .
-
-RUN cd src/DonaRogApp.HttpApi.Host \
-    && npm install \
-    && node install-libs.js
 
 RUN dotnet publish src/DonaRogApp.HttpApi.Host/DonaRogApp.HttpApi.Host.csproj \
     -c Release \

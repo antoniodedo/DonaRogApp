@@ -266,8 +266,8 @@ src/DonaRogApp.DbMigrator/Logs/*
 src/DonaRogApp.Blazor.Server/Logs/*
 src/DonaRogApp.Blazor.Server.Tiered/Logs/*
 
-# Use abp install-libs to restore.
-**/wwwroot/libs/*
+# wwwroot/libs is committed so Docker builds work without npm
+# Run 'abp install-libs' locally and commit after ABP version upgrades
 
 # IdentityServer temp files
 tempkey.rsa

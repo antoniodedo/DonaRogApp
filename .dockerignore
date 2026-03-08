@@ -6,10 +6,12 @@
 **/bin
 **/obj
 
-# Angular
+# Node modules
 angular/node_modules
 angular/dist
 angular/.angular
+src/**/node_modules
+src/**/wwwroot/libs
 
 # Old/unused folders
 angular_old/

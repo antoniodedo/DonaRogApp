@@ -7,6 +7,10 @@ services:
     container_name: donarog-migrator
     environment:
       ConnectionStrings__Default: "Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+      App__SelfUrl: "http://${SERVER_HOST}:${API_PORT}"
+      App__AngularUrl: "http://${SERVER_HOST}:${FRONTEND_PORT}"
+      App__RedirectAllowedUrls: "http://${SERVER_HOST}:${FRONTEND_PORT}"
+      AuthServer__Authority: "http://${SERVER_HOST}:${API_PORT}"
     restart: "no"
 
   api:

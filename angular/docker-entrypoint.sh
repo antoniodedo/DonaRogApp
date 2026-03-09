@@ -7,6 +7,8 @@ cat > /usr/share/nginx/html/dynamic-env.json << EOF
 {
   "oAuthConfig": {
     "issuer": "${API_URL}/",
+    "redirectUri": "${FRONTEND_URL}",
+    "postLogoutRedirectUri": "${FRONTEND_URL}",
     "requireHttps": false
   },
   "apis": {
@@ -20,5 +22,5 @@ cat > /usr/share/nginx/html/dynamic-env.json << EOF
 }
 EOF
 
-echo "dynamic-env.json generato con API_URL=${API_URL}"
+echo "dynamic-env.json generato con API_URL=${API_URL} FRONTEND_URL=${FRONTEND_URL}"
 exec nginx -g 'daemon off;'

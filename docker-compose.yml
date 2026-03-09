@@ -11,6 +11,8 @@ services:
       App__AngularUrl: "http://${SERVER_HOST}:${FRONTEND_PORT}"
       App__RedirectAllowedUrls: "http://${SERVER_HOST}:${FRONTEND_PORT}"
       AuthServer__Authority: "http://${SERVER_HOST}:${API_PORT}"
+      OpenIddict__Applications__DonaRogApp_App__RootUrl: "http://${SERVER_HOST}:${FRONTEND_PORT}"
+      OpenIddict__Applications__DonaRogApp_Swagger__RootUrl: "http://${SERVER_HOST}:${API_PORT}"
     restart: "no"
 
   api:
